@@ -3,46 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CynLr CRM — Review</title>
+<title>CynLr CRM v2 — Architecture Review</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px}
-.wrap{max-width:680px;width:100%;text-align:center}
-.logo{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#475569;margin-bottom:32px}
-h1{font-size:26px;font-weight:800;color:#f8fafc;margin-bottom:8px}
-.sub{font-size:14px;color:#64748b;margin-bottom:48px;line-height:1.6}
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:40px}
-.card{background:#1e2535;border:1.5px solid #334155;border-radius:14px;padding:28px 24px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;display:block;text-align:left}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 24px}
+.wrap{max-width:760px;width:100%}
+.logo{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#334155;text-align:center;margin-bottom:20px}
+h1{font-size:26px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:8px;line-height:1.2}
+.sub{font-size:13px;color:#64748b;text-align:center;margin-bottom:12px;line-height:1.6}
+.badge-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:40px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.4px}
+.b-new{background:#031a10;color:#34d399;border:1px solid #065f46}
+.b-fix{background:#1f1200;color:#fb923c;border:1px solid #451a03}
+.b-note{background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f}
+.b-dep{background:#1a0808;color:#f87171;border:1px solid #450a0a}
+
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
+.card-full{grid-column:1/-1}
+.card{background:#1e2535;border:1.5px solid #334155;border-radius:14px;padding:26px 22px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;display:block}
 .card:hover{border-color:#6366f1;transform:translateY(-2px)}
-.card-icon{font-size:28px;margin-bottom:14px}
-.card-title{font-size:15px;font-weight:700;color:#f8fafc;margin-bottom:6px}
+.card.featured{border-color:#3b1f6e;background:#0e0b1f}
+.card.featured:hover{border-color:#818cf8}
+.card-icon{font-size:26px;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:700;color:#f8fafc;margin-bottom:5px}
 .card-desc{font-size:12px;color:#64748b;line-height:1.6}
-.card-cta{margin-top:16px;font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.5px}
-.note{font-size:11px;color:#334155;line-height:1.6}
+.card-cta{margin-top:14px;font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.5px}
+.card.featured .card-cta{color:#818cf8}
+.card-meta{font-size:10px;color:#334155;margin-top:8px}
+
+.changes{margin-bottom:32px}
+.changes-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#334155;margin-bottom:12px;text-align:center}
+.changes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.change-item{background:#0f1117;border:1px solid #1e293b;border-radius:9px;padding:12px}
+.change-item h4{font-size:11px;font-weight:700;margin-bottom:4px}
+.change-item p{font-size:10px;color:#475569;line-height:1.6}
+.c-new h4{color:#34d399}
+.c-fix h4{color:#fb923c}
+.c-merge h4{color:#f87171}
+
+.note{font-size:11px;color:#334155;text-align:center;line-height:1.6;padding:0 20px}
 .note strong{color:#475569}
-@media(max-width:480px){.cards{grid-template-columns:1fr}}
+@media(max-width:540px){.cards{grid-template-columns:1fr}.changes-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="logo">CynLr · Internal Review</div>
-  <h1>CRM Architecture Docs</h1>
-  <p class="sub">Two reference documents for review.<br>Click anywhere to add comments, then download and send back.</p>
+  <h1>CRM v2 Architecture</h1>
+  <p class="sub">Two-track outreach. Normalized schema. CRM + HubSpot as centre of truth.<br>Review the proposal and diagrams, then add comments and send back.</p>
+  <div class="badge-row">
+    <span class="badge b-new">+6 new tables</span>
+    <span class="badge b-dep">−3 deprecated</span>
+    <span class="badge b-fix">4 enhanced</span>
+    <span class="badge b-note">Cold + Organic tracks</span>
+  </div>
+
   <div class="cards">
+    <a class="card featured card-full" href="proposal.html">
+      <div class="card-icon">📐</div>
+      <div class="card-title">Architecture Proposal</div>
+      <div class="card-desc">Why we're making these changes, what each new table does, a reuse map showing how data flows without clones, and the 7-step build order.</div>
+      <div class="card-cta">Start here → read the proposal</div>
+    </a>
     <a class="card" href="schema_diagram.html">
       <div class="card-icon">🗄️</div>
-      <div class="card-title">Schema &amp; Relationships</div>
-      <div class="card-desc">4-domain data model — Person, Company, Deal, Activity. Foreign key lines, field ownership, HubSpot sync bridges.</div>
-      <div class="card-cta">Open diagram →</div>
+      <div class="card-title">Schema v2 Diagram</div>
+      <div class="card-desc">All tables with fields and FK relationships. New tables highlighted in green. Deprecated tables grayed out. HubSpot bridge shown.</div>
+      <div class="card-cta">Open schema →</div>
+      <div class="card-meta">16 tables · 6 new · 3 deprecated</div>
     </a>
     <a class="card" href="data_flow.html">
       <div class="card-icon">🔄</div>
-      <div class="card-title">Deal Journey Data Flow</div>
-      <div class="card-desc">12-stage pipeline from Discovery to Closed Won — what gets created, updated, and synced at each step, with UI screenshots.</div>
+      <div class="card-title">Two-Track Data Flow</div>
+      <div class="card-desc">Cold Outreach (10 stages: AI Discovery → Send) and Organic (5 stages: Meet → HS Promote). Every DB operation shown per stage.</div>
       <div class="card-cta">Open data flow →</div>
+      <div class="card-meta">Cold: C1–C10 · Organic: O1–O5 · Converge at Meeting Set</div>
     </a>
   </div>
-  <p class="note"><strong>How to review:</strong> Open either doc · type your name · click 💬 Comment · click anywhere to annotate · ⬇ Download &amp; Send the file back to Vatsal.</p>
+
+  <div class="changes">
+    <div class="changes-title">Key Changes at a Glance</div>
+    <div class="changes-grid">
+      <div class="change-item c-new">
+        <h4>discovery_batches</h4>
+        <p>Groups every contact from one Claude Code scrape. Cohort tracking, batch approval rates.</p>
+      </div>
+      <div class="change-item c-new">
+        <h4>contact_reviews</h4>
+        <p>Stores Nikhil's swipe decisions. Separate from contacts — list build filters on yes decisions.</p>
+      </div>
+      <div class="change-item c-new">
+        <h4>message_templates</h4>
+        <p>Reusable copy with placeholders. Campaigns reference templates, not inline text.</p>
+      </div>
+      <div class="change-item c-new">
+        <h4>hs_sync_map bridge</h4>
+        <p>Unified local ↔ HubSpot FK table with sync status. Replaces scattered hs_*_id fields.</p>
+      </div>
+      <div class="change-item c-fix">
+        <h4>entry_source on persons</h4>
+        <p>cold / organic / inbound / referral. Separates the two tracks at the data level.</p>
+      </div>
+      <div class="change-item c-merge">
+        <h4>notes + activities + messages merged</h4>
+        <p>All absorbed into activity_log. One unified interaction table, richer queries.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="note"><strong>How to review:</strong> Open any doc → type your name → click <strong>💬 Comment</strong> → click anywhere to annotate → <strong>⬇ Download &amp; Send</strong> the file back to Vatsal.</p>
 </div>
 </body>
 </html>

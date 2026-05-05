@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr CRM v2 — Architecture Proposal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:40px 24px 80px}
+.page{max-width:860px;margin:0 auto}
+
+/* Header */
+.header{text-align:center;margin-bottom:48px}
+.logo{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#334155;margin-bottom:16px}
+h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.2}
+.tagline{font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6}
+.badge-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.4px}
+.b-new{background:#031a10;color:#34d399;border:1px solid #065f46}
+.b-fix{background:#1f1200;color:#fb923c;border:1px solid #451a03}
+.b-note{background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f}
+
+/* Section headers */
+.section{margin-bottom:40px}
+.section-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#475569;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:#1e293b}
+
+/* Why card */
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.why-card{background:#0f1117;border:1.5px solid #1e293b;border-radius:12px;padding:18px}
+.why-card-title{font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.why-card-body{font-size:12px;color:#64748b;line-height:1.7}
+.why-card.problem{border-color:#450a0a;background:#110606}
+.why-card.problem .why-card-title{color:#f87171}
+.why-card.solution{border-color:#064e3b;background:#031510}
+.why-card.solution .why-card-title{color:#34d399}
+
+/* Changes table */
+.changes{width:100%;border-collapse:collapse;font-size:12px}
+.changes th{text-align:left;padding:8px 12px;background:#0d1117;color:#475569;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid #1e293b}
+.changes td{padding:10px 12px;border-bottom:1px solid #0f1117;vertical-align:top;line-height:1.6}
+.changes tr:last-child td{border-bottom:none}
+.changes tr:hover td{background:#0d1117}
+.tag{display:inline-flex;font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;margin-right:4px}
+.tag-new{background:#031a10;color:#34d399;border:1px solid #065f46}
+.tag-fix{background:#1f1200;color:#fb923c;border:1px solid #451a03}
+.tag-merge{background:#1a0808;color:#f87171;border:1px solid #450a0a}
+.tag-keep{background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f}
+.mono{font-family:'Cascadia Code',monospace;font-size:10.5px;color:#94a3b8}
+
+/* Two-track visual */
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.track-card{border-radius:12px;padding:20px;border:1.5px solid}
+.cold-card{border-color:#3b1f6e;background:#0e0b1f}
+.organic-card{border-color:#064e3b;background:#031510}
+.track-card h3{font-size:13px;font-weight:800;margin-bottom:4px}
+.cold-card h3{color:#818cf8}
+.organic-card h3{color:#34d399}
+.track-card p{font-size:11px;color:#475569;margin-bottom:12px}
+.stage-pill{display:inline-flex;font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;margin:2px;white-space:nowrap}
+.cold-stage{background:#120e40;color:#a78bfa}
+.organic-stage{background:#022c21;color:#4ade80}
+
+/* Reuse diagram */
+.reuse-diagram{background:#0f1117;border:1.5px solid #1e293b;border-radius:12px;padding:20px}
+.reuse-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px}
+.reuse-row:last-child{margin-bottom:0}
+.reuse-source{background:#0a1929;border:1px solid #1e3a5f;border-radius:7px;padding:4px 10px;color:#60a5fa;font-family:'Cascadia Code',monospace;font-size:10px;white-space:nowrap}
+.reuse-arrow{color:#334155;flex-shrink:0}
+.reuse-outputs{display:flex;flex-wrap:wrap;gap:5px}
+.reuse-output{background:#0d1117;border:1px solid #1e293b;border-radius:6px;padding:3px 8px;font-size:10px;color:#64748b}
+
+/* Priority list */
+.priority-list{display:flex;flex-direction:column;gap:10px}
+.priority-item{display:flex;gap:14px;align-items:flex-start;background:#0f1117;border:1.5px solid #1e293b;border-radius:10px;padding:14px}
+.priority-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;border:1.5px solid}
+.p1 .priority-num{background:#1a1040;color:#a78bfa;border-color:#3b1f6e}
+.p2 .priority-num{background:#022c21;color:#34d399;border-color:#065f46}
+.p3 .priority-num{background:#0a1929;color:#60a5fa;border-color:#1e3a5f}
+.p4 .priority-num{background:#1f1200;color:#fb923c;border-color:#451a03}
+.p5 .priority-num{background:#12124a;color:#818cf8;border-color:#312e81}
+.p6 .priority-num{background:#031a10;color:#34d399;border-color:#065f46}
+.p7 .priority-num{background:#1f1200;color:#f59e0b;border-color:#451a03}
+.priority-content{flex:1}
+.priority-content h4{font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:3px}
+.priority-content p{font-size:11px;color:#64748b;line-height:1.6}
+.priority-tag{margin-left:auto;align-self:flex-start}
+
+/* Hosting */
+.hosting-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hosting-card{background:#0f1117;border:1.5px solid #1e293b;border-radius:10px;padding:16px}
+.hosting-card h4{font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.hosting-card p{font-size:11px;color:#64748b;line-height:1.6}
+.hosting-card.recommended{border-color:#065f46}
+.hosting-card.recommended h4{color:#34d399}
+
+/* footer */
+.footer{text-align:center;font-size:11px;color:#1e293b;margin-top:48px;padding-top:24px;border-top:1px solid #0f1117}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="logo">CynLr · Internal</div>
+  <h1>CRM v2 Architecture Proposal</h1>
+  <p class="tagline">Restructuring our data model to serve two outreach tracks without recreating data.<br>CRM + HubSpot as centre of truth. Maximum reuse. Zero clones.</p>
+  <div class="badge-row">
+    <span class="badge b-new">+6 new tables</span>
+    <span class="badge b-merge" style="background:#1a0808;color:#f87171;border:1px solid #450a0a">−3 deprecated</span>
+    <span class="badge b-fix">4 tables enhanced</span>
+    <span class="badge b-note">SQLite local → Postgres-ready</span>
+  </div>
+</div>
+
+<!-- ── WHY ── -->
+<div class="section">
+  <div class="section-title">Why We're Changing</div>
+  <div class="why-grid">
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 1 — Data Clones</div>
+      <div class="why-card-body"><span class="mono">company</span> is a free text field on every contact. BMW appears 47 times. No account-level view. Can't say "all contacts at BMW" without a messy search.</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — companies table with domain dedup</div>
+      <div class="why-card-body">One row per company. All contacts reference it via <span class="mono">company_id</span>. Account intelligence stored once. All views derived from it.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 2 — Split Status Systems</div>
+      <div class="why-card-body"><span class="mono">outreach.status</span> and <span class="mono">campaign_recipients.reply_status</span> are separate and can drift. A campaign can mark someone "Sent" while the contact still shows "Pending".</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — Campaign sends write back to outreach</div>
+      <div class="why-card-body">One status state machine. Campaign sends trigger <span class="mono">outreach.status</span> update automatically. Single source of truth.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 3 — No Track Separation</div>
+      <div class="why-card-body">No way to tell if a contact came from a cold discovery batch or an organic intro. Can't segment reporting, filter by campaign eligibility, or track approval rates.</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — entry_source + batch_id on persons</div>
+      <div class="why-card-body"><span class="mono">entry_source = cold | organic | inbound | referral</span>. Every cold contact is linked to a <span class="mono">discovery_batches</span> row. Cohort analysis enabled.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 4 — Nikhil Review Has No Home</div>
+      <div class="why-card-body">Approval decisions from Nikhil's swipe review are not stored anywhere in the CRM. After the review, there's no data trail. Can't filter "show me only contacts Nikhil approved".</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — contact_reviews table</div>
+      <div class="why-card-body">One row per review decision. <span class="mono">reviewer, decision, notes, reviewed_at</span>. Stored separately from persons — contact stays clean. Multiple reviewers supported.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TWO TRACKS ── -->
+<div class="section">
+  <div class="section-title">Two Distinct Tracks — Same Database</div>
+  <div class="tracks">
+    <div class="track-card cold-card">
+      <h3>🎯 Cold Outreach Track</h3>
+      <p>Batch · AI-driven · Review-gated · 10 stages</p>
+      <div>
+        <span class="stage-pill cold-stage">C1 AI Discovery</span>
+        <span class="stage-pill cold-stage">C2 Enrichment</span>
+        <span class="stage-pill cold-stage">C3 Swipe Review</span>
+        <span class="stage-pill cold-stage">C4 Approval Sync</span>
+        <span class="stage-pill cold-stage">C5 List Build</span>
+        <span class="stage-pill cold-stage">C6 Campaign Setup</span>
+        <span class="stage-pill cold-stage">C7 Message Draft</span>
+        <span class="stage-pill cold-stage">C8 Your Approval</span>
+        <span class="stage-pill cold-stage">C9 Schedule &amp; Send</span>
+        <span class="stage-pill cold-stage">C10 Reply Tracking</span>
+      </div>
+    </div>
+    <div class="track-card organic-card">
+      <h3>🤝 Organic Track</h3>
+      <p>Manual · Individual · Relationship-first · 5 stages</p>
+      <div>
+        <span class="stage-pill organic-stage">O1 Meet &amp; Import</span>
+        <span class="stage-pill organic-stage">O2 Log Conversation</span>
+        <span class="stage-pill organic-stage">O3 Follow-Up Loop</span>
+        <span class="stage-pill organic-stage">O4 Deal Signal</span>
+        <span class="stage-pill organic-stage">O5 HubSpot Promote</span>
+      </div>
+    </div>
+  </div>
+  <div style="background:#0a1f0a;border:1px solid #065f46;border-radius:10px;padding:12px 16px;font-size:12px;color:#4b5563;display:flex;align-items:center;gap:8px">
+    <span style="color:#34d399;font-size:16px">⬡</span>
+    <span>Both tracks converge at <strong style="color:#f8fafc">Meeting Set</strong> — one deal record, one HubSpot sync, one shared pipeline from there.</span>
+  </div>
+</div>
+
+<!-- ── REUSE MAP ── -->
+<div class="section">
+  <div class="section-title">Reuse Map — One Source, Many Outputs</div>
+  <div class="reuse-diagram">
+    <div class="reuse-row">
+      <div class="reuse-source">persons + companies</div>
+      <div class="reuse-arrow">→</div>
+      <div class="reuse-outputs">
+        <div class="reuse-output">Swipe card content (read-only)</div>
+        <div class="reuse-output">Email draft personalization</div>
+        <div class="reuse-output">HubSpot contact push</div>
+        <div class="reuse-output">Pipeline view</div>
+        <div class="reuse-output">Deal champion field</div>
+      </div>
+    </div>
+    <div class="reuse-row">
+      <div class="reuse-source">message_templates</div>
+      <div class="reuse-arrow">→</div>
+      <div class="reuse-outputs">
+        <div class="reuse-output">campaign_recipients.generated_body</div>
+        <div class="reuse-output">LinkedIn message draft</div>
+        <div class="reuse-output">A/B template comparison</div>
+      </div>
+    </div>
+    <div class="reuse-row">
+      <div class="reuse-source">contact_reviews</div>
+      <div class="reuse-arrow">→</div>
+      <div class="reuse-outputs">
+        <div class="reuse-output">List Build filter (yes decisions)</div>
+        <div class="reuse-output">Batch approval rate analytics</div>
+        <div class="reuse-output">Re-review queue (maybe decisions)</div>
+      </div>
+    </div>
+    <div class="reuse-row">
+      <div class="reuse-source">activity_log</div>
+      <div class="reuse-arrow">→</div>
+      <div class="reuse-outputs">
+        <div class="reuse-output">Contact timeline (all channels)</div>
+        <div class="reuse-output">Campaign reply tracking</div>
+        <div class="reuse-output">Follow-up reminders</div>
+        <div class="reuse-output">HubSpot engagement cache</div>
+      </div>
+    </div>
+    <div class="reuse-row">
+      <div class="reuse-source">hs_sync_map</div>
+      <div class="reuse-arrow">→</div>
+      <div class="reuse-outputs">
+        <div class="reuse-output">Which contacts are in HubSpot</div>
+        <div class="reuse-output">Sync error queue</div>
+        <div class="reuse-output">Bidirectional update routing</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCHEMA CHANGES ── -->
+<div class="section">
+  <div class="section-title">Schema Changes Summary</div>
+  <table class="changes">
+    <thead>
+      <tr><th>Table</th><th>Status</th><th>What it does</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">discovery_batches</td><td><span class="tag tag-new">NEW</span></td><td>Groups contacts from one Claude Code scrape session. Enables cohort analytics and batch-level filtering.</td></tr>
+      <tr><td class="mono">contact_reviews</td><td><span class="tag tag-new">NEW</span></td><td>Stores Nikhil's swipe decisions (yes/no/maybe). Separate from persons — contact stays clean. Multiple reviewers supported.</td></tr>
+      <tr><td class="mono">message_templates</td><td><span class="tag tag-new">NEW</span></td><td>Reusable email/LinkedIn copy with placeholders. Campaigns reference templates — generated content is per-recipient output, not a duplicate.</td></tr>
+      <tr><td class="mono">hs_sync_map</td><td><span class="tag tag-new">NEW</span></td><td>Unified FK bridge between local IDs and HubSpot IDs. Replaces scattered hs_*_id text fields. Queryable sync status.</td></tr>
+      <tr><td class="mono">persons</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds <span class="mono">entry_source</span> (cold/organic/inbound) and <span class="mono">batch_id</span> FK. Enables two-track separation and cohort filtering.</td></tr>
+      <tr><td class="mono">campaigns</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds <span class="mono">template_id</span> FK to message_templates. Campaign now references the template it used.</td></tr>
+      <tr><td class="mono">campaign_recipients</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds <span class="mono">interaction_id</span> FK linking the sent email to the activity_log row. Full auditability.</td></tr>
+      <tr><td class="mono">outreach</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Status now synced automatically when campaign sends — closes the status drift gap.</td></tr>
+      <tr><td class="mono">notes</td><td><span class="tag tag-merge">MERGED</span></td><td>Absorbed into activity_log as channel=note, direction=internal. Fewer tables, same data, richer queries.</td></tr>
+      <tr><td class="mono">activities</td><td><span class="tag tag-merge">MERGED</span></td><td>Absorbed into activity_log. Was a separate summary table — now unified interaction record.</td></tr>
+      <tr><td class="mono">messages</td><td><span class="tag tag-merge">MERGED</span></td><td>Absorbed into activity_log. Generated copy still stored in campaign_recipients. No duplicate content.</td></tr>
+      <tr><td class="mono">companies, persons, deals, activity_log, contact_lists, list_members, campaign_stages, hubspot_*</td><td><span class="tag tag-keep">KEEP</span></td><td>Existing tables retained. Schema-compatible migration via ALTER TABLE — no data loss.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── BUILD ORDER ── -->
+<div class="section">
+  <div class="section-title">Build Order — 7 Steps</div>
+  <div class="priority-list">
+    <div class="priority-item p1">
+      <div class="priority-num">1</div>
+      <div class="priority-content">
+        <h4>companies table + company_id FK on persons</h4>
+        <p>Replace the free-text company field with a real FK. Dedup on domain. Migration script maps existing text values. Unlocks account-level analytics immediately.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New table</span>
+    </div>
+    <div class="priority-item p2">
+      <div class="priority-num">2</div>
+      <div class="priority-content">
+        <h4>discovery_batches table + batch_id + entry_source on persons</h4>
+        <p>Add batch grouping and track separation. Additive — no existing data touched. Enables cold vs organic filtering from day one.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New table</span>
+    </div>
+    <div class="priority-item p3">
+      <div class="priority-num">3</div>
+      <div class="priority-content">
+        <h4>contact_reviews table</h4>
+        <p>Add the Nikhil review write-back. VCE swipe app reads from persons, writes decisions here. List Build filters on WHERE decision = 'yes'.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New table</span>
+    </div>
+    <div class="priority-item p4">
+      <div class="priority-num">4</div>
+      <div class="priority-content">
+        <h4>Migrate notes + activities + messages → activity_log</h4>
+        <p>Run migration script to move historical data into the unified log. Delete legacy tables. Simplifies every query going forward.</p>
+      </div>
+      <span class="tag tag-merge priority-tag">Data migration</span>
+    </div>
+    <div class="priority-item p5">
+      <div class="priority-num">5</div>
+      <div class="priority-content">
+        <h4>message_templates table + template_id on campaigns</h4>
+        <p>Extract copy from campaigns into versioned templates. Enable A/B testing and template reuse across campaigns.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New table</span>
+    </div>
+    <div class="priority-item p6">
+      <div class="priority-num">6</div>
+      <div class="priority-content">
+        <h4>hs_sync_map bridge table</h4>
+        <p>Replace scattered hs_*_id fields with a unified bridge. Add sync_status for error handling. Enables "show me all contacts not yet in HubSpot" queries.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New table</span>
+    </div>
+    <div class="priority-item p7">
+      <div class="priority-num">7</div>
+      <div class="priority-content">
+        <h4>Auto-sync campaign sends → outreach.status</h4>
+        <p>Add trigger: when campaign_recipients.sent_at is set, update outreach.status = Sent. Closes the status drift gap permanently.</p>
+      </div>
+      <span class="tag tag-fix priority-tag">Logic change</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOSTING ── -->
+<div class="section">
+  <div class="section-title">Hosting Strategy</div>
+  <div class="hosting-grid">
+    <div class="hosting-card">
+      <h4>📁 Now — SQLite Local</h4>
+      <p>Single file database with WAL mode already enabled. Fast, zero infra, good for single user. Keep this for development and solo use.</p>
+    </div>
+    <div class="hosting-card recommended">
+      <h4>☁ Next — Postgres on Supabase (free)</h4>
+      <p>Same schema, SQLAlchemy abstraction layer. Shared access for Vatsal + Nikhil. Always-on. No laptop dependency. One migration step — no query rewrites needed.</p>
+    </div>
+    <div class="hosting-card">
+      <h4>🔌 Add-on Pattern</h4>
+      <p>Every new feature follows: new table with FK → contacts, new _migrate() block, new interaction rows for events. No schema rewrites, just additive growth.</p>
+    </div>
+    <div class="hosting-card">
+      <h4>🔄 HubSpot Sync Rule</h4>
+      <p>Push to HubSpot only when <code style="font-family:monospace;font-size:10px;color:#94a3b8">outreach_status = Meeting Set</code>. Keeps HS pipeline clean — no junk prospects, only real deals.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── LINKS ── -->
+<div class="section">
+  <div class="section-title">Reference Documents</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <a href="schema_diagram.html" style="display:flex;align-items:center;gap:8px;background:#0f1117;border:1.5px solid #1e293b;border-radius:10px;padding:12px 16px;text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#1e293b'">
+      <span style="font-size:20px">🗄️</span>
+      <div><div style="font-size:12px;font-weight:700;color:#f8fafc">Schema v2 Diagram</div><div style="font-size:10px;color:#475569">All tables, fields, FK relationships</div></div>
+    </a>
+    <a href="data_flow.html" style="display:flex;align-items:center;gap:8px;background:#0f1117;border:1.5px solid #1e293b;border-radius:10px;padding:12px 16px;text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#1e293b'">
+      <span style="font-size:20px">🔄</span>
+      <div><div style="font-size:12px;font-weight:700;color:#f8fafc">Two-Track Data Flow</div><div style="font-size:10px;color:#475569">Cold + Organic · 10+5 stages · Operations per step</div></div>
+    </a>
+  </div>
+</div>
+
+<div class="footer">CynLr CRM v2 Architecture Proposal · Prepared by Vatsal Raj · For review by Nikhil</div>
+
+</div><!-- /page -->
+</body>
+</html>

@@ -82,8 +82,8 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </head>
 <body>
 
-<h1>CynLr CRM — 4-Domain Schema &amp; Relationships</h1>
-<p class="sub">Local SQLite (source of truth) &nbsp;⟷&nbsp; HubSpot Portal 243444910</p>
+<h1>CynLr CRM v2 — Schema &amp; Relationships</h1>
+<p class="sub">Local SQLite (source of truth) &nbsp;⟷&nbsp; HubSpot Portal 243444910 &nbsp;·&nbsp; <span style="color:#10b981;font-weight:700">v2 Architecture — Under Development</span></p>
 
 <div class="legend">
   <div class="li"><div class="ld" style="background:#60a5fa"></div>Primary Key</div>
@@ -129,6 +129,10 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
       <div class="fg"><div class="fgl">Enrichment</div>
         <div class="f"><span class="fn">location, college, about</span></div>
         <div class="f"><span class="fn">enriched_at, metadata</span></div>
+      </div>
+      <div class="fg"><div class="fgl" style="color:#10b981">Acquisition <span style="color:#10b981">(NEW v2)</span></div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80">entry_source</span><span class="ft">cold/organic/inbound/referral</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="p-batch" style="color:#4ade80">batch_id</span><span class="ft">→ discovery_batches</span></div>
       </div>
       <div class="fg"><div class="fgl">HubSpot Sync</div>
         <div class="f"><span class="pill kk">KEY</span><span class="fn" id="p-hs">hs_contact_id</span><span class="ft">UNIQUE</span></div>
@@ -226,6 +230,61 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 
 </div><!-- /row4 -->
 
+<!-- ROW 1b — NEW v2 tables: acquisition + review layer -->
+<div class="div"><div class="divl"></div><div class="divt" style="color:#10b981">✦ &nbsp; New in v2 — Acquisition &amp; Review Layer &nbsp; ✦</div><div class="divl"></div></div>
+
+<div class="row3" style="margin-bottom:16px">
+
+  <div class="card" style="border-color:#10b981" id="card-batches">
+    <div class="ch" style="background:#031510"><div class="ci" style="background:#064e3b">🗂</div><div><div class="ct">DISCOVERY BATCHES</div><div class="csub">discovery_batches · NEW · groups cold imports</div></div><span class="badge" style="background:#031a10;color:#34d399;border:1px solid #065f46">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Batch Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="db-id" style="color:#4ade80">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn" style="color:#4ade80">name</span><span class="ft">e.g. "Apr 26 — APAC Robotics"</span></div>
+        <div class="f"><span class="fn" style="color:#4ade80">source_query</span><span class="ft">search criteria used</span></div>
+        <div class="f"><span class="fn" style="color:#4ade80">created_at</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Metrics</div>
+        <div class="f"><span class="fn" style="color:#4ade80">total_found</span><span class="ft">INT</span></div>
+        <div class="f"><span class="fn" style="color:#4ade80">total_approved</span><span class="ft">INT · updated after review</span></div>
+      </div>
+      <div class="note">One row per Claude Code discovery session. persons.batch_id links every cold contact to its cohort. Enables "show me all APAC April contacts" queries.</div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#f59e0b" id="card-reviews">
+    <div class="ch" style="background:#1a1000"><div class="ci" style="background:#451a03">✅</div><div><div class="ct">CONTACT REVIEWS</div><div class="csub">contact_reviews · NEW · Nikhil swipe decisions</div></div><span class="badge" style="background:#1f1200;color:#f59e0b;border:1px solid #451a03">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Review Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" style="color:#fbbf24">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="rv-person" style="color:#fbbf24">contact_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn" style="color:#fbbf24">reviewer</span><span class="ft">TEXT · e.g. "nikhil"</span></div>
+        <div class="f"><span class="fn" style="color:#fbbf24">decision</span><span class="ft">yes / no / maybe / skip</span></div>
+        <div class="f"><span class="fn" style="color:#fbbf24">notes</span><span class="ft">optional reviewer comment</span></div>
+        <div class="f"><span class="fn" style="color:#fbbf24">reviewed_at</span><span class="ft">ISO timestamp</span></div>
+      </div>
+      <div class="note">Decision stored separately from persons. persons table stays clean — no approval state mixed in. One row per review event. Multiple reviewers supported.</div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#6366f1" id="card-templates">
+    <div class="ch" style="background:#0e0b1f"><div class="ci" style="background:#312e81">📝</div><div><div class="ct">MESSAGE TEMPLATES</div><div class="csub">message_templates · NEW · reusable copy</div></div><span class="badge" style="background:#12124a;color:#818cf8;border:1px solid #312e81">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Template Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="mt-id" style="color:#818cf8">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn" style="color:#818cf8">name</span><span class="ft">e.g. "ICP Cold — Robot Vision"</span></div>
+        <div class="f"><span class="fn" style="color:#818cf8">channel</span><span class="ft">email / linkedin</span></div>
+        <div class="f"><span class="fn" style="color:#818cf8">subject_tmpl</span><span class="ft">subject line template</span></div>
+        <div class="f"><span class="fn" style="color:#818cf8">body_tmpl</span><span class="ft">body with {{placeholders}}</span></div>
+        <div class="f"><span class="fn" style="color:#818cf8">tone</span><span class="ft">formal / warm / direct</span></div>
+        <div class="f"><span class="fn" style="color:#818cf8">version</span><span class="ft">INT · for A/B tracking</span></div>
+      </div>
+      <div class="note">campaigns.template_id references this. Generated copy in campaign_recipients is the per-contact output — the template is never duplicated.</div>
+    </div>
+  </div>
+
+</div>
+
 <!-- ROW 2 — Support tables -->
 <div class="row3">
 
@@ -278,6 +337,28 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 
 <!-- DIVIDER -->
 <div class="div"><div class="divl"></div><div class="divt">⟷ &nbsp; HubSpot Sync Layer &nbsp; ⟷</div><div class="divl"></div></div>
+
+<!-- ROW 2b — HubSpot bridge (new) -->
+<div style="margin-bottom:12px">
+  <div class="card" style="border-color:#a78bfa;max-width:480px;margin:0 auto" id="card-hs-sync">
+    <div class="ch" style="background:#16103a"><div style="font-size:11px;font-weight:700;color:#a78bfa">Bridge</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">HS SYNC MAP</div><div class="csub">hs_sync_map · NEW · local ↔ HubSpot FK bridge</div></div><span class="badge" style="background:#16103a;color:#a78bfa;border:1px solid #3b1f45">NEW</span></div>
+    <div class="cb" style="display:grid;grid-template-columns:1fr 1fr">
+      <div class="fg">
+        <div class="fgl">Sync Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" style="color:#c084fc">id</span></div>
+        <div class="f"><span class="fn" style="color:#c084fc">entity_type</span><span class="ft">contact/deal/company</span></div>
+        <div class="f"><span class="fn" style="color:#c084fc">local_id</span><span class="ft">INT</span></div>
+        <div class="f"><span class="fn" style="color:#c084fc">hs_id</span><span class="ft">TEXT · HubSpot id</span></div>
+      </div>
+      <div class="fg">
+        <div class="fgl">State</div>
+        <div class="f"><span class="fn" style="color:#c084fc">last_synced</span><span class="ft">ISO timestamp</span></div>
+        <div class="f"><span class="fn" style="color:#c084fc">sync_status</span><span class="ft">ok/pending/error</span></div>
+      </div>
+    </div>
+    <div class="note" style="padding:6px 14px 8px">Replaces scattered hs_*_id fields. Unified bridge: one row per synced entity. Queryable: "show all contacts pending HS sync".</div>
+  </div>
+</div>
 
 <!-- ROW 3 — HubSpot objects -->
 <div class="row3b">
@@ -422,6 +503,12 @@ const LINES = [
   {from:'p-hs', to:'card-hsc', color:'#a78bfa', dashed:true, label:'sync'},
   {from:'c-hs', to:'card-hscm', color:'#34d399', dashed:true, label:'sync'},
   {from:'d-hs', to:'card-hsd', color:'#fbbf24', dashed:true, label:'sync'},
+  // v2: persons.batch_id → discovery_batches.id
+  {from:'p-batch', to:'db-id', color:'#10b981', label:'N:1'},
+  // v2: contact_reviews.contact_id → persons.id
+  {from:'rv-person', to:'p-id', color:'#f59e0b', label:'N:1'},
+  // v2: campaigns.template_id → message_templates.id
+  {from:'ca-list', to:'mt-id', color:'#6366f1', dashed:true, label:'template'},
 ];
 
 function getMidRight(el, wrap) {

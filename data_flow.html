@@ -1,14 +1,24 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CynLr CRM — Deal Journey Data Flow</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr CRM v2 — Two-Track Data Flow</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:36px 24px 80px}
-
 h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:4px}
-.sub{text-align:center;font-size:12px;color:#475569;margin-bottom:36px}
+.sub{text-align:center;font-size:12px;color:#475569;margin-bottom:12px}
+.v2-badge{display:inline-flex;align-items:center;gap:6px;background:#1a1040;border:1px solid #6366f1;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;color:#818cf8;letter-spacing:.5px;margin:0 auto 28px;display:block;text-align:center;width:fit-content;margin:0 auto 28px}
+
+/* operation pills */
+.op{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cr{background:#052e1c;color:#4ade80}
+.up{background:#2a1a08;color:#fb923c}
+.sy{background:#1e1040;color:#c084fc}
+.lg{background:#0a1929;color:#60a5fa}
+.rd{background:#1a0808;color:#f87171}
+.fi{background:#0c1a0c;color:#86efac}
 
 /* domain badges */
 .badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
@@ -20,133 +30,236 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 .dl{background:#1a0f3c;color:#a78bfa;border:1px solid #4c1d95}
 .dc{background:#200012;color:#f472b6;border:1px solid #500724}
 .hs{background:#1e1040;color:#c084fc;border:1px solid #3b1f45}
+.dr{background:#16103a;color:#a78bfa;border:1px solid #3b1f45}
 
-/* operation pills */
-.op{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
-.cr{background:#052e1c;color:#4ade80}
-.up{background:#2a1a08;color:#fb923c}
-.sy{background:#1e1040;color:#c084fc}
-.rd{background:#1a0808;color:#f87171}
-.lg{background:#0a1929;color:#60a5fa}
+/* track overview */
+.tracks-overview{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin-bottom:36px;align-items:stretch}
+.track-box{border-radius:12px;padding:20px 22px;border:1.5px solid}
+.track-cold{border-color:#3b1f6e;background:#0e0b1f}
+.track-organic{border-color:#064e3b;background:#031510}
+.track-arrow{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;padding:0 20px;color:#334155}
+.track-arrow-line{width:1px;height:40px;background:#1e293b}
+.track-arrow-text{font-size:9px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.8px;writing-mode:vertical-lr;transform:rotate(180deg)}
+.track-title{font-size:14px;font-weight:800;margin-bottom:4px}
+.track-cold .track-title{color:#818cf8}
+.track-organic .track-title{color:#34d399}
+.track-meta{font-size:11px;color:#475569;margin-bottom:10px}
+.track-stages-list{display:flex;flex-direction:column;gap:3px}
+.track-stage-item{font-size:10px;color:#64748b;display:flex;align-items:center;gap:6px}
+.track-stage-item::before{content:'';width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.track-cold .track-stage-item::before{background:#6366f1}
+.track-organic .track-stage-item::before{background:#10b981}
+.track-note{font-size:10px;color:#4b5563;margin-top:10px;border-top:1px solid #1e293b;padding-top:8px}
 
-/* main layout */
-.page{max-width:1180px;margin:0 auto}
+/* page layout */
+.page{max-width:1140px;margin:0 auto}
 
-/* each stage */
-.stage{display:grid;grid-template-columns:200px 1fr;gap:0;margin-bottom:0;position:relative}
-.stage:last-child .connector{display:none}
+/* track section header */
+.track-header{border-radius:10px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px}
+.track-header-cold{background:#0e0b1f;border:1.5px solid #3b1f6e}
+.track-header-organic{background:#031510;border:1.5px solid #064e3b}
+.th-icon{font-size:22px}
+.th-title{font-size:15px;font-weight:800}
+.track-header-cold .th-title{color:#818cf8}
+.track-header-organic .th-title{color:#34d399}
+.th-desc{font-size:11px;color:#4b5563;margin-top:2px}
+.th-count{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.track-header-cold .th-count{background:#1a1040;color:#818cf8;border:1px solid #3b1f6e}
+.track-header-organic .th-count{background:#031a10;color:#34d399;border:1px solid #064e3b}
 
-/* left: stage label */
+/* stage */
+.stage{display:grid;grid-template-columns:200px 1fr;gap:0;margin-bottom:0}
 .stage-left{padding:0 20px 0 0;position:relative}
 .stage-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;position:relative;z-index:2}
 .stage-name{font-size:13px;font-weight:700;margin-top:6px;line-height:1.3}
 .stage-label{font-size:10px;color:#475569;margin-top:2px}
 .stage-domains{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .stage-header{display:flex;align-items:flex-start;gap:10px}
+.v-line{position:absolute;left:17px;top:36px;bottom:0;width:2px;background:linear-gradient(to bottom,#1e293b 0%,#0f172a 100%);z-index:1}
 
-/* vertical connector */
-.v-line{position:absolute;left:17px;top:36px;bottom:0;width:2px;background:linear-gradient(to bottom, #1e293b 0%, #0f172a 100%);z-index:1}
+/* cold stage colours */
+.sc1{border-color:#3b1f6e}.sc1 .stage-num{background:#1a1040;color:#a78bfa;border:2px solid #3b1f6e}
+.sc2{border-color:#2e1f6e}.sc2 .stage-num{background:#120e40;color:#818cf8;border:2px solid #2e1f6e}
+.sc3{border-color:#1e3a5f}.sc3 .stage-num{background:#0a1929;color:#60a5fa;border:2px solid #1e3a5f}
+.sc4{border-color:#064e3b}.sc4 .stage-num{background:#041f14;color:#10b981;border:2px solid #064e3b}
+.sc5{border-color:#1e3a5f}.sc5 .stage-num{background:#0a1929;color:#60a5fa;border:2px solid #1e3a5f}
+.sc6{border-color:#312e81}.sc6 .stage-num{background:#12124a;color:#818cf8;border:2px solid #312e81}
+.sc7{border-color:#500724}.sc7 .stage-num{background:#200012;color:#f472b6;border:2px solid #500724}
+.sc8{border-color:#451a03}.sc8 .stage-num{background:#1f1200;color:#f59e0b;border:2px solid #451a03}
+.sc9{border-color:#065f46}.sc9 .stage-num{background:#022c21;color:#34d399;border:2px solid #065f46}
+.sc10{border-color:#1e3a5f}.sc10 .stage-num{background:#0a1929;color:#60a5fa;border:2px solid #1e3a5f}
 
-/* right: content panel */
+/* organic stage colours */
+.so1{border-color:#065f46}.so1 .stage-num{background:#022c21;color:#34d399;border:2px solid #065f46}
+.so2{border-color:#064e3b}.so2 .stage-num{background:#041f14;color:#10b981;border:2px solid #064e3b}
+.so3{border-color:#1e3a5f}.so3 .stage-num{background:#0a1929;color:#60a5fa;border:2px solid #1e3a5f}
+.so4{border-color:#451a03}.so4 .stage-num{background:#1f1200;color:#f59e0b;border:2px solid #451a03}
+.so5{border-color:#3b1f6e}.so5 .stage-num{background:#1a1040;color:#a78bfa;border:2px solid #3b1f6e}
+
+/* stage right panel */
 .stage-right{border:1.5px solid;border-radius:12px;padding:16px 18px;margin-bottom:20px;position:relative}
 
-/* operation rows */
+/* ops */
 .ops{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .op-row{display:flex;gap:8px;align-items:flex-start}
 .op-body{flex:1}
 .op-title{font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:4px;display:flex;align-items:center;gap:6px}
 .fields{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.field-chip{font-family:'Cascadia Code',monospace;font-size:10px;background:#0f172a;border:1px solid #1e293b;color:#94a3b8;padding:2px 7px;border-radius:5px}
+.field-chip{font-family:'Cascadia Code','Courier New',monospace;font-size:10px;background:#0f172a;border:1px solid #1e293b;color:#94a3b8;padding:2px 7px;border-radius:5px}
 .field-chip.new{border-color:#064e3b;color:#4ade80;background:#041f14}
 .field-chip.changed{border-color:#451a03;color:#fb923c;background:#2a1a08}
 .field-chip.synced{border-color:#3b1f45;color:#c084fc;background:#1e1040}
+.field-chip.filter{border-color:#065f46;color:#34d399;background:#022c21}
 .desc{font-size:11px;color:#64748b;margin-top:6px;line-height:1.5}
 .hs-sync{margin-top:10px;padding:8px 12px;background:#16103a;border:1px solid #3b1f45;border-radius:8px;font-size:11px;color:#a78bfa;display:flex;align-items:center;gap:8px}
-.hs-icon{font-size:14px}
-.stage-divider{height:1px;background:#0f172a;margin-bottom:20px}
+.gate{margin-top:10px;padding:8px 12px;background:#1a1208;border:1px solid #451a03;border-radius:8px;font-size:11px;color:#fb923c;display:flex;align-items:center;gap:8px}
 
-/* stage color themes */
-.s1{border-color:#1e3a5f}.s1 .stage-num{background:#0a1929;color:#60a5fa;border:2px solid #1e3a5f}
-.s2{border-color:#064e3b}.s2 .stage-num{background:#041f14;color:#10b981;border:2px solid #064e3b}
-.s3{border-color:#3b1f45}.s3 .stage-num{background:#1e1040;color:#c084fc;border:2px solid #3b1f45}
-.s4{border-color:#1e3a5f}.s4 .stage-num{background:#0a1929;color:#60a5fa;border:2px solid #1e3a5f}
-.s5{border-color:#064e3b}.s5 .stage-num{background:#041f14;color:#10b981;border:2px solid #064e3b}
-.s6{border-color:#451a03}.s6 .stage-num{background:#1f1200;color:#f59e0b;border:2px solid #451a03}
-.s7{border-color:#1a0808}.s7 .stage-num{background:#140505;color:#ef4444;border:2px solid #1a0808}
-.s8{border-color:#451a03}.s8 .stage-num{background:#1f1200;color:#f59e0b;border:2px solid #451a03}
-.s9{border-color:#12124a}.s9 .stage-num{background:#0c0c30;color:#818cf8;border:2px solid #312e81}
-.s10{border-color:#500724}.s10 .stage-num{background:#200012;color:#f472b6;border:2px solid #500724}
-.s11{border-color:#451a03}.s11 .stage-num{background:#1f1200;color:#f59e0b;border:2px solid #451a03}
-.s12{border-color:#064e3b}.s12 .stage-num{background:#041f14;color:#10b981;border:2px solid #064e3b}
-
-/* State-machine strip */
+/* state strip */
 .state-strip{display:flex;align-items:center;gap:0;margin-top:12px;overflow-x:auto}
 .state-node{font-size:9px;font-weight:700;padding:3px 10px;white-space:nowrap}
 .state-arr{font-size:10px;color:#334155;padding:0 2px}
 .state-active{border-radius:6px;outline:1.5px solid}
 
-/* HS field map table */
-.map-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}
-.map-table th{text-align:left;padding:5px 8px;background:#0f1117;color:#475569;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #1e293b}
-.map-table td{padding:5px 8px;border-bottom:1px solid #0f1117;vertical-align:top}
-.map-table tr:last-child td{border-bottom:none}
-.mono{font-family:'Cascadia Code',monospace;font-size:10px}
+/* divider */
+.track-divider{display:flex;align-items:center;gap:14px;margin:40px 0 32px}
+.tdl{flex:1;height:1px}
+.cold-div .tdl{background:#1e1040}
+.organic-div .tdl{background:#031f14}
+.tdt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;padding:4px 12px;border-radius:20px}
+.cold-div .tdt{color:#818cf8;background:#0e0b1f;border:1px solid #3b1f6e}
+.organic-div .tdt{color:#34d399;background:#031510;border:1px solid #064e3b}
+
+/* convergence */
+.converge{background:#0f1117;border:1.5px solid #1e293b;border-radius:14px;padding:24px;margin-top:36px;margin-bottom:36px}
+.converge-title{font-size:14px;font-weight:800;color:#f8fafc;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.converge-sub{font-size:11px;color:#475569;margin-bottom:18px}
+.converge-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.converge-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.converge-cold h4{color:#6366f1}
+.converge-organic h4{color:#10b981}
+.converge-item{font-size:11px;color:#64748b;padding:3px 0;display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.converge-item::before{content:'→';color:#334155;flex-shrink:0;margin-top:0}
+.converge-arrow{display:flex;justify-content:center;align-items:center;margin:16px 0;gap:20px;color:#475569;font-size:11px}
+.converge-final{background:#0a1f0a;border:1px solid #065f46;border-radius:10px;padding:14px 18px;margin-top:16px}
+.converge-final-title{font-size:12px;font-weight:700;color:#34d399;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.converge-steps{display:flex;flex-direction:column;gap:4px}
+.converge-step{font-size:11px;color:#64748b;display:flex;align-items:center;gap:8px}
+.converge-step-num{width:18px;height:18px;border-radius:50%;background:#031a10;border:1px solid #065f46;color:#34d399;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* legend */
-.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-bottom:32px}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-bottom:28px}
 .li{display:flex;align-items:center;gap:5px;font-size:11px;color:#94a3b8}
+
+@media(max-width:700px){.tracks-overview{grid-template-columns:1fr}.track-arrow{display:none}.stage{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<h1>CynLr CRM — Deal Journey Data Flow</h1>
-<p class="sub">Discovery → Qualification → Outreach → Engagement → Close &nbsp;·&nbsp; Which domain changes at every step</p>
+<h1>CynLr CRM v2 — Two-Track Outreach Architecture</h1>
+<p class="sub">Cold Outreach (batch, AI-driven) &nbsp;·&nbsp; Organic (manual, relationship-first) &nbsp;·&nbsp; Both converge at Deal stage</p>
+<div class="v2-badge">v2 Architecture — Under Development</div>
 
 <div class="legend">
   <div class="li"><span class="op cr">CREATE</span> New record inserted</div>
   <div class="li"><span class="op up">UPDATE</span> Existing record changed</div>
   <div class="li"><span class="op sy">SYNC →HS</span> Pushed to HubSpot</div>
   <div class="li"><span class="op lg">LOG</span> Activity entry added</div>
-  <div class="li"><span class="badge d1">D1 Person</span></div>
-  <div class="li"><span class="badge d2">D2 Company</span></div>
-  <div class="li"><span class="badge d3">D3 Deal</span></div>
-  <div class="li"><span class="badge d4">D4 Activity</span></div>
+  <div class="li"><span class="op fi">FILTER</span> Query to select records</div>
+  <div class="li"><span class="badge d1">Person</span></div>
+  <div class="li"><span class="badge d2">Company</span></div>
+  <div class="li"><span class="badge d3">Deal</span></div>
+  <div class="li"><span class="badge d4">Activity</span></div>
+  <div class="li"><span class="badge dr">Review</span></div>
+</div>
+
+<!-- ══════════ TRACK OVERVIEW ══════════ -->
+<div class="tracks-overview" style="max-width:1140px;margin:0 auto 36px">
+  <div class="track-box track-cold">
+    <div class="track-title">🎯 Cold Outreach Track</div>
+    <div class="track-meta">Programmatic · Batch · AI-driven</div>
+    <div class="track-stages-list">
+      <div class="track-stage-item">01 AI Discovery — Claude Code scrapes leads</div>
+      <div class="track-stage-item">02 CRM Import — Contacts & batch record created</div>
+      <div class="track-stage-item">03 Enrichment — LinkedIn profile deepened</div>
+      <div class="track-stage-item">04 Swipe Review — VCE cards sent to Nikhil</div>
+      <div class="track-stage-item">05 Approval Sync — Yes/No decisions written back</div>
+      <div class="track-stage-item">06 List Build — Approved contacts filtered into list</div>
+      <div class="track-stage-item">07 Campaign Setup — Campaign created from list</div>
+      <div class="track-stage-item">08 Message Draft — AI generates email + LinkedIn msg</div>
+      <div class="track-stage-item">09 Your Approval — Vatsal reviews per-recipient</div>
+      <div class="track-stage-item">10 Schedule &amp; Send — Emails queued and delivered</div>
+    </div>
+    <div class="track-note">Entry point: batch discovery run · All contacts share a batch_id</div>
+  </div>
+  <div class="track-arrow">
+    <div class="track-arrow-line"></div>
+    <div class="track-arrow-text">Converge at Meeting Set</div>
+    <div class="track-arrow-line"></div>
+  </div>
+  <div class="track-box track-organic">
+    <div class="track-title">🤝 Organic Track</div>
+    <div class="track-meta">Manual · Individual · Relationship-first</div>
+    <div class="track-stages-list">
+      <div class="track-stage-item">01 Meet &amp; Import — Contact added manually</div>
+      <div class="track-stage-item">02 Log Conversation — Activity entry written</div>
+      <div class="track-stage-item">03 Follow-Up Loop — Ongoing nurture, no campaign</div>
+      <div class="track-stage-item">04 Deal Signal — Real interest detected, deal opened</div>
+      <div class="track-stage-item">05 HubSpot Promote — Contact + deal synced to HS</div>
+    </div>
+    <div class="track-note">Entry point: conference, intro, inbound DM, referral</div>
+  </div>
 </div>
 
 <div class="page">
 
-<!-- ─────────────── STAGE 1 ─────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════
+     COLD OUTREACH TRACK
+══════════════════════════════════════════════════ -->
+<div class="track-header track-header-cold">
+  <div class="th-icon">🎯</div>
+  <div>
+    <div class="th-title">Cold Outreach Track</div>
+    <div class="th-desc">Batch discovery → enrichment → review gate → campaign → scheduled send</div>
+  </div>
+  <div class="th-count">10 stages</div>
+</div>
+
+<!-- ───── STAGE C01 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s1">1</div>
-      <div>
-        <div class="stage-name">Discovery</div>
-        <div class="stage-label">Lead identified</div>
-      </div>
+      <div class="stage-num sc1">C1</div>
+      <div><div class="stage-name">AI Discovery</div><div class="stage-label">Leads found by Claude</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d1">Person</span>
-      <span class="badge d2">Company</span>
+      <span class="badge d1">Person</span><span class="badge d2">Company</span>
     </div>
     <div class="v-line"></div>
   </div>
-  <div class="stage-right s1">
-    <div style="font-size:12px;color:#94a3b8">You find a potential lead — via LinkedIn, event, referral, or cold research.</div>
+  <div class="stage-right sc1">
+    <div style="font-size:12px;color:#94a3b8">Claude Code + VS Code tools scrape LinkedIn profiles using search criteria. A discovery batch is opened. Every found contact is assigned to that batch.</div>
     <div class="ops">
+      <div class="op-row">
+        <span class="op cr">CREATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge dr">Batch</span> discovery_batches</div>
+          <div class="fields">
+            <span class="field-chip new">name</span>
+            <span class="field-chip new">source_query</span>
+            <span class="field-chip new">created_at</span>
+            <span class="field-chip">total_found (updated on close)</span>
+          </div>
+          <div class="desc">One batch per discovery session. Groups all contacts from that run for cohort analysis.</div>
+        </div>
+      </div>
       <div class="op-row">
         <span class="op cr">CREATE</span>
         <div class="op-body">
           <div class="op-title"><span class="badge d2">Company</span> companies</div>
           <div class="fields">
-            <span class="field-chip new">name</span>
-            <span class="field-chip new">domain</span>
-            <span class="field-chip new">industry</span>
-            <span class="field-chip new">segment</span>
-            <span class="field-chip new">geography</span>
-            <span class="field-chip">icp_fit = Unknown</span>
+            <span class="field-chip new">name</span><span class="field-chip new">domain (dedup key)</span><span class="field-chip new">industry</span><span class="field-chip new">geography</span>
           </div>
-          <div class="desc">domain is the dedup key — if company already exists, skip CREATE and reuse existing id.</div>
+          <div class="desc">domain is the dedup key — if company already exists, reuse the existing row.</div>
         </div>
       </div>
       <div class="op-row">
@@ -154,65 +267,47 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
         <div class="op-body">
           <div class="op-title"><span class="badge d1">Person</span> persons</div>
           <div class="fields">
-            <span class="field-chip new">full_name</span>
-            <span class="field-chip new">linkedin_url</span>
-            <span class="field-chip new">company_id</span>
-            <span class="field-chip new">company_name</span>
-            <span class="field-chip new">source</span>
-            <span class="field-chip new">bucket</span>
-            <span class="field-chip new">event</span>
+            <span class="field-chip new">name</span><span class="field-chip new">linkedin_url</span><span class="field-chip new">company_id →</span>
+            <span class="field-chip new">entry_source = cold</span>
+            <span class="field-chip new">batch_id →</span>
             <span class="field-chip">outreach_status = Pending</span>
-            <span class="field-chip">poc_status = Cold</span>
-            <span class="field-chip">priority = 5.0</span>
+            <span class="field-chip">bucket (ICP/VC/Founder)</span>
           </div>
         </div>
       </div>
     </div>
-    <!-- state strip -->
     <div class="state-strip" style="margin-top:14px">
-      <span class="state-node state-active" style="background:#1e3a5f;color:#93c5fd;outline-color:#3b82f6">outreach_status: Pending</span>
+      <span class="state-node state-active" style="background:#1a1040;color:#a78bfa;outline-color:#6366f1">Pending</span>
       <span class="state-arr">→</span><span class="state-node" style="color:#334155">Sent</span>
       <span class="state-arr">→</span><span class="state-node" style="color:#334155">Replied</span>
       <span class="state-arr">→</span><span class="state-node" style="color:#334155">Meeting Set</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Closed</span>
     </div>
   </div>
 </div>
 
-<!-- ─────────────── STAGE 2 ─────────────────────────────────── -->
+<!-- ───── STAGE C02 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s2">2</div>
-      <div>
-        <div class="stage-name">Research &amp; Enrichment</div>
-        <div class="stage-label">Profile deepened</div>
-      </div>
+      <div class="stage-num sc2">C2</div>
+      <div><div class="stage-name">Enrichment</div><div class="stage-label">Profile deepened</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d1">Person</span>
-      <span class="badge d2">Company</span>
-      <span class="badge d4">Activity</span>
+      <span class="badge d1">Person</span><span class="badge d2">Company</span><span class="badge d4">Activity</span>
     </div>
     <div class="v-line"></div>
   </div>
-  <div class="stage-right s2">
-    <div style="font-size:12px;color:#94a3b8">LinkedIn enrichment runs (via Apify or manual). Profile is deepened. ICP assessment made.</div>
+  <div class="stage-right sc2">
+    <div style="font-size:12px;color:#94a3b8">LinkedIn profile is fully scraped. Position, education, location, photo, bio pulled in. Company ICP fit assessed.</div>
     <div class="ops">
       <div class="op-row">
         <span class="op up">UPDATE</span>
         <div class="op-body">
           <div class="op-title"><span class="badge d1">Person</span> persons</div>
           <div class="fields">
-            <span class="field-chip changed">headline</span>
-            <span class="field-chip changed">position</span>
-            <span class="field-chip changed">location</span>
-            <span class="field-chip changed">college</span>
-            <span class="field-chip changed">about</span>
-            <span class="field-chip changed">photo_path</span>
+            <span class="field-chip changed">headline</span><span class="field-chip changed">position</span><span class="field-chip changed">location</span>
+            <span class="field-chip changed">college</span><span class="field-chip changed">about</span><span class="field-chip changed">photo_path</span>
             <span class="field-chip changed">enriched_at</span>
-            <span class="field-chip changed">poc_status → Warm or ICP</span>
-            <span class="field-chip changed">relationship_strength → 3</span>
           </div>
         </div>
       </div>
@@ -221,10 +316,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
         <div class="op-body">
           <div class="op-title"><span class="badge d2">Company</span> companies</div>
           <div class="fields">
-            <span class="field-chip changed">icp_fit → Strong/Medium/Weak</span>
-            <span class="field-chip changed">company_size</span>
-            <span class="field-chip changed">website</span>
-            <span class="field-chip changed">relationship_score</span>
+            <span class="field-chip changed">icp_fit → Strong/Medium/Weak</span><span class="field-chip changed">company_size</span><span class="field-chip changed">relationship_score</span>
           </div>
         </div>
       </div>
@@ -233,10 +325,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
         <div class="op-body">
           <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
           <div class="fields">
-            <span class="field-chip new">activity_type = Enrichment</span>
-            <span class="field-chip new">direction = Internal</span>
-            <span class="field-chip new">person_id</span>
-            <span class="field-chip new">company_id</span>
+            <span class="field-chip new">activity_type = Enrichment</span><span class="field-chip new">direction = Internal</span><span class="field-chip new">person_id</span>
           </div>
         </div>
       </div>
@@ -244,472 +333,263 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
   </div>
 </div>
 
-<!-- ─────────────── STAGE 3 ─────────────────────────────────── -->
+<!-- ───── STAGE C03 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s3">3</div>
-      <div>
-        <div class="stage-name">Qualification &amp; Deal Creation</div>
-        <div class="stage-label">Opportunity opened</div>
-      </div>
+      <div class="stage-num sc3">C3</div>
+      <div><div class="stage-name">Swipe Review</div><div class="stage-label">Nikhil approves contacts</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d3">Deal</span>
-      <span class="badge dj">Junction</span>
-      <span class="badge hs">→ HS</span>
+      <span class="badge dr">Review</span><span class="badge d1">Person</span>
     </div>
     <div class="v-line"></div>
   </div>
-  <div class="stage-right s3">
-    <div style="font-size:12px;color:#94a3b8">You decide this person + company is worth pursuing. A deal is opened and the contact is linked as the champion.</div>
+  <div class="stage-right sc3">
+    <div style="font-size:12px;color:#94a3b8">VCE swipe cards are generated by reading the enriched person + company data. Nikhil reviews and marks each contact yes / no / maybe.</div>
     <div class="ops">
       <div class="op-row">
-        <span class="op cr">CREATE</span>
+        <span class="op fi">FILTER</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
+          <div class="op-title"><span class="badge d1">Person</span> → Card content</div>
           <div class="fields">
-            <span class="field-chip new">name</span>
-            <span class="field-chip new">company_id</span>
-            <span class="field-chip new">stage = Prospecting</span>
-            <span class="field-chip new">application_type</span>
-            <span class="field-chip new">lead_source</span>
-            <span class="field-chip">amount = null</span>
-            <span class="field-chip">technical_win = false</span>
-            <span class="field-chip">budget_confirmed = false</span>
+            <span class="field-chip">name, headline, position</span><span class="field-chip">company name, industry, icp_fit</span>
+            <span class="field-chip">location, about, photo</span>
           </div>
+          <div class="desc">Card is generated on-demand from stored data. Nothing new is written here — reading only.</div>
         </div>
       </div>
       <div class="op-row">
         <span class="op cr">CREATE</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge dj">Junction</span> deal_contacts</div>
+          <div class="op-title"><span class="badge dr">Review</span> contact_reviews</div>
           <div class="fields">
-            <span class="field-chip new">deal_id</span>
-            <span class="field-chip new">person_id</span>
-            <span class="field-chip new">role = Champion</span>
+            <span class="field-chip new">contact_id →</span>
+            <span class="field-chip new">reviewer = nikhil</span>
+            <span class="field-chip new">decision = yes | no | maybe | skip</span>
+            <span class="field-chip new">notes (optional)</span>
+            <span class="field-chip new">reviewed_at</span>
           </div>
-          <div class="desc">Also set deals.champion_id = person_id (fast-access shortcut).</div>
+          <div class="desc">Decision stored in its own table. persons row stays clean — no approval state mixed in.</div>
         </div>
       </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: create Deal object · set stage=Prospecting · associate Contact</div>
+    </div>
+    <div class="gate">⚠ Human gate — pipeline pauses here until Nikhil's review is returned and synced back.</div>
+  </div>
+</div>
+
+<!-- ───── STAGE C04 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num sc4">C4</div>
+      <div><div class="stage-name">Approval Sync</div><div class="stage-label">Decisions written back</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge dr">Review</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right sc4">
+    <div style="font-size:12px;color:#94a3b8">Nikhil sends back the annotated file. Decisions are parsed and written to contact_reviews. Batch total_approved is updated.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge dr">Review</span> contact_reviews</div>
+          <div class="fields">
+            <span class="field-chip changed">decision = yes | no | maybe</span>
+            <span class="field-chip changed">notes (if provided)</span>
+          </div>
+        </div>
+      </div>
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge dr">Batch</span> discovery_batches</div>
+          <div class="fields">
+            <span class="field-chip changed">total_approved (count of yes decisions)</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ─────────────── STAGE 4 ─────────────────────────────────── -->
+<!-- ───── STAGE C05 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s4">4</div>
-      <div>
-        <div class="stage-name">First Outreach</div>
-        <div class="stage-label">Message sent</div>
-      </div>
+      <div class="stage-num sc5">C5</div>
+      <div><div class="stage-name">List Build</div><div class="stage-label">Approved → campaign list</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d1">Person</span>
-      <span class="badge d4">Activity</span>
+      <span class="badge dj">Lists</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right sc5">
+    <div style="font-size:12px;color:#94a3b8">Filter the batch for contacts with decision = yes. Create a contact_list from this filtered set. This is the input to the campaign.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op fi">FILTER</span>
+        <div class="op-body">
+          <div class="op-title">Query: approved contacts from batch</div>
+          <div class="fields">
+            <span class="field-chip filter">WHERE batch_id = X</span>
+            <span class="field-chip filter">AND contact_reviews.decision = 'yes'</span>
+          </div>
+        </div>
+      </div>
+      <div class="op-row">
+        <span class="op cr">CREATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge dj">List</span> contact_lists + list_members</div>
+          <div class="fields">
+            <span class="field-chip new">list name (e.g. "Apr 26 — APAC Approved")</span>
+            <span class="field-chip new">one list_members row per approved contact</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── STAGE C06 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num sc6">C6</div>
+      <div><div class="stage-name">Campaign Setup</div><div class="stage-label">Campaign from approved list</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
       <span class="badge dc">Campaign</span>
     </div>
     <div class="v-line"></div>
   </div>
-  <div class="stage-right s4">
-    <div style="font-size:12px;color:#94a3b8">First message goes out — LinkedIn DM, email, or through a campaign.</div>
+  <div class="stage-right sc6">
+    <div style="font-size:12px;color:#94a3b8">A campaign is created from the approved list. A message template is selected. One campaign_recipient row is created per contact.</div>
     <div class="ops">
       <div class="op-row">
-        <span class="op lg">LOG</span>
+        <span class="op cr">CREATE</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
+          <div class="op-title"><span class="badge dc">Campaign</span> campaigns</div>
           <div class="fields">
-            <span class="field-chip new">activity_type = LinkedIn Message or Email</span>
-            <span class="field-chip new">direction = Outbound</span>
-            <span class="field-chip new">channel = LinkedIn or Email</span>
-            <span class="field-chip new">subject, body</span>
-            <span class="field-chip new">message_type = Cold</span>
-            <span class="field-chip new">tone</span>
-            <span class="field-chip new">status = Sent</span>
-            <span class="field-chip new">person_id, deal_id</span>
-            <span class="field-chip new">occurred_at = now</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons</div>
-          <div class="fields">
-            <span class="field-chip changed">outreach_status → Sent</span>
-            <span class="field-chip changed">last_contacted_at = today</span>
-            <span class="field-chip changed">next_followup_at = +7 days</span>
-            <span class="field-chip changed">next_action = Follow up if no reply</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge dc">Campaign</span> campaign_recipients (if via campaign)</div>
-          <div class="fields">
-            <span class="field-chip changed">sent_at = now</span>
-            <span class="field-chip changed">draft_id</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="state-strip" style="margin-top:14px">
-      <span class="state-node" style="color:#334155">Pending</span>
-      <span class="state-arr">→</span>
-      <span class="state-node state-active" style="background:#1e3a5f;color:#93c5fd;outline-color:#3b82f6">outreach_status: Sent</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Replied</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Meeting Set</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Closed</span>
-    </div>
-  </div>
-</div>
-
-<!-- ─────────────── STAGE 5 ─────────────────────────────────── -->
-<div class="stage">
-  <div class="stage-left">
-    <div class="stage-header">
-      <div class="stage-num s5">5</div>
-      <div>
-        <div class="stage-name">Follow-up Sequence</div>
-        <div class="stage-label">No reply yet</div>
-      </div>
-    </div>
-    <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d1">Person</span>
-      <span class="badge d4">Activity</span>
-    </div>
-    <div class="v-line"></div>
-  </div>
-  <div class="stage-right s5">
-    <div style="font-size:12px;color:#94a3b8">next_followup_at triggers. You send a follow-up. Repeat up to 3× before marking Skip.</div>
-    <div class="ops">
-      <div class="op-row">
-        <span class="op lg">LOG</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log (one row per follow-up)</div>
-          <div class="fields">
-            <span class="field-chip new">activity_type = Email or LinkedIn Message</span>
-            <span class="field-chip new">message_type = Follow-up</span>
-            <span class="field-chip new">status = Sent</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons</div>
-          <div class="fields">
-            <span class="field-chip changed">next_followup_at = +7 days</span>
-            <span class="field-chip changed">last_contacted_at = today</span>
-          </div>
-          <div class="desc">After 3 touches with no reply: outreach_status → Skip. Deal stage may stay at Prospecting.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─────────────── STAGE 6 ─────────────────────────────────── -->
-<div class="stage">
-  <div class="stage-left">
-    <div class="stage-header">
-      <div class="stage-num s6">6</div>
-      <div>
-        <div class="stage-name">Reply &amp; Engagement</div>
-        <div class="stage-label">They responded</div>
-      </div>
-    </div>
-    <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d1">Person</span>
-      <span class="badge d4">Activity</span>
-      <span class="badge d3">Deal</span>
-    </div>
-    <div class="v-line"></div>
-  </div>
-  <div class="stage-right s6">
-    <div style="font-size:12px;color:#94a3b8">They reply. This is the first signal of intent. Relationship strength goes up.</div>
-    <div class="ops">
-      <div class="op-row">
-        <span class="op lg">LOG</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
-          <div class="fields">
-            <span class="field-chip new">activity_type = Reply</span>
-            <span class="field-chip new">direction = Inbound</span>
-            <span class="field-chip new">body = their reply text</span>
-            <span class="field-chip new">status = Received</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons</div>
-          <div class="fields">
-            <span class="field-chip changed">outreach_status → Replied</span>
-            <span class="field-chip changed">poc_status → Warm</span>
-            <span class="field-chip changed">relationship_strength → 5</span>
-            <span class="field-chip changed">next_action = Book discovery call</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
-          <div class="fields">
-            <span class="field-chip changed">stage → Qualification</span>
-            <span class="field-chip changed">action_item = Schedule discovery call</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge dc">Campaign</span> campaign_recipients (if via campaign)</div>
-          <div class="fields">
-            <span class="field-chip changed">reply_status = Replied</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="state-strip" style="margin-top:14px">
-      <span class="state-node" style="color:#334155">Pending</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Sent</span>
-      <span class="state-arr">→</span>
-      <span class="state-node state-active" style="background:#1f1200;color:#fcd34d;outline-color:#f59e0b">outreach_status: Replied</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Meeting Set</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Closed</span>
-    </div>
-  </div>
-</div>
-
-<!-- ─────────────── STAGE 7 ─────────────────────────────────── -->
-<div class="stage">
-  <div class="stage-left">
-    <div class="stage-header">
-      <div class="stage-num s7">7</div>
-      <div>
-        <div class="stage-name">Meeting Set</div>
-        <div class="stage-label">Call confirmed</div>
-      </div>
-    </div>
-    <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d1">Person</span>
-      <span class="badge d3">Deal</span>
-      <span class="badge d4">Activity</span>
-      <span class="badge hs">→ HS</span>
-    </div>
-    <div class="v-line"></div>
-  </div>
-  <div class="stage-right s7">
-    <div style="font-size:12px;color:#94a3b8">Discovery call is booked. HubSpot syncs deal stage so the team can see it.</div>
-    <div class="ops">
-      <div class="op-row">
-        <span class="op lg">LOG</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
-          <div class="fields">
-            <span class="field-chip new">activity_type = Meeting</span>
-            <span class="field-chip new">channel = Video or In-Person</span>
-            <span class="field-chip new">status = Scheduled</span>
-            <span class="field-chip new">occurred_at = meeting date</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons</div>
-          <div class="fields">
-            <span class="field-chip changed">outreach_status → Meeting Set</span>
-            <span class="field-chip changed">next_followup_at = call date</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
-          <div class="fields">
-            <span class="field-chip changed">stage → Qualification</span>
-            <span class="field-chip changed">action_item = Run discovery call</span>
-            <span class="field-chip changed">action_due = call date</span>
-          </div>
-        </div>
-      </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: deals.stage → Qualification · update action_item</div>
-    </div>
-    <div class="state-strip" style="margin-top:14px">
-      <span class="state-node" style="color:#334155">Pending → Sent → Replied →</span>
-      <span class="state-arr"> </span>
-      <span class="state-node state-active" style="background:#1a0808;color:#fca5a5;outline-color:#ef4444">outreach_status: Meeting Set</span>
-      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Closed</span>
-    </div>
-  </div>
-</div>
-
-<!-- ─────────────── STAGE 8 ─────────────────────────────────── -->
-<div class="stage">
-  <div class="stage-left">
-    <div class="stage-header">
-      <div class="stage-num s8">8</div>
-      <div>
-        <div class="stage-name">Discovery Call</div>
-        <div class="stage-label">Pain identified</div>
-      </div>
-    </div>
-    <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d3">Deal</span>
-      <span class="badge d4">Activity</span>
-    </div>
-    <div class="v-line"></div>
-  </div>
-  <div class="stage-right s8">
-    <div style="font-size:12px;color:#94a3b8">First real conversation. MEDDIC fields start filling in. Pain point confirmed.</div>
-    <div class="ops">
-      <div class="op-row">
-        <span class="op lg">LOG</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
-          <div class="fields">
-            <span class="field-chip new">activity_type = Call</span>
-            <span class="field-chip new">direction = Inbound</span>
-            <span class="field-chip new">body = call notes / summary</span>
-            <span class="field-chip new">occurred_at = call time</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals — MEDDIC starts</div>
-          <div class="fields">
-            <span class="field-chip changed">stage → Discovery</span>
-            <span class="field-chip changed">pain_point = "..."</span>
-            <span class="field-chip changed">champion_id = person_id</span>
-            <span class="field-chip changed">blockers = "..."</span>
-            <span class="field-chip changed">action_item = Send product info</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons</div>
-          <div class="fields">
-            <span class="field-chip changed">relationship_strength → 6</span>
-            <span class="field-chip changed">poc_status → ICP (if confirmed)</span>
-          </div>
-        </div>
-      </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: pain_point · blockers · champion · stage → Discovery</div>
-    </div>
-  </div>
-</div>
-
-<!-- ─────────────── STAGE 9 ─────────────────────────────────── -->
-<div class="stage">
-  <div class="stage-left">
-    <div class="stage-header">
-      <div class="stage-num s9">9</div>
-      <div>
-        <div class="stage-name">Technical Demo / POC</div>
-        <div class="stage-label">Product shown</div>
-      </div>
-    </div>
-    <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d3">Deal</span>
-      <span class="badge dj">Junction</span>
-      <span class="badge d4">Activity</span>
-    </div>
-    <div class="v-line"></div>
-  </div>
-  <div class="stage-right s9">
-    <div style="font-size:12px;color:#94a3b8">Product demo or POC runs. More stakeholders enter the picture. Technical win flag is set if POC passes.</div>
-    <div class="ops">
-      <div class="op-row">
-        <span class="op lg">LOG</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log (one per meeting)</div>
-          <div class="fields">
-            <span class="field-chip new">activity_type = Meeting</span>
-            <span class="field-chip new">channel = Video</span>
-            <span class="field-chip new">body = demo notes</span>
+            <span class="field-chip new">name</span><span class="field-chip new">list_id →</span>
+            <span class="field-chip new">template_id → message_templates</span>
+            <span class="field-chip new">channel = email | linkedin</span>
+            <span class="field-chip">status = active</span>
           </div>
         </div>
       </div>
       <div class="op-row">
         <span class="op cr">CREATE</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge dj">Junction</span> deal_contacts — new stakeholders added</div>
+          <div class="op-title"><span class="badge dc">Recipients</span> campaign_recipients</div>
           <div class="fields">
-            <span class="field-chip new">person_id (technical contact)</span>
-            <span class="field-chip new">role = Technical</span>
+            <span class="field-chip new">campaign_id →</span><span class="field-chip new">contact_id →</span>
+            <span class="field-chip">briefing_decision = pending</span>
           </div>
         </div>
       </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
-          <div class="fields">
-            <span class="field-chip changed">stage → Demo / POC</span>
-            <span class="field-chip changed">technical_win = true ← if POC passed</span>
-            <span class="field-chip changed">action_item = Prepare commercial proposal</span>
-          </div>
-        </div>
-      </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: stage · cynlr_technical_win</div>
     </div>
   </div>
 </div>
 
-<!-- ─────────────── STAGE 10 ─────────────────────────────────── -->
+<!-- ───── STAGE C07 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s10">10</div>
-      <div>
-        <div class="stage-name">Proposal</div>
-        <div class="stage-label">Commercial sent</div>
-      </div>
+      <div class="stage-num sc7">C7</div>
+      <div><div class="stage-name">Message Draft</div><div class="stage-label">AI writes personalised copy</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d3">Deal</span>
-      <span class="badge dj">Junction</span>
-      <span class="badge hs">→ HS</span>
+      <span class="badge dc">Campaign</span><span class="badge d1">Person</span>
     </div>
     <div class="v-line"></div>
   </div>
-  <div class="stage-right s10">
-    <div style="font-size:12px;color:#94a3b8">Commercial proposal goes out. Economic buyer is identified. Budget discussion begins.</div>
+  <div class="stage-right sc7">
+    <div style="font-size:12px;color:#94a3b8">For each recipient, AI reads their enriched profile + the message template and generates a personalised email and LinkedIn message. DocuSign attachment metadata is included.</div>
     <div class="ops">
       <div class="op-row">
-        <span class="op up">UPDATE</span>
+        <span class="op fi">FILTER</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
+          <div class="op-title">Context loaded per recipient</div>
           <div class="fields">
-            <span class="field-chip changed">stage → Proposal Sent</span>
-            <span class="field-chip changed">amount = $X</span>
-            <span class="field-chip changed">expected_close = date</span>
-            <span class="field-chip changed">probability = 40</span>
-            <span class="field-chip changed">economic_buyer_id = person_id</span>
-            <span class="field-chip changed">product_services = "..."</span>
+            <span class="field-chip">persons: name, headline, about, position</span>
+            <span class="field-chip">companies: name, industry, icp_fit</span>
+            <span class="field-chip">message_templates: subject_tmpl, body_tmpl, tone</span>
           </div>
         </div>
       </div>
       <div class="op-row">
-        <span class="op cr">CREATE</span>
+        <span class="op up">UPDATE</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge dj">Junction</span> deal_contacts — economic buyer added</div>
+          <div class="op-title"><span class="badge dc">Recipients</span> campaign_recipients</div>
           <div class="fields">
-            <span class="field-chip new">person_id (economic buyer)</span>
-            <span class="field-chip new">role = Economic Buyer</span>
+            <span class="field-chip changed">generated_subject</span>
+            <span class="field-chip changed">generated_body</span>
+            <span class="field-chip changed">template_used</span>
+            <span class="field-chip">metadata_json: {linkedin_msg, docsign_url}</span>
+          </div>
+          <div class="desc">Generated content stored as a snapshot. Original template is referenced, not duplicated.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── STAGE C08 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num sc8">C8</div>
+      <div><div class="stage-name">Your Approval</div><div class="stage-label">Vatsal reviews per-recipient</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge dc">Campaign</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right sc8">
+    <div style="font-size:12px;color:#94a3b8">Vatsal opens the campaign briefing view in the CRM. Each generated message is reviewed and approved or skipped before sending.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge dc">Recipients</span> campaign_recipients</div>
+          <div class="fields">
+            <span class="field-chip changed">briefing_decision = approve | skip | edit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gate">⚠ Human gate — only approved recipients proceed to the scheduler.</div>
+  </div>
+</div>
+
+<!-- ───── STAGE C09 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num sc9">C9</div>
+      <div><div class="stage-name">Schedule &amp; Send</div><div class="stage-label">Delivered by scheduler</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge dc">Campaign</span><span class="badge d4">Activity</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right sc9">
+    <div style="font-size:12px;color:#94a3b8">Approved messages are queued to the email scheduler with staggered send times. On send, the activity log is written and outreach status updated.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge dc">Recipients</span> campaign_recipients</div>
+          <div class="fields">
+            <span class="field-chip changed">draft_id (scheduler ref)</span>
+            <span class="field-chip changed">sent_at</span>
           </div>
         </div>
       </div>
@@ -719,239 +599,334 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
           <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
           <div class="fields">
             <span class="field-chip new">activity_type = Email</span>
-            <span class="field-chip new">message_type = Proposal</span>
-            <span class="field-chip new">subject = Proposal: CynLr Vision System</span>
+            <span class="field-chip new">direction = Outbound</span>
+            <span class="field-chip new">channel = email</span>
+            <span class="field-chip new">subject, body</span>
+            <span class="field-chip new">person_id</span>
+            <span class="field-chip new">campaign_id →</span>
           </div>
         </div>
       </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: amount · expected_close · stage · economic_buyer</div>
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge d1">Person</span> outreach status sync</div>
+          <div class="fields">
+            <span class="field-chip changed">outreach_status → Sent</span>
+            <span class="field-chip changed">last_contacted = today</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="state-strip" style="margin-top:14px">
+      <span class="state-node" style="color:#334155">Pending →</span>
+      <span class="state-node state-active" style="background:#0a1929;color:#93c5fd;outline-color:#3b82f6">Sent</span>
+      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Replied</span>
+      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Meeting Set</span>
     </div>
   </div>
 </div>
 
-<!-- ─────────────── STAGE 11 ─────────────────────────────────── -->
+<!-- ───── STAGE C10 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s11">11</div>
-      <div>
-        <div class="stage-name">Negotiation</div>
-        <div class="stage-label">Budget confirmed</div>
-      </div>
+      <div class="stage-num sc10">C10</div>
+      <div><div class="stage-name">Reply Tracking</div><div class="stage-label">Responses logged</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d3">Deal</span>
-      <span class="badge d1">Person</span>
-      <span class="badge d4">Activity</span>
+      <span class="badge dc">Campaign</span><span class="badge d4">Activity</span>
     </div>
-    <div class="v-line"></div>
   </div>
-  <div class="stage-right s11">
-    <div style="font-size:12px;color:#94a3b8">Back and forth on terms. Blockers surface. Budget is confirmed or not.</div>
+  <div class="stage-right sc10">
+    <div style="font-size:12px;color:#94a3b8">Replies are tracked. Each response is logged as an inbound activity. Status advances. If a meeting is set, the deal flow begins — same as the organic track from stage O4.</div>
     <div class="ops">
       <div class="op-row">
-        <span class="op up">UPDATE</span>
+        <span class="op lg">LOG</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
+          <div class="op-title"><span class="badge d4">Activity</span> activity_log — reply received</div>
           <div class="fields">
-            <span class="field-chip changed">stage → Negotiation</span>
-            <span class="field-chip changed">budget_confirmed = true ← when confirmed</span>
-            <span class="field-chip changed">blockers = "procurement process, 3 quotes needed"</span>
-            <span class="field-chip changed">competitors = "..."</span>
-            <span class="field-chip changed">amount = revised $Y</span>
-            <span class="field-chip changed">probability = 70</span>
+            <span class="field-chip new">activity_type = Email</span>
+            <span class="field-chip new">direction = Inbound</span>
+            <span class="field-chip new">person_id</span><span class="field-chip new">campaign_id →</span>
           </div>
         </div>
       </div>
       <div class="op-row">
         <span class="op up">UPDATE</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons (all stakeholders)</div>
+          <div class="op-title"><span class="badge dc">Recipients</span> + <span class="badge d1">Person</span></div>
           <div class="fields">
-            <span class="field-chip changed">relationship_strength → 7–8</span>
+            <span class="field-chip changed">reply_status = replied | bounced | unsubscribe</span>
+            <span class="field-chip changed">outreach_status → Replied or Meeting Set</span>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="state-strip" style="margin-top:14px">
+      <span class="state-node" style="color:#334155">Pending → Sent →</span>
+      <span class="state-node state-active" style="background:#022c21;color:#34d399;outline-color:#065f46">Replied / Meeting Set</span>
+      <span class="state-arr">→</span><span class="state-node" style="color:#334155">Deal opens ↓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     ORGANIC TRACK
+══════════════════════════════════════════════════ -->
+<div class="track-divider organic-div" style="margin-top:48px">
+  <div class="tdl"></div>
+  <div class="tdt">🤝 Organic Track</div>
+  <div class="tdl"></div>
+</div>
+
+<div class="track-header track-header-organic">
+  <div class="th-icon">🤝</div>
+  <div>
+    <div class="th-title">Organic Track</div>
+    <div class="th-desc">Manual entry · Individual relationship building · No batch, no campaign required</div>
+  </div>
+  <div class="th-count">5 stages</div>
+</div>
+
+<!-- ───── STAGE O01 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num so1">O1</div>
+      <div><div class="stage-name">Meet &amp; Import</div><div class="stage-label">Contact added manually</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge d1">Person</span><span class="badge d2">Company</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right so1">
+    <div style="font-size:12px;color:#94a3b8">Contact added from a conference, intro, inbound DM, or referral. entry_source marks this as organic. No batch or swipe review needed.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op cr">CREATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge d1">Person</span> persons</div>
+          <div class="fields">
+            <span class="field-chip new">entry_source = organic</span>
+            <span class="field-chip new">name, email, linkedin_url</span>
+            <span class="field-chip new">company_id →</span>
+            <span class="field-chip">batch_id = NULL</span>
+            <span class="field-chip">outreach_status = Active</span>
+          </div>
+          <div class="desc">No batch_id. Status starts at Active (not Pending) — they're already in conversation.</div>
         </div>
       </div>
       <div class="op-row">
         <span class="op lg">LOG</span>
         <div class="op-body">
-          <div class="op-title"><span class="badge d4">Activity</span> activity_log — one row per touchpoint</div>
+          <div class="op-title"><span class="badge d4">Activity</span> activity_log — initial meeting note</div>
           <div class="fields">
-            <span class="field-chip new">Call / Email / Note per exchange</span>
+            <span class="field-chip new">activity_type = Note</span>
+            <span class="field-chip new">direction = Internal</span>
+            <span class="field-chip new">body = how we met, context</span>
           </div>
         </div>
       </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: amount · stage · blockers · cynlr_budget_confirmed</div>
     </div>
   </div>
 </div>
 
-<!-- ─────────────── STAGE 12 ─────────────────────────────────── -->
+<!-- ───── STAGE O02 ───── -->
 <div class="stage">
   <div class="stage-left">
     <div class="stage-header">
-      <div class="stage-num s12">12</div>
-      <div>
-        <div class="stage-name">Closed Won / Lost</div>
-        <div class="stage-label">Deal terminal state</div>
-      </div>
+      <div class="stage-num so2">O2</div>
+      <div><div class="stage-name">Log Conversation</div><div class="stage-label">Ongoing interactions captured</div></div>
     </div>
     <div class="stage-domains" style="margin-left:46px">
-      <span class="badge d3">Deal</span>
-      <span class="badge d1">Person</span>
       <span class="badge d4">Activity</span>
-      <span class="badge hs">→ HS</span>
     </div>
+    <div class="v-line"></div>
   </div>
-  <div class="stage-right s12">
-    <div style="font-size:12px;color:#94a3b8">Deal closes. All fields finalised. Both local DB and HubSpot marked closed.</div>
+  <div class="stage-right so2">
+    <div style="font-size:12px;color:#94a3b8">Every interaction — email, LinkedIn DM, call, meeting — is logged as an activity. No campaign required; the activity log is the record.</div>
     <div class="ops">
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
-          <div class="fields">
-            <span class="field-chip changed">stage → Closed Won or Closed Lost</span>
-            <span class="field-chip changed">hs_is_closed = 1</span>
-            <span class="field-chip changed">probability = 100 or 0</span>
-            <span class="field-chip changed">close_date = today</span>
-          </div>
-        </div>
-      </div>
-      <div class="op-row">
-        <span class="op up">UPDATE</span>
-        <div class="op-body">
-          <div class="op-title"><span class="badge d1">Person</span> persons (champion + all stakeholders)</div>
-          <div class="fields">
-            <span class="field-chip changed">outreach_status → Closed</span>
-            <span class="field-chip changed">relationship_strength → 9 (Won) or 4 (Lost)</span>
-          </div>
-        </div>
-      </div>
       <div class="op-row">
         <span class="op lg">LOG</span>
         <div class="op-body">
           <div class="op-title"><span class="badge d4">Activity</span> activity_log</div>
           <div class="fields">
-            <span class="field-chip new">activity_type = Note</span>
-            <span class="field-chip new">body = Close reason / lessons learned</span>
-            <span class="field-chip new">direction = Internal</span>
+            <span class="field-chip new">channel = email | linkedin | phone | meeting</span>
+            <span class="field-chip new">direction = inbound | outbound</span>
+            <span class="field-chip new">subject, body</span>
+            <span class="field-chip new">occurred_at</span>
+            <span class="field-chip">campaign_id = NULL (no campaign)</span>
+          </div>
+          <div class="desc">campaign_id is NULL for organic contacts. Everything else is identical to the cold track activity log — same table, same queries.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── STAGE O03 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num so3">O3</div>
+      <div><div class="stage-name">Follow-Up Loop</div><div class="stage-label">Nurture until deal signal</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge d1">Person</span><span class="badge d4">Activity</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right so3">
+    <div style="font-size:12px;color:#94a3b8">Ongoing relationship building. Follow-up reminders set. Each interaction logged. This loop repeats until a deal signal is detected.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge d1">Person</span> outreach tracking</div>
+          <div class="fields">
+            <span class="field-chip changed">next_followup_at</span>
+            <span class="field-chip changed">next_action</span>
+            <span class="field-chip changed">last_contacted</span>
           </div>
         </div>
       </div>
-      <div class="hs-sync"><span class="hs-icon">↗</span>SYNC to HubSpot: stage → Closed Won/Lost · close_date · mark deal closed</div>
+      <div class="op-row">
+        <span class="op lg">LOG</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge d4">Activity</span> — each touchpoint</div>
+          <div class="fields">
+            <span class="field-chip">repeat per interaction</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── STAGE O04 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num so4">O4</div>
+      <div><div class="stage-name">Deal Signal</div><div class="stage-label">Real interest — deal opened</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge d3">Deal</span><span class="badge d1">Person</span>
+    </div>
+    <div class="v-line"></div>
+  </div>
+  <div class="stage-right so4">
+    <div style="font-size:12px;color:#94a3b8">Contact signals real interest — replies positively, asks for pricing, agrees to a meeting. A deal is opened. Status advances to Meeting Set.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op cr">CREATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge d3">Deal</span> deals</div>
+          <div class="fields">
+            <span class="field-chip new">name</span><span class="field-chip new">company_id →</span><span class="field-chip new">champion_id → persons</span>
+            <span class="field-chip new">stage = Prospecting</span>
+            <span class="field-chip new">application_type</span>
+          </div>
+        </div>
+      </div>
+      <div class="op-row">
+        <span class="op up">UPDATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge d1">Person</span></div>
+          <div class="fields">
+            <span class="field-chip changed">outreach_status → Meeting Set</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="state-strip" style="margin-top:14px">
-      <span class="state-node" style="color:#334155">Pending → Sent → Replied → Meeting Set →</span>
-      <span class="state-arr"> </span>
-      <span class="state-node state-active" style="background:#041f14;color:#6ee7b7;outline-color:#10b981">outreach_status: Closed</span>
+      <span class="state-node" style="color:#334155">Active →</span>
+      <span class="state-node state-active" style="background:#1f1200;color:#fbbf24;outline-color:#f59e0b">Meeting Set</span>
+      <span class="state-arr">→</span><span class="state-node" style="color:#334155">HS Sync ↓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ───── STAGE O05 ───── -->
+<div class="stage">
+  <div class="stage-left">
+    <div class="stage-header">
+      <div class="stage-num so5">O5</div>
+      <div><div class="stage-name">HubSpot Promote</div><div class="stage-label">Deal + contact synced to HS</div></div>
+    </div>
+    <div class="stage-domains" style="margin-left:46px">
+      <span class="badge hs">HubSpot</span>
+    </div>
+  </div>
+  <div class="stage-right so5">
+    <div style="font-size:12px;color:#94a3b8">Contact and deal are synced to HubSpot for the first time. A hs_sync_map row is created per entity. From here, the deal is tracked in HubSpot pipeline.</div>
+    <div class="ops">
+      <div class="op-row">
+        <span class="op cr">CREATE</span>
+        <div class="op-body">
+          <div class="op-title"><span class="badge hs">Bridge</span> hs_sync_map</div>
+          <div class="fields">
+            <span class="field-chip new">entity_type = contact</span><span class="field-chip new">local_id = person.id</span><span class="field-chip new">hs_id (returned by HS API)</span>
+            <span class="field-chip new">entity_type = deal</span><span class="field-chip new">local_id = deal.id</span>
+          </div>
+        </div>
+      </div>
+      <div class="op-row">
+        <span class="op sy">SYNC →HS</span>
+        <div class="op-body">
+          <div class="op-title">Push contact + deal to HubSpot portal 243444910</div>
+          <div class="fields">
+            <span class="field-chip synced">persons.hs_contact_id ← returned id</span>
+            <span class="field-chip synced">deals.hs_deal_id ← returned id</span>
+          </div>
+          <div class="desc">HubSpot only receives contacts when a deal is real — keeps the pipeline clean.</div>
+        </div>
+      </div>
+    </div>
+    <div class="hs-sync">↗ SYNC: Both tracks converge here. Cold track contacts promoted on Meeting Set. Organic contacts promoted here at O5.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     CONVERGENCE
+══════════════════════════════════════════════════ -->
+<div class="converge">
+  <div class="converge-title">⬡ Convergence — Where Both Tracks Meet</div>
+  <div class="converge-sub">Both tracks share the same deal pipeline from Meeting Set onward. HubSpot owns pipeline tracking.</div>
+  <div class="converge-grid">
+    <div class="converge-col converge-cold">
+      <h4>Cold Track reaches this via</h4>
+      <div class="converge-item">Reply to campaign email → Inbound activity logged</div>
+      <div class="converge-item">outreach_status → Replied → Meeting Set</div>
+      <div class="converge-item">Deal created → hs_sync_map row → HubSpot push</div>
+    </div>
+    <div class="converge-col converge-organic">
+      <h4>Organic Track reaches this via</h4>
+      <div class="converge-item">Ongoing conversation signals real interest</div>
+      <div class="converge-item">outreach_status → Meeting Set (stage O4)</div>
+      <div class="converge-item">Deal created → hs_sync_map row → HubSpot push (stage O5)</div>
+    </div>
+  </div>
+  <div class="converge-final">
+    <div class="converge-final-title">↓ Shared deal pipeline from here</div>
+    <div class="converge-steps">
+      <div class="converge-step"><div class="converge-step-num">1</div>Discovery call → deal stage: Qualification</div>
+      <div class="converge-step"><div class="converge-step-num">2</div>Presentation → deal stage: Presentation Completed</div>
+      <div class="converge-step"><div class="converge-step-num">3</div>Proposal drafted → deal stage: Proposal in Drafting</div>
+      <div class="converge-step"><div class="converge-step-num">4</div>MSA / contract → deal stage: Negotiation</div>
+      <div class="converge-step"><div class="converge-step-num">5</div>PO received → deal stage: Closed Won · is_closed = true</div>
     </div>
   </div>
 </div>
 
 </div><!-- /page -->
 
-<!-- SUMMARY TABLE -->
-<div style="max-width:1180px;margin:48px auto 0;border:1.5px solid #1e293b;border-radius:12px;overflow:hidden">
-  <div style="background:#0d1117;border-bottom:1px solid #1e293b;padding:12px 18px;font-size:12px;font-weight:700;color:#94a3b8">What Lives Where — Quick Reference</div>
-  <table class="map-table">
-    <thead>
-      <tr>
-        <th>Stage</th>
-        <th>Primary Domain</th>
-        <th>Records Created</th>
-        <th>Records Updated</th>
-        <th>HubSpot Sync</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>1 Discovery</td><td><span class="badge d1">Person</span> <span class="badge d2">Company</span></td><td class="mono">persons, companies</td><td>—</td><td>—</td></tr>
-      <tr><td>2 Research</td><td><span class="badge d1">Person</span> <span class="badge d4">Activity</span></td><td class="mono">activity_log (Enrichment)</td><td class="mono">persons, companies</td><td>—</td></tr>
-      <tr><td>3 Qualification</td><td><span class="badge d3">Deal</span></td><td class="mono">deals, deal_contacts</td><td class="mono">deals.champion_id</td><td>Create Deal object</td></tr>
-      <tr><td>4 First Outreach</td><td><span class="badge d4">Activity</span></td><td class="mono">activity_log (Message)</td><td class="mono">persons.outreach_status</td><td>—</td></tr>
-      <tr><td>5 Follow-up</td><td><span class="badge d4">Activity</span></td><td class="mono">activity_log (Message ×N)</td><td class="mono">persons.next_followup_at</td><td>—</td></tr>
-      <tr><td>6 Reply</td><td><span class="badge d1">Person</span> <span class="badge d3">Deal</span></td><td class="mono">activity_log (Reply)</td><td class="mono">persons, deals.stage</td><td>—</td></tr>
-      <tr><td>7 Meeting Set</td><td><span class="badge d3">Deal</span> <span class="badge d4">Activity</span></td><td class="mono">activity_log (Meeting)</td><td class="mono">persons, deals.stage</td><td>stage, action_item</td></tr>
-      <tr><td>8 Discovery Call</td><td><span class="badge d3">Deal</span> <span class="badge d4">Activity</span></td><td class="mono">activity_log (Call)</td><td class="mono">deals.pain_point, champion_id</td><td>pain_point, blockers, stage</td></tr>
-      <tr><td>9 Demo / POC</td><td><span class="badge d3">Deal</span> <span class="badge dj">Junction</span></td><td class="mono">deal_contacts, activity_log</td><td class="mono">deals.technical_win</td><td>stage, technical_win</td></tr>
-      <tr><td>10 Proposal</td><td><span class="badge d3">Deal</span></td><td class="mono">deal_contacts (eco buyer)</td><td class="mono">deals.amount, expected_close</td><td>amount, close date, stage</td></tr>
-      <tr><td>11 Negotiation</td><td><span class="badge d3">Deal</span> <span class="badge d4">Activity</span></td><td class="mono">activity_log ×N</td><td class="mono">deals.budget_confirmed, blockers</td><td>amount, stage, budget_confirmed</td></tr>
-      <tr><td>12 Closed</td><td><span class="badge d3">Deal</span> <span class="badge d1">Person</span></td><td class="mono">activity_log (Note)</td><td class="mono">deals.stage, persons.outreach_status</td><td>Closed Won/Lost</td></tr>
-    </tbody>
-  </table>
-</div>
+<div style="text-align:center;margin-top:24px;font-size:11px;color:#1e293b">data_flow_v2 · CynLr CRM Architecture · v2 under development</div>
 
-<div style="text-align:center;margin-top:28px;font-size:11px;color:#1e293b">
-  CynLr CRM v2 · data_flow.html · schema_v2.sql · database_v2.py
-</div>
-
-
-<!-- ═══════════════════════════════
-     PHASE SCREENSHOTS INJECTOR
-     ═══════════════════════════════ -->
-<style>
-.phase-preview{margin-top:14px;border-top:1px solid #1e293b;padding-top:12px}
-.phase-preview-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#334155;margin-bottom:7px;display:flex;align-items:center;gap:6px}
-.phase-preview-label::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#475569}
-.phase-thumb{width:100%;border-radius:8px;border:1px solid #1e293b;display:block;cursor:zoom-in;transition:border-color .15s,opacity .15s;opacity:.85}
-.phase-thumb:hover{border-color:#6366f1;opacity:1}
-.phase-name-tag{font-size:10px;color:#475569;margin-top:5px;text-align:right;font-style:italic}
-/* Lightbox */
-#phase-lightbox{display:none;position:fixed;inset:0;background:#000000cc;z-index:99980;align-items:center;justify-content:center;cursor:zoom-out}
-#phase-lightbox.open{display:flex}
-#phase-lightbox img{max-width:92vw;max-height:90vh;border-radius:10px;border:1px solid #334155;box-shadow:0 20px 60px #000}
-</style>
-
-<div id="phase-lightbox"><img id="phase-lb-img" src="" alt=""></div>
-
-<script>
-(function(){
-  // Map: stage container index (0-based) → screenshot file + screen name
-  var PHASES = [
-    { file:'phases/01_discovery.png',     screen:'Contacts View — full table of identified leads' },
-    { file:'phases/02_research.png',      screen:'Contact Detail — LinkedIn enrichment panel' },
-    { file:'phases/03_qualification.png', screen:'Contacts View — ICP bucket filter applied' },
-    { file:'phases/04_first_outreach.png',screen:'Lists View — ready to launch campaign' },
-    { file:'phases/05_drafting.png',      screen:'Campaign Wizard — name + list selection' },
-    { file:'phases/06_send_queue.png',    screen:'Campaigns View — SEED stage, recipients queued' },
-    { file:'phases/07_sent_tracking.png', screen:'Pipeline View — Sent column populated' },
-    { file:'phases/08_reply.png',         screen:'Pipeline View — Replied column populated' },
-    { file:'phases/09_meeting_set.png',   screen:'Pipeline View — Meeting Set column' },
-    { file:'phases/10_discovery_call.png',screen:'Deals View — Initial Contact Made stage' },
-    { file:'phases/11_proposal.png',      screen:'Deals View — Proposal in Drafting' },
-    { file:'phases/12_closed.png',        screen:'Deals View — Closed Won (PO Received)' },
-  ];
-
-  window.addEventListener('load', function(){
-    var stages = document.querySelectorAll('.stage-right');
-    stages.forEach(function(panel, i){
-      if(!PHASES[i]) return;
-      var p = PHASES[i];
-      var div = document.createElement('div');
-      div.className = 'phase-preview';
-      div.innerHTML =
-        '<div class="phase-preview-label">UI Preview</div>'+
-        '<img class="phase-thumb" src="'+p.file+'" alt="'+p.screen+'" data-src="'+p.file+'">'+
-        '<div class="phase-name-tag">'+p.screen+'</div>';
-      panel.appendChild(div);
-    });
-
-    // Lightbox
-    var lb = document.getElementById('phase-lightbox');
-    var lbImg = document.getElementById('phase-lb-img');
-    document.addEventListener('click', function(e){
-      var thumb = e.target.closest('.phase-thumb');
-      if(thumb){ lbImg.src = thumb.dataset.src; lb.classList.add('open'); }
-      if(e.target===lb){ lb.classList.remove('open'); lbImg.src=''; }
-    });
-    document.addEventListener('keydown', function(e){
-      if(e.key==='Escape'){ lb.classList.remove('open'); lbImg.src=''; }
-    });
-  });
-})();
-</script>
 <!-- ═══════════════════════════════════════════════
-     ANNOTATION LAYER  —  Collaborative Review Mode
+     ANNOTATION LAYER v2
      ═══════════════════════════════════════════════ -->
 <style>
 #ann-bar{position:fixed;top:16px;right:16px;z-index:99990;background:#1e2535;border:1px solid #334155;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 24px #00000088;font-family:'Segoe UI',system-ui,sans-serif;flex-wrap:wrap}
@@ -965,225 +940,137 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 #ann-count-badge{background:#0b0d13;color:#6366f1;border:1px solid #6366f1;border-radius:20px;font-size:11px;font-weight:700;padding:2px 9px;min-width:24px;text-align:center}
 .ann-pin{position:absolute;width:22px;height:22px;border-radius:50%;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9998;box-shadow:0 2px 8px #00000077;border:2px solid rgba(255,255,255,.3);transform:translate(-50%,-50%);transition:transform .1s}
 .ann-pin:hover{transform:translate(-50%,-50%) scale(1.2)}
-#ann-popup{position:fixed;z-index:99999;background:#1e2535;border:1px solid #475569;border-radius:10px;padding:14px;width:280px;box-shadow:0 8px 32px #000000aa;font-family:'Segoe UI',system-ui,sans-serif}
+#ann-popup{position:fixed;z-index:99999;background:#1e2535;border:1px solid #475569;border-radius:10px;padding:14px;width:300px;box-shadow:0 8px 32px #000000aa;font-family:'Segoe UI',system-ui,sans-serif}
 #ann-popup textarea{width:100%;background:#0b0d13;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:12px;padding:8px;resize:vertical;min-height:80px;outline:none;font-family:inherit}
 #ann-popup textarea:focus{border-color:#6366f1}
 #ann-popup select{background:#0b0d13;color:#e2e8f0;border:1px solid #334155;border-radius:6px;font-size:11px;padding:4px 8px;flex:1;outline:none}
-#ann-popup button{border:none;border-radius:6px;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer}
-.ann-submit-btn{background:#6366f1;color:#fff}
-.ann-cancel-btn{background:#374151;color:#94a3b8}
-.ann-del-btn{background:#dc2626;color:#fff}
-.ann-ctx{font-size:10px;color:#64748b;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-.ann-body{font-size:12px;color:#e2e8f0;white-space:pre-wrap;margin-bottom:8px;line-height:1.5}
-.ann-reviewer{font-size:11px;font-weight:700;color:#818cf8}
-.ann-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
-.ann-type-pill{font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;color:#fff}
-.ann-ts{font-size:10px;color:#475569;margin-bottom:8px}
-.ann-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:10px 22px;border-radius:9px;font-size:13px;font-weight:700;z-index:999999;pointer-events:none;box-shadow:0 4px 16px #00000066}
-body.comment-mode *:not(#ann-bar):not(#ann-bar *):not(#ann-popup):not(#ann-popup *):not(.ann-pin){cursor:crosshair!important}
 </style>
 
+<div id="ann-bar">
+  <input id="ann-name" placeholder="Your name" />
+  <button id="ann-toggle">💬 Comment</button>
+  <span id="ann-count-badge">0</span>
+  <button id="ann-download">⬇ Download &amp; Send</button>
+  <button id="ann-clear-btn">✕</button>
+</div>
+
+<div id="ann-popup" style="display:none">
+  <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:8px">Add comment</div>
+  <div style="display:flex;gap:6px;margin-bottom:8px">
+    <select id="ann-type">
+      <option value="Question">❓ Question</option>
+      <option value="Suggestion">💡 Suggestion</option>
+      <option value="Issue">🚨 Issue</option>
+      <option value="Looks good">✅ Looks good</option>
+    </select>
+    <select id="ann-prio">
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select>
+  </div>
+  <textarea id="ann-text" placeholder="Your comment..."></textarea>
+  <div style="display:flex;gap:6px;margin-top:8px">
+    <button id="ann-save" style="background:#6366f1;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;flex:1">Save</button>
+    <button id="ann-cancel" style="background:#374151;color:#94a3b8;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">Cancel</button>
+  </div>
+</div>
+
 <script>
-(function(){
-  var KEY='crm_ann_dataflow';
-  var DL_NAME='cynlr_dataflow_review.html';
-  var commentMode=false;
-  var comments=[];
+const STORAGE_KEY = 'crm_ann_dataflow_v2';
+const TYPE_COLORS = {'Question':'#3b82f6','Suggestion':'#f59e0b','Issue':'#ef4444','Looks good':'#10b981'};
+let annotations = [];
+let annotating = false;
+let pendingPin = null;
 
-  if(window.ANN_PRELOAD&&Array.isArray(window.ANN_PRELOAD)&&window.ANN_PRELOAD.length){
-    comments=window.ANN_PRELOAD;
-  } else {
-    try{comments=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){comments=[];}
-  }
-  var nextId=comments.length?Math.max.apply(null,comments.map(function(c){return c.id;}))+1:1;
-  var popup=null;
+try { annotations = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e){}
+if (window.ANN_PRELOAD) annotations = window.ANN_PRELOAD;
 
-  var bar=document.createElement('div');bar.id='ann-bar';
-  bar.innerHTML=
-    '<input id="ann-name" placeholder="Your name…">'+
-    '<button id="ann-toggle">💬 Comment</button>'+
-    '<span id="ann-count-badge">0</span>'+
-    '<button id="ann-download">⬇ Download & Send</button>'+
-    '<button id="ann-clear-btn" title="Clear all comments">🗑 Clear</button>';
-  document.body.appendChild(bar);
+function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(annotations)); } catch(e){} }
+function updateBadge() { document.getElementById('ann-count-badge').textContent = annotations.length; }
+function getReviewer() { return (document.getElementById('ann-name').value || 'Anonymous').trim(); }
 
-  var sn=localStorage.getItem('ann_reviewer_name')||'';
-  document.getElementById('ann-name').value=sn;
-  document.getElementById('ann-name').addEventListener('input',function(){localStorage.setItem('ann_reviewer_name',this.value);});
-
-  document.getElementById('ann-toggle').addEventListener('click',function(){
-    commentMode=!commentMode;
-    document.body.classList.toggle('comment-mode',commentMode);
-    this.classList.toggle('active',commentMode);
-    this.textContent=commentMode?'✕ Cancel':'💬 Comment';
-    if(!commentMode)removePopup();
-  });
-
-  document.addEventListener('click',function(e){
-    if(!commentMode)return;
-    if(e.target.closest('#ann-bar')||e.target.closest('#ann-popup')||e.target.closest('.ann-pin'))return;
-    e.stopPropagation();e.preventDefault();
-    showInput(e.clientX,e.clientY,e.pageX,e.pageY,getCtx(e.target),getSection(e.target));
-  },true);
-
-  function getCtx(el){
-    for(var i=0,n=el;i<5;i++,n=n.parentElement){
-      if(!n)break;
-      var t=(n.innerText||'').trim().split('\n')[0].replace(/\s+/g,' ').slice(0,70);
-      if(t.length>3)return t;
-    }
-    return '<'+el.tagName.toLowerCase()+'>';
-  }
-
-  function getSection(el){
-    var n=el;
-    while(n&&n!==document.body){
-      if(n.querySelector){
-        var h=n.querySelector('h1,h2,h3,h4,.ct,.stage-title,.stage-name');
-        if(h){var t=(h.innerText||'').trim().split('\n')[0].slice(0,50);if(t)return t;}
-      }
-      n=n.parentElement;
-    }
-    return '';
-  }
-
-  var TYPE_COLORS={Question:'#3b82f6',Suggestion:'#f59e0b',Issue:'#ef4444','Looks good':'#10b981'};
-  var PRIO_ICONS={High:'🔴',Medium:'🟡',Low:'🟢'};
-
-  function showInput(cx,cy,px,py,ctx,section){
-    removePopup();
-    popup=document.createElement('div');popup.id='ann-popup';
-    popup.style.cssText='left:'+Math.min(cx+8,window.innerWidth-295)+'px;top:'+Math.min(cy+8,window.innerHeight-260)+'px';
-    var sectionHtml=section?'<b>'+escHtml(section)+'</b> &rsaquo; ':'';
-    popup.innerHTML=
-      '<div style="font-size:11px;font-weight:700;color:#f8fafc;margin-bottom:8px">Add comment</div>'+
-      '<div class="ann-ctx">'+sectionHtml+escHtml(ctx)+'</div>'+
-      '<textarea id="ann-input" placeholder="Describe your thought, question, or concern… (Ctrl+Enter to submit)"></textarea>'+
-      '<div style="display:flex;gap:6px;margin-top:8px">'+
-        '<select id="ann-type">'+
-          '<option value="Question">❓ Question</option>'+
-          '<option value="Suggestion">💡 Suggestion</option>'+
-          '<option value="Issue">⚠️ Issue</option>'+
-          '<option value="Looks good">✅ Looks good</option>'+
-        '</select>'+
-        '<select id="ann-prio">'+
-          '<option value="High">🔴 High</option>'+
-          '<option value="Medium" selected>🟡 Medium</option>'+
-          '<option value="Low">🟢 Low</option>'+
-        '</select>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;margin-top:10px">'+
-        '<button class="ann-submit-btn" id="ann-submit">Add comment</button>'+
-        '<button class="ann-cancel-btn" id="ann-cancel">Cancel</button>'+
-      '</div>';
-    document.body.appendChild(popup);
-    document.getElementById('ann-input').focus();
-    document.getElementById('ann-submit').addEventListener('click',function(){
-      var text=(document.getElementById('ann-input').value||'').trim();
-      if(!text)return;
-      var reviewer=(document.getElementById('ann-name').value||'').trim()||'Anonymous';
-      localStorage.setItem('ann_reviewer_name',reviewer);
-      document.getElementById('ann-name').value=reviewer;
-      var type=document.getElementById('ann-type').value;
-      var prio=document.getElementById('ann-prio').value;
-      addComment(px,py,text,ctx,section,reviewer,type,prio);
-      removePopup();commentMode=false;
-      document.body.classList.remove('comment-mode');
-      var tog=document.getElementById('ann-toggle');
-      tog.classList.remove('active');tog.textContent='💬 Comment';
-    });
-    document.getElementById('ann-cancel').addEventListener('click',removePopup);
-    document.getElementById('ann-input').addEventListener('keydown',function(e){
-      if(e.key==='Escape')removePopup();
-      if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))document.getElementById('ann-submit').click();
-    });
-  }
-
-  function removePopup(){if(popup){popup.remove();popup=null;}}
-
-  function addComment(px,py,text,ctx,section,reviewer,type,prio){
-    var c={id:nextId++,px:px,py:py,text:text,ctx:ctx,section:section||'',reviewer:reviewer,type:type,prio:prio,ts:new Date().toISOString()};
-    comments.push(c);save();renderPin(c);updateCount();
-  }
-
-  function renderPin(c){
-    var pin=document.createElement('div');
-    pin.className='ann-pin';pin.dataset.cid=c.id;
-    pin.style.left=c.px+'px';pin.style.top=c.py+'px';
-    var col=TYPE_COLORS[c.type]||'#f59e0b';
-    pin.style.background=col;pin.style.borderColor=col;
-    pin.textContent=comments.findIndex(function(x){return x.id===c.id;})+1;
-    pin.title='['+c.type+'] '+c.reviewer+': '+c.text.slice(0,80);
-    pin.addEventListener('click',function(e){e.stopPropagation();showPinDetail(c,e.clientX,e.clientY);});
+function renderPins() {
+  document.querySelectorAll('.ann-pin').forEach(e => e.remove());
+  annotations.forEach((a, i) => {
+    const pin = document.createElement('div');
+    pin.className = 'ann-pin';
+    pin.style.cssText = `left:${a.px}px;top:${a.py}px;background:${TYPE_COLORS[a.type]||'#6366f1'}`;
+    pin.textContent = i + 1;
+    pin.title = `[${a.type}${a.prio ? ' · ' + a.prio : ''}] ${a.reviewer}: ${a.text}`;
+    pin.addEventListener('click', e => { e.stopPropagation(); if (!annotating) showDetail(a, i); });
     document.body.appendChild(pin);
-  }
-
-  function showPinDetail(c,cx,cy){
-    removePopup();
-    popup=document.createElement('div');popup.id='ann-popup';
-    popup.style.cssText='left:'+Math.min(cx+10,window.innerWidth-295)+'px;top:'+Math.min(cy,window.innerHeight-200)+'px';
-    var col=TYPE_COLORS[c.type]||'#f59e0b';
-    popup.innerHTML=
-      '<div class="ann-meta">'+
-        '<span class="ann-type-pill" style="background:'+col+'">'+escHtml(c.type)+'</span>'+
-        '<span style="font-size:10px">'+PRIO_ICONS[c.prio]+' '+escHtml(c.prio)+'</span>'+
-        '<span class="ann-reviewer" style="margin-left:auto">'+escHtml(c.reviewer)+'</span>'+
-      '</div>'+
-      (c.section?'<div class="ann-ctx"><b>'+escHtml(c.section)+'</b></div>':'')+
-      '<div class="ann-ctx">'+escHtml(c.ctx)+'</div>'+
-      '<div class="ann-body">'+escHtml(c.text)+'</div>'+
-      '<div class="ann-ts">'+new Date(c.ts).toLocaleString()+'</div>'+
-      '<div style="display:flex;gap:6px">'+
-        '<button class="ann-del-btn" id="ann-del">Delete</button>'+
-        '<button class="ann-cancel-btn" id="ann-close">Close</button>'+
-      '</div>';
-    document.body.appendChild(popup);
-    document.getElementById('ann-del').addEventListener('click',function(){deleteComment(c.id);removePopup();});
-    document.getElementById('ann-close').addEventListener('click',removePopup);
-  }
-
-  function deleteComment(id){
-    comments=comments.filter(function(c){return c.id!==id;});
-    var pin=document.querySelector('.ann-pin[data-cid="'+id+'"]');if(pin)pin.remove();
-    save();updateCount();
-    comments.forEach(function(c,i){var p=document.querySelector('.ann-pin[data-cid="'+c.id+'"]');if(p)p.textContent=i+1;});
-  }
-
-  document.getElementById('ann-download').addEventListener('click',function(){
-    if(!comments.length){showToast('Add at least one comment first.');return;}
-    var reviewer=(document.getElementById('ann-name').value||'').trim()||'Anonymous';
-    var html=document.documentElement.outerHTML;
-    html=html.replace(/<script[^>]*>\s*window\.ANN_PRELOAD[^<]*<\/script>/g,'');
-    var preload='<script>window.ANN_PRELOAD='+JSON.stringify(comments)+';<\/script>';
-    html=html.replace('<head>','<head>'+preload);
-    var safe=reviewer.replace(/[^a-z0-9]/gi,'_').toLowerCase();
-    var fname=DL_NAME.replace('.html','_'+safe+'.html');
-    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');a.href=url;a.download=fname;
-    document.body.appendChild(a);a.click();
-    document.body.removeChild(a);URL.revokeObjectURL(url);
-    showToast('Downloaded: '+fname+' — send this file to Vatsal!');
   });
+  updateBadge();
+}
 
-  document.getElementById('ann-clear-btn').addEventListener('click',function(){
-    if(!confirm('Delete all '+comments.length+' comment(s)?'))return;
-    comments=[];nextId=1;
-    document.querySelectorAll('.ann-pin').forEach(function(p){p.remove();});
-    save();updateCount();
-  });
-
-  function save(){localStorage.setItem(KEY,JSON.stringify(comments));}
-  function updateCount(){document.getElementById('ann-count-badge').textContent=comments.length;}
-  function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-  function showToast(msg){
-    var t=document.createElement('div');t.className='ann-toast';t.textContent=msg;
-    document.body.appendChild(t);setTimeout(function(){t.remove();},3200);
+function showDetail(a, i) {
+  const info = `[${a.type} · ${a.prio||''}]\n${a.reviewer}: ${a.text}`;
+  if (confirm(`${info}\n\nDelete this comment?`)) {
+    annotations.splice(i, 1);
+    save();
+    renderPins();
   }
+}
 
-  comments.forEach(renderPin);updateCount();
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')removePopup();});
-})();
+document.getElementById('ann-toggle').addEventListener('click', () => {
+  annotating = !annotating;
+  const btn = document.getElementById('ann-toggle');
+  btn.textContent = annotating ? '✕ Cancel' : '💬 Comment';
+  btn.classList.toggle('active', annotating);
+  document.body.style.cursor = annotating ? 'crosshair' : '';
+});
+
+document.body.addEventListener('click', e => {
+  if (!annotating) return;
+  if (e.target.closest('#ann-bar') || e.target.closest('#ann-popup')) return;
+  pendingPin = {px: e.pageX, py: e.pageY};
+  const popup = document.getElementById('ann-popup');
+  popup.style.display = 'block';
+  popup.style.left = Math.min(e.clientX + 10, window.innerWidth - 320) + 'px';
+  popup.style.top = Math.min(e.clientY + 10, window.innerHeight - 220) + 'px';
+  document.getElementById('ann-text').value = '';
+  document.getElementById('ann-text').focus();
+});
+
+document.getElementById('ann-save').addEventListener('click', () => {
+  const text = document.getElementById('ann-text').value.trim();
+  if (!text || !pendingPin) return;
+  annotations.push({
+    id: Date.now(), px: pendingPin.px, py: pendingPin.py,
+    text, reviewer: getReviewer(),
+    type: document.getElementById('ann-type').value,
+    prio: document.getElementById('ann-prio').value,
+    ts: new Date().toISOString()
+  });
+  save(); renderPins();
+  document.getElementById('ann-popup').style.display = 'none';
+  pendingPin = null;
+});
+
+document.getElementById('ann-cancel').addEventListener('click', () => {
+  document.getElementById('ann-popup').style.display = 'none';
+  pendingPin = null;
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.getElementById('ann-popup').style.display = 'none'; pendingPin = null; }});
+
+document.getElementById('ann-clear-btn').addEventListener('click', () => {
+  if (annotations.length && confirm('Clear all comments?')) { annotations = []; save(); renderPins(); }
+});
+
+document.getElementById('ann-download').addEventListener('click', () => {
+  let html = document.documentElement.outerHTML;
+  html = html.replace(/<script[^>]*>\s*window\.ANN_PRELOAD[\s\S]*?<\/script>/gi, '');
+  const inject = `<script>window.ANN_PRELOAD=${JSON.stringify(annotations)};<\/script>`;
+  html = html.replace('</head>', inject + '</head>');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+  a.download = 'cynlr_dataflow_review.html';
+  a.click();
+});
+
+renderPins();
 </script>
 </body>
 </html>
