@@ -1,0 +1,737 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CynLr CRM — Schema & Relationships</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:36px 24px 60px}
+h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:4px}
+.sub{text-align:center;font-size:12px;color:#475569;margin-bottom:32px}
+
+/* legend */
+.legend{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:30px}
+.li{display:flex;align-items:center;gap:6px;font-size:11px;color:#94a3b8}
+.ld{width:9px;height:9px;border-radius:50%}
+.lb{width:28px;height:3px;border-radius:2px}
+
+/* grid layout */
+.wrap{max-width:1280px;margin:0 auto;position:relative}
+
+/* row helpers */
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.row3b{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:0}
+
+/* card base */
+.card{border-radius:12px;border:1.5px solid;overflow:visible;position:relative;z-index:2}
+.ch{padding:11px 14px 10px;display:flex;align-items:center;gap:9px}
+.ci{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ct{font-size:13px;font-weight:700}
+.csub{font-size:9px;color:#64748b;margin-top:1px}
+.cb{padding:3px 0 10px}
+.fg{padding:5px 14px 2px}
+.fgl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:#334155;margin-bottom:3px}
+.f{display:flex;align-items:center;gap:5px;padding:2.5px 0;font-size:11px}
+.fn{font-family:'Cascadia Code','Courier New',monospace;font-size:10.5px;color:#cbd5e1}
+.ft{font-size:9.5px;color:#475569;margin-left:auto;white-space:nowrap}
+.pill{font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:8px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.pk{background:#1e3a5f;color:#60a5fa}
+.fk{background:#1a2e1a;color:#4ade80}
+.hs{background:#2e1040;color:#c084fc}
+.lo{background:#2a1a08;color:#fb923c}
+.bi{background:#0f2030;color:#38bdf8}
+.kk{background:#142010;color:#86efac}
+.note{font-size:10px;color:#475569;font-style:italic;padding:6px 14px 2px}
+
+/* domain palette */
+.dp{border-color:#3b82f6}.dp .ch{background:#0a1929}.dp .ci{background:#1e3a5f}
+.dc{border-color:#10b981}.dc .ch{background:#041f14}.dc .ci{background:#064e3b}
+.dd{border-color:#f59e0b}.dd .ch{background:#1f1200}.dd .ci{background:#451a03}
+.da{border-color:#ef4444}.da .ch{background:#1a0808}.da .ci{background:#450a0a}
+.dj{border-color:#6366f1}.dj .ch{background:#12124a}.dj .ci{background:#312e81}
+.dl{border-color:#8b5cf6}.dl .ch{background:#1a0f3c}.dl .ci{background:#4c1d95}
+.dm{border-color:#ec4899}.dm .ch{background:#200012}.dm .ci{background:#500724}
+.dh{border-color:#a78bfa}.dh .ch{background:#16103a}
+.dhg{border-color:#34d399}.dhg .ch{background:#02180f}
+.dhd{border-color:#fbbf24}.dhd .ch{background:#140d00}
+
+.badge{margin-left:auto;font-size:9px;font-weight:600;padding:2px 7px;border-radius:12px;letter-spacing:.4px;text-transform:uppercase}
+
+/* SVG overlay */
+#svg-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+
+/* divider */
+.div{display:flex;align-items:center;gap:14px;margin:24px 0 20px}
+.divl{flex:1;height:1px;background:#1e293b}
+.divt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#334155;white-space:nowrap}
+
+/* ownership */
+.own{border:1.5px solid #1e293b;border-radius:12px;overflow:hidden;margin-top:28px}
+.ownh{background:#0d1117;border-bottom:1px solid #1e293b;padding:12px 18px;font-size:12px;font-weight:700;color:#94a3b8}
+.owng{display:grid;grid-template-columns:1fr 1fr 1fr}
+.owncol{padding:14px 18px;border-right:1px solid #1e293b}
+.owncol:last-child{border-right:none}
+.ownct{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.ownitem{font-size:11px;font-family:'Cascadia Code',monospace;color:#94a3b8;padding:2px 0;display:flex;align-items:center;gap:5px}
+.ownitem::before{content:'';width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.col-lo .ownct{color:#fb923c}.col-lo .ownitem::before{background:#fb923c}
+.col-hs .ownct{color:#c084fc}.col-hs .ownitem::before{background:#c084fc}
+.col-bi .ownct{color:#38bdf8}.col-bi .ownitem::before{background:#38bdf8}
+</style>
+</head>
+<body>
+
+<h1>CynLr CRM — 4-Domain Schema &amp; Relationships</h1>
+<p class="sub">Local SQLite (source of truth) &nbsp;⟷&nbsp; HubSpot Portal 243444910</p>
+
+<div class="legend">
+  <div class="li"><div class="ld" style="background:#60a5fa"></div>Primary Key</div>
+  <div class="li"><div class="ld" style="background:#4ade80"></div>Foreign Key</div>
+  <div class="li"><div class="ld" style="background:#fb923c"></div>Local-owned</div>
+  <div class="li"><div class="ld" style="background:#c084fc"></div>HubSpot-owned</div>
+  <div class="li"><div class="ld" style="background:#38bdf8"></div>Bidirectional</div>
+  <div class="li"><div class="ld" style="background:#86efac"></div>Dedup key</div>
+  <div class="li"><div class="lb" style="background:#4ade80"></div>FK relationship line</div>
+  <div class="li"><div class="lb" style="background:#6366f1;border-top:2px dashed #6366f1;background:none"></div>Sync bridge</div>
+</div>
+
+<div class="wrap" id="wrap">
+<svg id="svg-overlay"></svg>
+
+<!-- ROW 1 — 4 core domains -->
+<div class="row4">
+
+  <div class="card dp" id="card-person">
+    <div class="ch"><div class="ci">👤</div><div><div class="ct">PERSON</div><div class="csub">Domain 1 · persons</div></div><span class="badge" style="background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f">D1</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Identity</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="p-id">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn">full_name</span><span class="ft">TEXT NOT NULL</span></div>
+        <div class="f"><span class="fn">email</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">phone</span></div>
+        <div class="f"><span class="fn">linkedin_url</span></div>
+        <div class="f"><span class="fn">photo_path</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Professional</div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="p-company">company_id</span><span class="ft">→ companies</span></div>
+        <div class="f"><span class="fn">company_name</span><span class="ft">denorm.</span></div>
+        <div class="f"><span class="fn">position, headline</span></div>
+      </div>
+      <div class="fg"><div class="fgl">CRM Intel <span style="color:#fb923c">(local)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">poc_status</span><span class="ft">ICP/Warm/Cold/Dead</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">relationship_strength</span><span class="ft">1–10</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">outreach_status</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">next_followup_at</span></div>
+        <div class="f"><span class="fn">bucket, tags, priority</span></div>
+        <div class="f"><span class="fn">source, event</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Enrichment</div>
+        <div class="f"><span class="fn">location, college, about</span></div>
+        <div class="f"><span class="fn">enriched_at, metadata</span></div>
+      </div>
+      <div class="fg"><div class="fgl">HubSpot Sync</div>
+        <div class="f"><span class="pill kk">KEY</span><span class="fn" id="p-hs">hs_contact_id</span><span class="ft">UNIQUE</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">hs_lifecycle</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">hs_lead_status</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card dc" id="card-company">
+    <div class="ch"><div class="ci">🏢</div><div><div class="ct">COMPANY</div><div class="csub">Domain 2 · companies</div></div><span class="badge" style="background:#041f14;color:#10b981;border:1px solid #064e3b">D2</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Identity</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="c-id">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn">name</span><span class="ft">TEXT NOT NULL</span></div>
+        <div class="f"><span class="pill kk">KEY</span><span class="fn" id="c-domain">domain</span><span class="ft">UNIQUE dedup</span></div>
+        <div class="f"><span class="fn">website</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Classification</div>
+        <div class="f"><span class="fn">industry</span></div>
+        <div class="f"><span class="fn">segment</span><span class="ft">Ent/SMB/Start/Gov</span></div>
+        <div class="f"><span class="fn">geography</span><span class="ft">APAC/NA/EU/…</span></div>
+        <div class="f"><span class="fn">company_size</span></div>
+      </div>
+      <div class="fg"><div class="fgl">CRM Intel <span style="color:#fb923c">(local)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">icp_fit</span><span class="ft">Strong/Med/Weak</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">relationship_score</span><span class="ft">1–10</span></div>
+      </div>
+      <div class="fg"><div class="fgl">HubSpot Sync</div>
+        <div class="f"><span class="pill kk">KEY</span><span class="fn" id="c-hs">hs_company_id</span><span class="ft">UNIQUE</span></div>
+        <div class="f"><span class="fn">hs_synced_at</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card dd" id="card-deal">
+    <div class="ch"><div class="ci">💼</div><div><div class="ct">DEAL</div><div class="csub">Domain 3 · deals</div></div><span class="badge" style="background:#1f1200;color:#f59e0b;border:1px solid #451a03">D3</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Identity</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="d-id">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn">name</span><span class="ft">TEXT NOT NULL</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="d-company">company_id</span><span class="ft">→ companies</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Pipeline <span style="color:#38bdf8">(bidirectional)</span></div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">stage</span></div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">amount</span></div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">expected_close</span></div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">action_item</span></div>
+      </div>
+      <div class="fg"><div class="fgl">MEDDIC</div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="d-champ">champion_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="d-eb">economic_buyer_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">pain_point</span></div>
+        <div class="f"><span class="fn">blockers, competitors</span></div>
+        <div class="f"><span class="fn">action_due</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Local Intel</div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">technical_win</span><span class="ft">BOOL</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">budget_confirmed</span><span class="ft">BOOL</span></div>
+        <div class="f"><span class="fn">application_type, segment</span></div>
+      </div>
+      <div class="fg"><div class="fgl">HubSpot Sync</div>
+        <div class="f"><span class="pill kk">KEY</span><span class="fn" id="d-hs">hs_deal_id</span><span class="ft">UNIQUE</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">hs_owner_id / name</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card da" id="card-activity">
+    <div class="ch"><div class="ci">📋</div><div><div class="ct">ACTIVITY LOG</div><div class="csub">Domain 4 · activity_log</div></div><span class="badge" style="background:#1a0808;color:#ef4444;border:1px solid #450a0a">D4</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Links (all nullable)</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="a-id">id</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="a-person">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="a-company">company_id</span><span class="ft">→ companies</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="a-deal">deal_id</span><span class="ft">→ deals</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Classification</div>
+        <div class="f"><span class="fn">activity_type</span><span class="ft">Note/Email/LI/Call/…</span></div>
+        <div class="f"><span class="fn">direction</span><span class="ft">In/Out/Internal</span></div>
+        <div class="f"><span class="fn">channel</span><span class="ft">LI/Email/Phone/…</span></div>
+        <div class="f"><span class="fn">status</span><span class="ft">Draft→Sent→Replied</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Content</div>
+        <div class="f"><span class="fn">subject, body</span></div>
+        <div class="f"><span class="fn">message_type, tone</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Timing</div>
+        <div class="f"><span class="fn">occurred_at</span><span class="ft">when it happened</span></div>
+        <div class="f"><span class="fn">created_at</span><span class="ft">when logged</span></div>
+      </div>
+      <div class="note">Replaces: outreach + notes + messages + activities (v1)</div>
+    </div>
+  </div>
+
+</div><!-- /row4 -->
+
+<!-- ROW 2 — Support tables -->
+<div class="row3">
+
+  <div class="card dj" id="card-dc">
+    <div class="ch"><div class="ci">🔗</div><div><div class="ct">DEAL ↔ PERSON</div><div class="csub">deal_contacts · stakeholder map</div></div></div>
+    <div class="cb">
+      <div class="fg">
+        <div class="f"><span class="pill pk">PK</span><span class="fn">deal_id, person_id</span><span class="ft">composite</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="dc-deal">deal_id</span><span class="ft">→ deals</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="dc-person">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">role</span><span class="ft">Champion/EcoBuyer/Tech/Blocker</span></div>
+      </div>
+      <div class="note">Many-to-many. Separate from champion_id / economic_buyer_id FKs on deals (those are fast-access shortcuts).</div>
+    </div>
+  </div>
+
+  <div class="card dl" id="card-lists">
+    <div class="ch"><div class="ci">📁</div><div><div class="ct">PERSON LISTS</div><div class="csub">person_lists + list_members</div></div></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">person_lists</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="pl-id">id</span></div>
+        <div class="f"><span class="fn">name, description, color</span></div>
+      </div>
+      <div class="fg"><div class="fgl">list_members</div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="lm-list">list_id</span><span class="ft">→ person_lists</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="lm-person">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">added_at</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card dm" id="card-camp">
+    <div class="ch"><div class="ci">📨</div><div><div class="ct">CAMPAIGNS</div><div class="csub">campaigns + stages + recipients</div></div></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">campaigns</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="ca-id">id</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="ca-list">list_id</span><span class="ft">→ person_lists</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="ca-deal">deal_id</span><span class="ft">→ deals</span></div>
+        <div class="f"><span class="fn">channel, status, current_stage</span></div>
+      </div>
+      <div class="fg"><div class="fgl">campaign_recipients</div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="cr-camp">campaign_id</span><span class="ft">→ campaigns</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="cr-person">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">draft_id, sent_at, reply_status</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DIVIDER -->
+<div class="div"><div class="divl"></div><div class="divt">⟷ &nbsp; HubSpot Sync Layer &nbsp; ⟷</div><div class="divl"></div></div>
+
+<!-- ROW 3 — HubSpot objects -->
+<div class="row3b">
+
+  <div class="card dh" id="card-hsc">
+    <div class="ch"><div style="font-size:11px;font-weight:700;color:#a78bfa">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Contacts</div><div class="csub">syncs via hs_contact_id</div></div></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Standard (HubSpot-owned)</div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">lifecycle_stage, lead_status</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">email, firstname, lastname</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">jobtitle, company</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Custom: CynLr CRM group</div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_poc_status</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_outreach_status</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_relationship_strength</span></div>
+        <div class="f"><span class="fn">+ 10 more cynlr_* fields</span></div>
+      </div>
+      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">persons.hs_contact_id ⟷ HubSpot id</div></div>
+    </div>
+  </div>
+
+  <div class="card dhg" id="card-hscm">
+    <div class="ch"><div style="font-size:11px;font-weight:700;color:#34d399">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Companies</div><div class="csub">syncs via hs_company_id + domain</div></div></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Standard (HubSpot-owned)</div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">name, domain, website</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">industry, city, country</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Custom: CynLr CRM group</div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_icp_fit</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_segment, cynlr_geography</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_relationship_score</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_company_size</span></div>
+      </div>
+      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">companies.hs_company_id ⟷ HubSpot id<br>companies.domain = HubSpot domain (dedup)</div></div>
+    </div>
+  </div>
+
+  <div class="card dhd" id="card-hsd">
+    <div class="ch"><div style="font-size:11px;font-weight:700;color:#fbbf24">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Deals</div><div class="csub">syncs via hs_deal_id</div></div></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Standard + existing custom</div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">dealstage, amount, closedate</span></div>
+        <div class="f"><span class="fn">champion, economic_buyer</span></div>
+        <div class="f"><span class="fn">pain_point, blockers_risks</span></div>
+        <div class="f"><span class="fn">geography, segment, app_type</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Custom: CynLr Deal Intel group</div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_technical_win</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_budget_confirmed</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_action_due</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_product_services</span></div>
+      </div>
+      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">deals.hs_deal_id ⟷ HubSpot deal id</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- OWNERSHIP TABLE -->
+<div class="own">
+  <div class="ownh">Field Ownership Rules</div>
+  <div class="owng">
+    <div class="owncol col-lo">
+      <div class="ownct">Local CRM owns</div>
+      <div class="ownitem">poc_status</div>
+      <div class="ownitem">relationship_strength</div>
+      <div class="ownitem">outreach_status</div>
+      <div class="ownitem">next_followup_at, next_action</div>
+      <div class="ownitem">technical_win</div>
+      <div class="ownitem">budget_confirmed</div>
+      <div class="ownitem">icp_fit, relationship_score</div>
+      <div class="ownitem">all activity_log rows</div>
+      <div class="ownitem">linkedin_url, photo_path</div>
+      <div class="ownitem">enrichment data</div>
+    </div>
+    <div class="owncol col-hs">
+      <div class="ownct">HubSpot owns</div>
+      <div class="ownitem">hs_lifecycle (lifecycle_stage)</div>
+      <div class="ownitem">hs_lead_status</div>
+      <div class="ownitem">marketing engagement data</div>
+      <div class="ownitem">email open / click tracking</div>
+      <div class="ownitem">hs_owner_id / owner_name</div>
+      <div class="ownitem">deal pipeline configuration</div>
+      <div class="ownitem">sequence enrollment state</div>
+    </div>
+    <div class="owncol col-bi">
+      <div class="ownct">Bidirectional (last-write-wins)</div>
+      <div class="ownitem">deal stage</div>
+      <div class="ownitem">deal amount</div>
+      <div class="ownitem">expected_close</div>
+      <div class="ownitem">action_item</div>
+      <div class="ownitem">pain_point</div>
+      <div class="ownitem">champion, economic_buyer</div>
+      <div class="ownitem">competitors</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div style="text-align:center;margin-top:28px;font-size:11px;color:#1e293b">
+  schema_v2.sql · database_v2.py · HubSpot portal 243444910
+</div>
+
+<script>
+// Draw FK relationship lines between cards using SVG
+// Each line: {from: elementId, to: elementId, color, dashed}
+const LINES = [
+  // persons.company_id → companies.id
+  {from:'p-company', to:'c-id', color:'#4ade80', label:'N:1'},
+  // deals.company_id → companies.id
+  {from:'d-company', to:'c-id', color:'#4ade80', label:'N:1'},
+  // deals.champion_id → persons.id
+  {from:'d-champ', to:'p-id', color:'#4ade80', label:'N:1'},
+  // deals.economic_buyer_id → persons.id
+  {from:'d-eb', to:'p-id', color:'#4ade80', label:'N:1'},
+  // activity_log.person_id → persons.id
+  {from:'a-person', to:'p-id', color:'#4ade80', label:'N:1'},
+  // activity_log.company_id → companies.id
+  {from:'a-company', to:'c-id', color:'#4ade80', label:'N:1'},
+  // activity_log.deal_id → deals.id
+  {from:'a-deal', to:'d-id', color:'#4ade80', label:'N:1'},
+  // deal_contacts.deal_id → deals.id
+  {from:'dc-deal', to:'d-id', color:'#6366f1', label:'N:1'},
+  // deal_contacts.person_id → persons.id
+  {from:'dc-person', to:'p-id', color:'#6366f1', label:'N:1'},
+  // list_members.list_id → person_lists.id
+  {from:'lm-list', to:'pl-id', color:'#8b5cf6', label:'N:1'},
+  // list_members.person_id → persons.id
+  {from:'lm-person', to:'p-id', color:'#8b5cf6', label:'N:1'},
+  // campaigns.list_id → person_lists.id
+  {from:'ca-list', to:'pl-id', color:'#ec4899', label:'N:1'},
+  // campaigns.deal_id → deals.id
+  {from:'ca-deal', to:'d-id', color:'#ec4899', label:'N:1'},
+  // campaign_recipients.campaign_id → campaigns.id
+  {from:'cr-camp', to:'ca-id', color:'#ec4899', label:'N:1'},
+  // campaign_recipients.person_id → persons.id
+  {from:'cr-person', to:'p-id', color:'#ec4899', label:'N:1'},
+  // HubSpot sync bridges (dashed)
+  {from:'p-hs', to:'card-hsc', color:'#a78bfa', dashed:true, label:'sync'},
+  {from:'c-hs', to:'card-hscm', color:'#34d399', dashed:true, label:'sync'},
+  {from:'d-hs', to:'card-hsd', color:'#fbbf24', dashed:true, label:'sync'},
+];
+
+function getMidRight(el, wrap) {
+  const r = el.getBoundingClientRect();
+  const w = wrap.getBoundingClientRect();
+  return {x: r.right - w.left, y: (r.top + r.bottom)/2 - w.top};
+}
+function getMidLeft(el, wrap) {
+  const r = el.getBoundingClientRect();
+  const w = wrap.getBoundingClientRect();
+  return {x: r.left - w.left, y: (r.top + r.bottom)/2 - w.top};
+}
+function getCenter(el, wrap) {
+  const r = el.getBoundingClientRect();
+  const w = wrap.getBoundingClientRect();
+  return {x:(r.left+r.right)/2 - w.left, y:(r.top+r.bottom)/2 - w.top};
+}
+
+window.addEventListener('load', () => {
+  const svg = document.getElementById('svg-overlay');
+  const wrap = document.getElementById('wrap');
+  svg.setAttribute('height', wrap.scrollHeight);
+
+  LINES.forEach(({from, to, color, dashed, label}) => {
+    const fe = document.getElementById(from);
+    const te = document.getElementById(to);
+    if (!fe || !te) return;
+
+    const fr = fe.getBoundingClientRect();
+    const tr = te.getBoundingClientRect();
+    const wr = wrap.getBoundingClientRect();
+
+    const fx = (fr.left + fr.right)/2 - wr.left;
+    const fy = (fr.top + fr.bottom)/2 - wr.top;
+    const tx = (tr.left + tr.right)/2 - wr.left;
+    const ty = (tr.top + tr.bottom)/2 - wr.top;
+
+    // Control points for a curved path
+    const dx = tx - fx;
+    const dy = ty - fy;
+    const cx1 = fx + dx * 0.5;
+    const cy1 = fy;
+    const cx2 = tx - dx * 0.5;
+    const cy2 = ty;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M${fx},${fy} C${cx1},${cy1} ${cx2},${cy2} ${tx},${ty}`);
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', dashed ? '1.2' : '1');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', dashed ? '0.5' : '0.35');
+    if (dashed) path.setAttribute('stroke-dasharray', '5,4');
+
+    // Arrowhead marker
+    const markerId = `arrow-${from}-${to}`;
+    const defs = svg.querySelector('defs') || (() => {
+      const d = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      svg.prepend(d); return d;
+    })();
+    const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+    marker.setAttribute('id', markerId);
+    marker.setAttribute('markerWidth','6'); marker.setAttribute('markerHeight','6');
+    marker.setAttribute('refX','5'); marker.setAttribute('refY','3');
+    marker.setAttribute('orient','auto');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points','0 0, 6 3, 0 6');
+    poly.setAttribute('fill', color);
+    poly.setAttribute('opacity', dashed ? '0.5' : '0.6');
+    marker.appendChild(poly); defs.appendChild(marker);
+    path.setAttribute('marker-end', `url(#${markerId})`);
+
+    svg.appendChild(path);
+  });
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     ANNOTATION LAYER v2 — Download & Send Back
+     ═══════════════════════════════════════════════ -->
+<style>
+#ann-bar{position:fixed;top:16px;right:16px;z-index:99990;background:#1e2535;border:1px solid #334155;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 24px #00000088;font-family:'Segoe UI',system-ui,sans-serif;flex-wrap:wrap}
+#ann-bar input{background:#0b0d13;border:1px solid #334155;border-radius:7px;color:#e2e8f0;font-size:12px;padding:5px 10px;outline:none;width:130px}
+#ann-bar input:focus{border-color:#6366f1}
+#ann-bar button{border:none;border-radius:7px;font-size:11px;font-weight:700;padding:5px 11px;cursor:pointer;transition:opacity .15s}
+#ann-toggle{background:#6366f1;color:#fff}
+#ann-toggle.active{background:#f59e0b;color:#0b0d13}
+#ann-download{background:#10b981;color:#fff}
+#ann-clear-btn{background:#374151;color:#94a3b8;padding:5px 8px}
+#ann-count-badge{background:#0b0d13;color:#6366f1;border:1px solid #6366f1;border-radius:20px;font-size:11px;font-weight:700;padding:2px 9px;min-width:24px;text-align:center}
+.ann-pin{position:absolute;width:22px;height:22px;border-radius:50%;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9998;box-shadow:0 2px 8px #00000077;border:2px solid rgba(255,255,255,.3);transform:translate(-50%,-50%);transition:transform .1s}
+.ann-pin:hover{transform:translate(-50%,-50%) scale(1.2)}
+#ann-popup{position:fixed;z-index:99999;background:#1e2535;border:1px solid #475569;border-radius:10px;padding:14px;width:280px;box-shadow:0 8px 32px #000000aa;font-family:'Segoe UI',system-ui,sans-serif}
+#ann-popup textarea{width:100%;background:#0b0d13;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:12px;padding:8px;resize:vertical;min-height:80px;outline:none;font-family:inherit}
+#ann-popup textarea:focus{border-color:#6366f1}
+#ann-popup select{background:#0b0d13;color:#e2e8f0;border:1px solid #334155;border-radius:6px;font-size:11px;padding:4px 8px;flex:1;outline:none}
+#ann-popup button{border:none;border-radius:6px;font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer}
+.ann-submit-btn{background:#6366f1;color:#fff}
+.ann-cancel-btn{background:#374151;color:#94a3b8}
+.ann-del-btn{background:#dc2626;color:#fff}
+.ann-ctx{font-size:10px;color:#64748b;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.ann-body{font-size:12px;color:#e2e8f0;white-space:pre-wrap;margin-bottom:8px;line-height:1.5}
+.ann-reviewer{font-size:11px;font-weight:700;color:#818cf8}
+.ann-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.ann-type-pill{font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;color:#fff}
+.ann-ts{font-size:10px;color:#475569;margin-bottom:8px}
+.ann-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:10px 22px;border-radius:9px;font-size:13px;font-weight:700;z-index:999999;pointer-events:none;box-shadow:0 4px 16px #00000066}
+body.comment-mode *:not(#ann-bar):not(#ann-bar *):not(#ann-popup):not(#ann-popup *):not(.ann-pin){cursor:crosshair!important}
+</style>
+
+<script>
+(function(){
+  var KEY='crm_ann_schema';
+  var DL_NAME='cynlr_schema_review.html';
+  var commentMode=false;
+  var comments=[];
+
+  if(window.ANN_PRELOAD&&Array.isArray(window.ANN_PRELOAD)&&window.ANN_PRELOAD.length){
+    comments=window.ANN_PRELOAD;
+  } else {
+    try{comments=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){comments=[];}
+  }
+  var nextId=comments.length?Math.max.apply(null,comments.map(function(c){return c.id;}))+1:1;
+  var popup=null;
+
+  var bar=document.createElement('div');bar.id='ann-bar';
+  bar.innerHTML=
+    '<input id="ann-name" placeholder="Your name…">'+
+    '<button id="ann-toggle">💬 Comment</button>'+
+    '<span id="ann-count-badge">0</span>'+
+    '<button id="ann-download">⬇ Download & Send</button>'+
+    '<button id="ann-clear-btn" title="Clear all comments">🗑 Clear</button>';
+  document.body.appendChild(bar);
+
+  var sn=localStorage.getItem('ann_reviewer_name')||'';
+  document.getElementById('ann-name').value=sn;
+  document.getElementById('ann-name').addEventListener('input',function(){localStorage.setItem('ann_reviewer_name',this.value);});
+
+  document.getElementById('ann-toggle').addEventListener('click',function(){
+    commentMode=!commentMode;
+    document.body.classList.toggle('comment-mode',commentMode);
+    this.classList.toggle('active',commentMode);
+    this.textContent=commentMode?'✕ Cancel':'💬 Comment';
+    if(!commentMode)removePopup();
+  });
+
+  document.addEventListener('click',function(e){
+    if(!commentMode)return;
+    if(e.target.closest('#ann-bar')||e.target.closest('#ann-popup')||e.target.closest('.ann-pin'))return;
+    e.stopPropagation();e.preventDefault();
+    showInput(e.clientX,e.clientY,e.pageX,e.pageY,getCtx(e.target),getSection(e.target));
+  },true);
+
+  function getCtx(el){
+    for(var i=0,n=el;i<5;i++,n=n.parentElement){
+      if(!n)break;
+      var t=(n.innerText||'').trim().split('\n')[0].replace(/\s+/g,' ').slice(0,70);
+      if(t.length>3)return t;
+    }
+    return '<'+el.tagName.toLowerCase()+'>';
+  }
+
+  function getSection(el){
+    var n=el;
+    while(n&&n!==document.body){
+      if(n.querySelector){
+        var h=n.querySelector('h1,h2,h3,h4,.ct,.stage-title,.ch');
+        if(h){var t=(h.innerText||'').trim().split('\n')[0].slice(0,50);if(t)return t;}
+      }
+      n=n.parentElement;
+    }
+    return '';
+  }
+
+  var TYPE_COLORS={Question:'#3b82f6',Suggestion:'#f59e0b',Issue:'#ef4444','Looks good':'#10b981'};
+  var PRIO_ICONS={High:'🔴',Medium:'🟡',Low:'🟢'};
+
+  function showInput(cx,cy,px,py,ctx,section){
+    removePopup();
+    popup=document.createElement('div');popup.id='ann-popup';
+    popup.style.cssText='left:'+Math.min(cx+8,window.innerWidth-295)+'px;top:'+Math.min(cy+8,window.innerHeight-260)+'px';
+    var sectionHtml=section?'<b>'+escHtml(section)+'</b> &rsaquo; ':'';
+    popup.innerHTML=
+      '<div style="font-size:11px;font-weight:700;color:#f8fafc;margin-bottom:8px">Add comment</div>'+
+      '<div class="ann-ctx">'+sectionHtml+escHtml(ctx)+'</div>'+
+      '<textarea id="ann-input" placeholder="Describe your thought, question, or concern… (Ctrl+Enter to submit)"></textarea>'+
+      '<div style="display:flex;gap:6px;margin-top:8px">'+
+        '<select id="ann-type">'+
+          '<option value="Question">❓ Question</option>'+
+          '<option value="Suggestion">💡 Suggestion</option>'+
+          '<option value="Issue">⚠️ Issue</option>'+
+          '<option value="Looks good">✅ Looks good</option>'+
+        '</select>'+
+        '<select id="ann-prio">'+
+          '<option value="High">🔴 High</option>'+
+          '<option value="Medium" selected>🟡 Medium</option>'+
+          '<option value="Low">🟢 Low</option>'+
+        '</select>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button class="ann-submit-btn" id="ann-submit">Add comment</button>'+
+        '<button class="ann-cancel-btn" id="ann-cancel">Cancel</button>'+
+      '</div>';
+    document.body.appendChild(popup);
+    document.getElementById('ann-input').focus();
+    document.getElementById('ann-submit').addEventListener('click',function(){
+      var text=(document.getElementById('ann-input').value||'').trim();
+      if(!text)return;
+      var reviewer=(document.getElementById('ann-name').value||'').trim()||'Anonymous';
+      localStorage.setItem('ann_reviewer_name',reviewer);
+      document.getElementById('ann-name').value=reviewer;
+      var type=document.getElementById('ann-type').value;
+      var prio=document.getElementById('ann-prio').value;
+      addComment(px,py,text,ctx,section,reviewer,type,prio);
+      removePopup();commentMode=false;
+      document.body.classList.remove('comment-mode');
+      var tog=document.getElementById('ann-toggle');
+      tog.classList.remove('active');tog.textContent='💬 Comment';
+    });
+    document.getElementById('ann-cancel').addEventListener('click',removePopup);
+    document.getElementById('ann-input').addEventListener('keydown',function(e){
+      if(e.key==='Escape')removePopup();
+      if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))document.getElementById('ann-submit').click();
+    });
+  }
+
+  function removePopup(){if(popup){popup.remove();popup=null;}}
+
+  function addComment(px,py,text,ctx,section,reviewer,type,prio){
+    var c={id:nextId++,px:px,py:py,text:text,ctx:ctx,section:section||'',reviewer:reviewer,type:type,prio:prio,ts:new Date().toISOString()};
+    comments.push(c);save();renderPin(c);updateCount();
+  }
+
+  function renderPin(c){
+    var pin=document.createElement('div');
+    pin.className='ann-pin';pin.dataset.cid=c.id;
+    pin.style.left=c.px+'px';pin.style.top=c.py+'px';
+    var col=TYPE_COLORS[c.type]||'#f59e0b';
+    pin.style.background=col;pin.style.borderColor=col;
+    pin.textContent=comments.findIndex(function(x){return x.id===c.id;})+1;
+    pin.title='['+c.type+'] '+c.reviewer+': '+c.text.slice(0,80);
+    pin.addEventListener('click',function(e){e.stopPropagation();showPinDetail(c,e.clientX,e.clientY);});
+    document.body.appendChild(pin);
+  }
+
+  function showPinDetail(c,cx,cy){
+    removePopup();
+    popup=document.createElement('div');popup.id='ann-popup';
+    popup.style.cssText='left:'+Math.min(cx+10,window.innerWidth-295)+'px;top:'+Math.min(cy,window.innerHeight-200)+'px';
+    var col=TYPE_COLORS[c.type]||'#f59e0b';
+    popup.innerHTML=
+      '<div class="ann-meta">'+
+        '<span class="ann-type-pill" style="background:'+col+'">'+escHtml(c.type)+'</span>'+
+        '<span style="font-size:10px">'+PRIO_ICONS[c.prio]+' '+escHtml(c.prio)+'</span>'+
+        '<span class="ann-reviewer" style="margin-left:auto">'+escHtml(c.reviewer)+'</span>'+
+      '</div>'+
+      (c.section?'<div class="ann-ctx"><b>'+escHtml(c.section)+'</b></div>':'')+
+      '<div class="ann-ctx">'+escHtml(c.ctx)+'</div>'+
+      '<div class="ann-body">'+escHtml(c.text)+'</div>'+
+      '<div class="ann-ts">'+new Date(c.ts).toLocaleString()+'</div>'+
+      '<div style="display:flex;gap:6px">'+
+        '<button class="ann-del-btn" id="ann-del">Delete</button>'+
+        '<button class="ann-cancel-btn" id="ann-close">Close</button>'+
+      '</div>';
+    document.body.appendChild(popup);
+    document.getElementById('ann-del').addEventListener('click',function(){deleteComment(c.id);removePopup();});
+    document.getElementById('ann-close').addEventListener('click',removePopup);
+  }
+
+  function deleteComment(id){
+    comments=comments.filter(function(c){return c.id!==id;});
+    var pin=document.querySelector('.ann-pin[data-cid="'+id+'"]');if(pin)pin.remove();
+    save();updateCount();
+    comments.forEach(function(c,i){var p=document.querySelector('.ann-pin[data-cid="'+c.id+'"]');if(p)p.textContent=i+1;});
+  }
+
+  document.getElementById('ann-download').addEventListener('click',function(){
+    if(!comments.length){showToast('Add at least one comment first.');return;}
+    var reviewer=(document.getElementById('ann-name').value||'').trim()||'Anonymous';
+    var html=document.documentElement.outerHTML;
+    html=html.replace(/<script[^>]*>\s*window\.ANN_PRELOAD[^<]*<\/script>/g,'');
+    var preload='<script>window.ANN_PRELOAD='+JSON.stringify(comments)+';<\/script>';
+    html=html.replace('<head>','<head>'+preload);
+    var safe=reviewer.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+    var fname=DL_NAME.replace('.html','_'+safe+'.html');
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download=fname;
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);URL.revokeObjectURL(url);
+    showToast('Downloaded: '+fname+' — send this file to Vatsal!');
+  });
+
+  document.getElementById('ann-clear-btn').addEventListener('click',function(){
+    if(!confirm('Delete all '+comments.length+' comment(s)?'))return;
+    comments=[];nextId=1;
+    document.querySelectorAll('.ann-pin').forEach(function(p){p.remove();});
+    save();updateCount();
+  });
+
+  function save(){localStorage.setItem(KEY,JSON.stringify(comments));}
+  function updateCount(){document.getElementById('ann-count-badge').textContent=comments.length;}
+  function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function showToast(msg){
+    var t=document.createElement('div');t.className='ann-toast';t.textContent=msg;
+    document.body.appendChild(t);setTimeout(function(){t.remove();},3200);
+  }
+
+  comments.forEach(renderPin);updateCount();
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')removePopup();});
+})();
+</script>
+</body>
+</html>
