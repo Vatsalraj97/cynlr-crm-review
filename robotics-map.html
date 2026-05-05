@@ -725,7 +725,7 @@ function showDetail(person, loc, color) {
   document.getElementById('dp-name').textContent = person.name;
   document.getElementById('dp-role').textContent = person.role;
   document.getElementById('dp-role').style.color = color;
-  document.getElementById('dp-company').textContent = '📍 ' + loc.popup.match(/class="popup-company">(.*?)<\/div>/)?.[1] || '';
+  const m = loc.popup.match(/class="popup-company">(.*?)<\/div>/); document.getElementById('dp-company').textContent = '📍 ' + (m ? m[1] : '');
   document.getElementById('dp-note').textContent = person.note;
   const dutchEl = document.getElementById('dp-dutch');
   dutchEl.style.display = person.dutch ? 'inline-flex' : 'none';
