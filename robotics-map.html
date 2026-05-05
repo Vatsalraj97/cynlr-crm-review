@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US Robotics Training Labs Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #e6edf3; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    header {
+      padding: 13px 20px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 16px; font-weight: 600; color: #f0f6fc; }
+    header p { font-size: 12px; color: #8b949e; margin-top: 2px; }
+    .zoom-hint {
+      font-size: 11px;
+      color: #58a6ff;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    #map-wrap { position: relative; flex: 1; overflow: hidden; }
+    #map { width: 100%; height: 100%; }
+
+    /* ─── People overlay ─── */
+    #people-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 500;
+      overflow: hidden;
+    }
+
+    .person-card {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: rgba(13, 17, 23, 0.92);
+      border: 1px solid #30363d;
+      border-radius: 22px;
+      padding: 5px 10px 5px 5px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      pointer-events: auto;
+      cursor: pointer;
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+      animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .person-card:hover {
+      background: rgba(22, 27, 34, 0.98);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      transform: translate(-50%, -50%) scale(1.08);
+      z-index: 9999 !important;
+    }
+    .person-card.dutch {
+      border-color: #f97316;
+      box-shadow: 0 0 0 1px rgba(249,115,22,0.3), 0 2px 12px rgba(0,0,0,0.4);
+    }
+
+    .pa {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .pn { font-size: 11px; font-weight: 600; color: #f0f6fc; line-height: 1.2; }
+    .pr { font-size: 10px; color: #8b949e; line-height: 1.2; }
+    .flag { font-size: 12px; margin-left: 2px; }
+
+    /* connector line between pin and card */
+    .connector {
+      position: absolute;
+      pointer-events: none;
+      z-index: 499;
+    }
+
+    @keyframes popIn {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* ─── Detail panel ─── */
+    #detail-panel {
+      position: absolute;
+      top: 16px; right: 16px;
+      z-index: 1000;
+      width: 260px;
+      background: rgba(22, 27, 34, 0.97);
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      padding: 16px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: none;
+      animation: slideIn 0.2s ease;
+    }
+    #detail-panel.visible { display: block; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .dp-close {
+      position: absolute; top: 10px; right: 12px;
+      background: none; border: none; color: #8b949e;
+      font-size: 18px; cursor: pointer; line-height: 1;
+    }
+    .dp-close:hover { color: #e6edf3; }
+    .dp-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff;
+      margin-bottom: 10px;
+    }
+    .dp-name { font-size: 15px; font-weight: 700; color: #f0f6fc; margin-bottom: 2px; }
+    .dp-role { font-size: 12px; color: #58a6ff; margin-bottom: 8px; font-weight: 500; }
+    .dp-company { font-size: 11px; color: #8b949e; margin-bottom: 10px; }
+    .dp-divider { border: none; border-top: 1px solid #21262d; margin: 10px 0; }
+    .dp-note { font-size: 12px; color: #c9d1d9; line-height: 1.6; }
+    .dp-dutch {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 10px;
+      background: rgba(249,115,22,0.15);
+      border: 1px solid rgba(249,115,22,0.4);
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 11px; color: #f97316; font-weight: 600;
+    }
+
+    /* ─── Legend ─── */
+    .legend {
+      position: absolute;
+      bottom: 28px; left: 14px;
+      z-index: 1000;
+      background: rgba(22, 27, 34, 0.93);
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 12px 16px;
+      backdrop-filter: blur(8px);
+    }
+    .legend h3 { font-size: 10px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #e6edf3; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ─── Stats ─── */
+    .stats {
+      position: absolute;
+      bottom: 28px; right: 14px;
+      z-index: 1000;
+      background: rgba(22, 27, 34, 0.93);
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 10px 16px;
+      backdrop-filter: blur(8px);
+      display: flex; gap: 20px;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 700; color: #58a6ff; }
+    .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ─── Leaflet popup overrides ─── */
+    .leaflet-popup-content-wrapper {
+      background: #161b22 !important;
+      border: 1px solid #30363d !important;
+      border-radius: 10px !important;
+      color: #e6edf3 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+    }
+    .leaflet-popup-tip { background: #161b22 !important; }
+    .leaflet-popup-content { margin: 14px 16px !important; }
+    .popup-company { font-size: 14px; font-weight: 700; color: #f0f6fc; margin-bottom: 3px; }
+    .popup-type { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px; }
+    .popup-loc { font-size: 11px; color: #8b949e; margin-bottom: 5px; }
+    .popup-note { font-size: 12px; color: #c9d1d9; line-height: 1.5; }
+    .popup-tag {
+      display: inline-block; padding: 2px 7px;
+      border-radius: 10px; font-size: 10px; font-weight: 600; margin-top: 6px;
+    }
+    .leaflet-container { cursor: grab; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🤖 US Robotics Training Labs</h1>
+    <p>Physical AI data collection & robot learning infrastructure</p>
+  </div>
+  <div class="zoom-hint" id="zoom-hint">🔍 Zoom in to reveal key people</div>
+</header>
+
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="people-overlay"></div>
+
+  <div id="detail-panel">
+    <button class="dp-close" onclick="closeDetail()">×</button>
+    <div class="dp-avatar" id="dp-avatar"></div>
+    <div class="dp-name" id="dp-name"></div>
+    <div class="dp-role" id="dp-role"></div>
+    <div class="dp-company" id="dp-company"></div>
+    <hr class="dp-divider" />
+    <div class="dp-note" id="dp-note"></div>
+    <div id="dp-dutch" class="dp-dutch" style="display:none">🇳🇱 Dutch / Netherlands origin</div>
+  </div>
+
+  <div class="legend">
+    <h3>Category</h3>
+    <div class="legend-item"><div class="legend-dot" style="background:#f78166"></div> Startup / Robotics</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#58a6ff"></div> Big Tech Lab</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div> University Lab</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,0.3)"></div> Dutch-connected</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num">30</div><div class="stat-label">Locations</div></div>
+    <div class="stat"><div class="stat-num">13</div><div class="stat-label">Orgs</div></div>
+    <div class="stat"><div class="stat-num">50+</div><div class="stat-label">People</div></div>
+  </div>
+</div>
+
+<script>
+const map = L.map('map', {
+  center: [39.5, -98.5],
+  zoom: 4,
+  zoomControl: true,
+  attributionControl: false
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+// ─── Icon factory ───
+function makeIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="${color}" opacity="0.95"/>
+      <circle cx="14" cy="14" r="6" fill="white" opacity="0.9"/>
+    </svg>`,
+    iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -40]
+  });
+}
+
+const icons = {
+  startup: makeIcon('#f78166'),
+  bigtech: makeIcon('#58a6ff'),
+  uni:     makeIcon('#3fb950'),
+};
+
+const colors = { startup: '#f78166', bigtech: '#58a6ff', uni: '#3fb950' };
+
+// ─── Popup HTML ───
+function mkPopup(company, type, location, address, note, tags) {
+  const c = colors[type] || '#58a6ff';
+  return `
+    <div class="popup-company">${company}</div>
+    <div class="popup-type" style="color:${c}">${type.toUpperCase()}</div>
+    <div class="popup-loc">📍 ${location}${address ? ' · ' + address : ''}</div>
+    <div class="popup-note">${note}</div>
+    <div>${tags.map(t => `<span class="popup-tag" style="background:${c}22;color:${c}">${t}</span>`).join(' ')}</div>
+  `;
+}
+
+// ─── Locations + people data ───
+const locations = [
+
+  // ═══════════ STARTUPS ═══════════
+
+  { lat: 37.7749, lng: -122.4194, type: 'startup',
+    popup: mkPopup('Scale AI', 'startup', 'San Francisco, CA', 'HQ + Robotics R&D Lab',
+      'Prototypes data collection cells, structured annotation (intent, subgoals, failures, edge cases). Runs global robotics data factories.',
+      ['R&D Lab','Data Factories','Robotics HQ']),
+    people: [
+      { name: 'Alexandr Wang',   role: 'Founder (Board)',        note: 'Founded Scale AI at 19. Meta acquired 49% stake Jun 2025.', dutch: false },
+      { name: 'Jason Droege',    role: 'CEO',                    note: 'Ex-Uber exec. Took operating CEO role post-Meta deal.', dutch: false },
+      { name: 'Ashli Shiftan',   role: 'SVP, Head of People',   note: 'Leads people operations globally.', dutch: false },
+    ]
+  },
+
+  { lat: 40.7128, lng: -74.0060, type: 'startup',
+    popup: mkPopup('Scale AI', 'startup', 'New York, NY', '1 World Trade Center',
+      '500 employees — largest office outside HQ. Moving from Chelsea to 1 WTC early 2026.',
+      ['500 people','Finance District']),
+    people: [
+      { name: 'Scale AI NY Team', role: '~500 employees', note: 'Commercial and enterprise AI teams.', dutch: false },
+    ]
+  },
+
+  { lat: 38.8951, lng: -77.0364, type: 'startup',
+    popup: mkPopup('Scale AI', 'startup', 'Washington, DC', 'National Landing, Arlington',
+      '100 employees. Government-facing operations and defense contracts.',
+      ['Govt','100 people','Defense']),
+    people: [
+      { name: 'Scale AI DC Team', role: '~100 employees', note: 'Government and defense-facing AI operations.', dutch: false },
+    ]
+  },
+
+  { lat: 38.6270, lng: -90.1994, type: 'startup',
+    popup: mkPopup('Scale AI', 'startup', 'St. Louis, MO', 'Downtown North',
+      '~200 employees with capacity to double. New facility in Downtown North neighborhood.',
+      ['~200 people','Expanding']),
+    people: [
+      { name: 'Scale AI STL Team', role: '~200 employees', note: 'Data operations and AI training center.', dutch: false },
+    ]
+  },
+
+  { lat: 37.7569, lng: -122.4148, type: 'startup',
+    popup: mkPopup('Physical Intelligence (π)', 'startup', 'San Francisco, CA', '396 Treat Avenue',
+      'Generalist robot policies (π0, π0.5). Open-world generalization to unseen environments. $600M raised. 80 employees.',
+      ['π0 / π0.5','VLA Models','$600M raised']),
+    people: [
+      { name: 'Karol Hausman',  role: 'CEO & Co-founder',        note: 'Ex-Google DeepMind Staff Scientist. Adjunct professor Stanford.', dutch: false },
+      { name: 'Sergey Levine',  role: 'Chief Scientist & Co-founder', note: 'Professor EECS UC Berkeley. Directs RAIL lab.', dutch: false },
+      { name: 'Chelsea Finn',   role: 'Research Lead & Co-founder', note: 'Stanford professor. Inventor of MAML (meta-learning).', dutch: false },
+      { name: 'Brian Ichter',   role: 'VP Engineering & Co-founder', note: 'Ex-Google Brain. PhD Aerospace Engineering, Stanford.', dutch: false },
+      { name: 'Adnan Esmail',   role: 'Co-founder',               note: 'Ex-SVP Engineering Anduril. Ex-Tesla Autopilot senior engineer.', dutch: false },
+      { name: 'Lachy Groom',    role: 'COO & Co-founder',         note: 'Ex-Stripe executive and technology investor.', dutch: false },
+      { name: 'Quan Vuong',     role: 'Co-founder',               note: 'Deep RL and robotics engineering expertise.', dutch: false },
+    ]
+  },
+
+  { lat: 37.3688, lng: -122.0363, type: 'startup',
+    popup: mkPopup('Figure AI', 'startup', 'Sunnyvale, CA', '1247 Elko Drive',
+      'Humanoid robot development. BMW factory deployment. Built Helix VLA in-house. Expanding to 10x campus.',
+      ['Humanoid','BMW Deploy','Helix VLA']),
+    people: [
+      { name: 'Brett Adcock',  role: 'CEO & Founder',   note: 'Serial founder (Archer Aviation, Vettery). Raised $1B+ for Figure.', dutch: false },
+      { name: 'Jerry Pratt',   role: 'Founding CTO (ex)', note: '20 yrs at IHMC. PhD MIT. Left to found Persona humanoid company.', dutch: false },
+    ]
+  },
+
+  { lat: 37.8310, lng: -122.2854, type: 'startup',
+    popup: mkPopup('Covariant', 'startup', 'Emeryville, CA', '5905 Christie Ave',
+      'Billions of real-world manipulation data points from warehouse deployments. Founders acqui-hired by Amazon Aug 2024 for $400M.',
+      ['Warehouse AI','Amazon acqui-hire','Billions of data pts']),
+    people: [
+      { name: 'Pieter Abbeel', role: 'Co-founder (now Amazon)', note: 'Director UC Berkeley RLL. Belgian (born Antwerp) — not Dutch. Pioneered robot imitation learning.', dutch: false },
+      { name: 'Peter Chen',    role: 'Co-founder (now Amazon)', note: 'Ex-Berkeley PhD. Now leads Amazon Robotics AI team.', dutch: false },
+      { name: 'Rocky Duan',    role: 'Co-founder (now Amazon)', note: 'Ex-Berkeley PhD. Joined Amazon with acqui-hire.', dutch: false },
+    ]
+  },
+
+  { lat: 44.6365, lng: -123.1059, type: 'startup',
+    popup: mkPopup('Agility Robotics', 'startup', 'Albany, OR', '421 NE Water Ave, Suite 1100',
+      'Original headquarters. Spun out of Oregon State University. Home of Digit humanoid design.',
+      ['Original HQ','OSU Spinout','Digit Robot']),
+    people: [
+      { name: 'Jonathan Hurst',  role: 'Chief Robot Officer & Co-founder', note: 'OSU professor. Designed Digit bipedal robot. DARPA challenge veteran.', dutch: false },
+      { name: 'Damion Shelton',  role: 'Co-founder',                       note: 'Engineering and product leadership.', dutch: false },
+      { name: 'Mikhail Jones',   role: 'Co-founder',                       note: 'Co-founded from Oregon State research group.', dutch: false },
+    ]
+  },
+
+  { lat: 44.9429, lng: -123.0351, type: 'startup',
+    popup: mkPopup('Agility Robotics', 'startup', 'Salem, OR', '4698 Truax Dr SE',
+      'RoboFab — 70,000 sq ft robot manufacturing facility. Mass production of Digit humanoid robots.',
+      ['RoboFab','70k sq ft','Mass Manufacturing']),
+    people: [
+      { name: 'Peggy Johnson',    role: 'CEO',  note: 'Ex-CEO Magic Leap. Ex-Microsoft EVP. Leading Agility through commercialization.', dutch: false },
+      { name: 'Pras Velagapudi', role: 'CTO',  note: 'Leads technology strategy for humanoid robot platform.', dutch: false },
+      { name: 'Marco Marroquin', role: 'Chief Hardware Officer', note: 'Promoted to CHO after Melonee Wise departure Aug 2025.', dutch: false },
+    ]
+  },
+
+  { lat: 40.4406, lng: -79.9959, type: 'startup',
+    popup: mkPopup('Agility Robotics', 'startup', 'Pittsburgh, PA', '—',
+      'East coast office since 2018. Near CMU Robotics Institute for research collaboration.',
+      ['East Coast','Near CMU']),
+    people: [
+      { name: 'Daniel Diez',      role: 'Chief Business Officer', note: 'Oversees partnerships and go-to-market strategy.', dutch: false },
+      { name: 'Jennifer Hunter',  role: 'CFO',                    note: 'Drives financial strategy and investor relations.', dutch: false },
+    ]
+  },
+
+  { lat: 30.2672, lng: -97.7431, type: 'startup',
+    popup: mkPopup('Apptronik', 'startup', 'Austin, TX', '11701 Stonehollow Dr, Suite 150',
+      'Humanoid robot company spun out of UT Austin. NASA partnership. Apollo humanoid robot. $5.5B valuation.',
+      ['Humanoid','NASA Partner','Apollo Robot']),
+    people: [
+      { name: 'Jeff Cardenas',  role: 'CEO & Co-founder',   note: 'Spun out of UT Austin Human Centered Robotics Lab 2016.', dutch: false },
+      { name: 'Nick Paine',     role: 'CTO & Co-founder',   note: 'PhD from Luis Sentis lab. Ex-NASA Valkyrie DARPA challenge.', dutch: false },
+      { name: 'Luis Sentis',    role: 'Advisor & UT PI',    note: 'Runs Human Centered Robotics Lab at UT Austin. DARPA Robotics Challenge lead.', dutch: false },
+      { name: 'Daniel Chu',     role: 'Chief Product Officer', note: '20+ yrs scaling product teams at frontier tech companies.', dutch: false },
+    ]
+  },
+
+  { lat: 37.5630, lng: -122.3255, type: 'startup',
+    popup: mkPopup('Generalist AI', 'startup', 'San Mateo / SF Bay Area, CA', '—',
+      'GEN-0 trained on 270,000 hrs of real-world manipulation data — homes, bakeries, warehouses, factories.',
+      ['GEN-0','270k hrs data','Cross-environment']),
+    people: [
+      { name: 'Generalist AI Team', role: 'Founders (stealth)', note: 'Building embodied foundation model trained on largest real-world manipulation dataset.', dutch: false },
+    ]
+  },
+
+  { lat: 37.3541, lng: -121.9552, type: 'startup',
+    popup: mkPopup('Collaborative Robotics (Cobot)', 'startup', 'Santa Clara, CA', '2250 Walsh Avenue',
+      'HQ. 146 employees. AMR fleet intelligence. Scale AI robotics partner for data annotation.',
+      ['HQ','146 people','Scale AI Partner']),
+    people: [
+      { name: 'Brad Porter',  role: 'CEO',      note: '"Scale is unique in its ability to quickly adapt to partner needs" — cited in Scale AI robotics launch.', dutch: false },
+    ]
+  },
+
+  { lat: 47.6518, lng: -122.3165, type: 'startup',
+    popup: mkPopup('Collaborative Robotics (Cobot)', 'startup', 'Seattle, WA', '100 NE Northlake Way',
+      'Foundation Models AI team. Partnered with UW and leading academic institutions.',
+      ['Foundation Models','AI Research','UW Partnership']),
+    people: [
+      { name: 'Foundation Models Team', role: 'AI Research', note: 'Hired ex-Amazon AI leader to build foundation model for AMR robotics.', dutch: false },
+    ]
+  },
+
+  // ═══════════ BIG TECH ═══════════
+
+  { lat: 37.3713, lng: -121.9643, type: 'bigtech',
+    popup: mkPopup('NVIDIA', 'bigtech', 'Santa Clara, CA', '2788 San Tomas Expy',
+      'Global HQ. Home of Isaac Lab, GR00T N1.6, Cosmos World Foundation Models, Physical AI Data Factory Blueprint.',
+      ['Isaac Lab','GR00T N1.6','Cosmos WFM']),
+    people: [
+      { name: 'Stan Birchfield',  role: 'Principal Research Scientist', note: 'Robotics perception and sim-to-real transfer. Based at Santa Clara HQ.', dutch: false },
+      { name: 'Fabio Ramos',      role: 'Research Scientist',           note: 'Probabilistic robotics and sim-to-real gap research.', dutch: false },
+    ]
+  },
+
+  { lat: 47.6553, lng: -122.3035, type: 'bigtech',
+    popup: mkPopup('NVIDIA Seattle Robotics Lab', 'bigtech', 'Seattle, WA', 'UW CoMotion Building',
+      'Dedicated robotics research lab. Dexterous manipulation, sim-to-real transfer, robot learning at scale.',
+      ['Manipulation','Sim-to-Real','~50 researchers']),
+    people: [
+      { name: 'Dieter Fox',               role: 'Ex-Director (left Jul 2025)',  note: 'German national. Left NVIDIA to lead Allen Institute for AI robotics initiative. UW professor.', dutch: false },
+      { name: 'Arsalan Mousavian',         role: 'Research Scientist',           note: 'Dexterous grasping and manipulation research.', dutch: false },
+      { name: 'Yashraj Narang',            role: 'Research Scientist',           note: 'Deformable object manipulation and tactile sensing.', dutch: false },
+      { name: 'Caelan Garrett',            role: 'Research Scientist',           note: 'Task and motion planning, robot learning.', dutch: false },
+      { name: 'Balakumar Sundaralingam',   role: 'Research Scientist',           note: 'GPU-accelerated robot kinematics and motion planning.', dutch: false },
+      { name: 'Jonathan Tremblay',         role: 'Research Scientist',           note: 'Synthetic data generation and sim-to-real domain randomization.', dutch: false },
+    ]
+  },
+
+  { lat: 30.3855, lng: -97.7358, type: 'bigtech',
+    popup: mkPopup('NVIDIA', 'bigtech', 'Austin, TX', '9600 Great Hills Trail',
+      'Engineering and enterprise solutions office. CUDA and deep learning platform teams.',
+      ['Engineering','Enterprise']),
+    people: [
+      { name: 'NVIDIA Austin Team', role: 'Engineering', note: 'Software engineering, enterprise solutions, GPU platform teams.', dutch: false },
+    ]
+  },
+
+  { lat: 37.3861, lng: -122.0839, type: 'bigtech',
+    popup: mkPopup('Google DeepMind', 'bigtech', 'Mountain View, CA', '—',
+      'Primary US base. RT-2, AutoRT, SayCan robotics research. Internet-scale pretraining for robot control.',
+      ['RT-2','AutoRT','Robot Learning']),
+    people: [
+      { name: 'Karol Hausman',  role: 'Ex-Staff Scientist (→ π)', note: 'Left to co-found Physical Intelligence as CEO.', dutch: false },
+      { name: 'Chelsea Finn',   role: 'Ex-Researcher (→ π)',       note: 'Left to co-found Physical Intelligence as Research Lead.', dutch: false },
+    ]
+  },
+
+  { lat: 40.7580, lng: -73.9855, type: 'bigtech',
+    popup: mkPopup('Google DeepMind', 'bigtech', 'New York, NY', '—',
+      'AI research hub. Broad ML research including robotics foundation models.',
+      ['AI Research','Foundation Models']),
+    people: [
+      { name: 'Rob Fergus', role: 'Head of NY Research', note: 'Ex-FAIR (Facebook AI Research). Leads DeepMind NYC office.', dutch: false },
+    ]
+  },
+
+  { lat: 47.6205, lng: -122.3493, type: 'bigtech',
+    popup: mkPopup('Google DeepMind', 'bigtech', 'Seattle, WA', '—',
+      'Research office embedded in Seattle tech ecosystem.',
+      ['Research']),
+    people: []
+  },
+
+  { lat: 42.5751, lng: -71.0784, type: 'bigtech',
+    popup: mkPopup('Amazon Robotics', 'bigtech', 'North Reading, MA', '300 Riverpark Drive',
+      'Global HQ. Core manipulation, grasping, multi-robot coordination. Covariant founders now here.',
+      ['Global HQ','Manipulation','Covariant Team']),
+    people: [
+      { name: 'Joe Quinlivan',   role: 'CEO, Amazon Robotics',       note: 'VP Global Robotics, Fulfillment & Technology. Leads all Amazon Robotics globally.', dutch: false },
+      { name: 'Tye Brady',       role: 'Chief Technologist',          note: 'Public face of Amazon Robotics. Drives technical vision.', dutch: false },
+      { name: 'Sidd Srinivasa',  role: 'Director, Amazon Robotics AI', note: 'Ex-CMU. Key manipulation researcher. Now leads Amazon AI robotics efforts.', dutch: false },
+      { name: 'Peter Wurman',    role: 'VP Software Architecture & Algorithms', note: 'Co-creator of Kiva warehouse robot system.', dutch: false },
+      { name: 'Pieter Abbeel',   role: 'Principal Scientist (ex-Covariant)', note: 'Belgian (born Antwerp) — commonly mistaken as Dutch. Co-founded Covariant; joined Amazon in 2024 acqui-hire.', dutch: false },
+    ]
+  },
+
+  { lat: 42.2696, lng: -71.6184, type: 'bigtech',
+    popup: mkPopup('Amazon Robotics', 'bigtech', 'Westborough, MA', '—',
+      'Major R&D and manufacturing hub. Robot prototyping and testing.',
+      ['R&D','Manufacturing','Prototyping']),
+    people: [
+      { name: 'Parris Wellman',  role: 'VP Engineering & Robotics', note: 'Oversees engineering and robotics product teams.', dutch: false },
+    ]
+  },
+
+  { lat: 47.2029, lng: -122.2290, type: 'bigtech',
+    popup: mkPopup('Amazon Robotics', 'bigtech', 'Sumner, WA', '—',
+      'Research and robot testing facility. High-tech living wall. New fulfillment robots tested here.',
+      ['Testing','Research']),
+    people: []
+  },
+
+  { lat: 47.6740, lng: -122.1215, type: 'bigtech',
+    popup: mkPopup('Microsoft Research', 'bigtech', 'Redmond, WA', 'One Microsoft Way',
+      'Main campus (132 buildings). GEAR Lab: foundation models for embodied agents, VLA models, cross-embodiment robotics.',
+      ['GEAR Lab','VLA','Embodied AI']),
+    people: [
+      { name: 'Sidd Srinivasa', role: 'Ex-GEAR Lab (→ Amazon)', note: 'Was principal researcher at Microsoft. Moved to Amazon Robotics AI.', dutch: false },
+      { name: 'Microsoft GEAR Team', role: 'VLA Researchers', note: 'Building cross-embodiment foundation models and vision-language-action pipelines.', dutch: false },
+    ]
+  },
+
+  // ═══════════ UNIVERSITIES ═══════════
+
+  { lat: 37.8715, lng: -122.2730, type: 'uni',
+    popup: mkPopup('UC Berkeley Robot Learning Lab (RLL)', 'uni', 'Berkeley, CA', '—',
+      'Deep RL, imitation learning, meta-learning. Covariant spun out of here. Directed by Pieter Abbeel.',
+      ['Deep RL','Imitation Learning','Covariant Origin']),
+    people: [
+      { name: 'Pieter Abbeel',  role: 'Director, Berkeley RLL',   note: 'Belgian (born Antwerp). NOT Dutch. Pioneered robot imitation learning. Cofounded Covariant.', dutch: false },
+      { name: 'Sergey Levine',  role: 'Professor & RAIL Director', note: 'Co-founded Physical Intelligence. Key figure in offline RL and robot learning.', dutch: false },
+    ]
+  },
+
+  { lat: 37.8820, lng: -122.2600, type: 'uni',
+    popup: mkPopup('BAIR — Berkeley AI Research', 'uni', 'Berkeley, CA', '—',
+      'Broad embodied AI. Seminal robot learning papers. RT-2 lineage traces here. Co-directed by Abbeel.',
+      ['Embodied AI','Robot Learning','RT-2 Lineage']),
+    people: [
+      { name: 'Pieter Abbeel',  role: 'Co-Director, BAIR', note: 'Belgian. Co-directs BAIR alongside RLL direction.', dutch: false },
+    ]
+  },
+
+  { lat: 37.4275, lng: -122.1697, type: 'uni',
+    popup: mkPopup('Stanford REAL Lab', 'uni', 'Stanford, CA', '—',
+      'Robotics and Embodied AI Lab. Learning from physical interaction for complex task execution.',
+      ['Physical Interaction','Task Learning']),
+    people: [
+      { name: 'Chelsea Finn',   role: 'Assistant Professor (on leave → π)', note: 'Invented MAML. Now at Physical Intelligence as Research Lead.', dutch: false },
+      { name: 'Karol Hausman',  role: 'Adjunct Professor (→ π)',            note: 'Was adjunct at Stanford. Now CEO of Physical Intelligence.', dutch: false },
+    ]
+  },
+
+  { lat: 40.4432, lng: -79.9428, type: 'uni',
+    popup: mkPopup('CMU Robotics Institute', 'uni', 'Pittsburgh, PA', '—',
+      "World's oldest robotics institute (est. 1979). Imitation learning, interactive learning. Strong industry ties.",
+      ['Est. 1979','Imitation Learning','Industry Ties']),
+    people: [
+      { name: 'Gokul Swamy',    role: 'PhD Researcher',    note: 'Efficient algorithms for interactive learning — imitation and RL. Recent grad.', dutch: false },
+      { name: 'CMU RI Faculty', role: 'Research Faculty',  note: '~150 faculty and 350+ PhD students. Broad robotics coverage.', dutch: false },
+    ]
+  },
+
+  { lat: 42.3601, lng: -71.0942, type: 'uni',
+    popup: mkPopup('MIT CSAIL Robotics', 'uni', 'Cambridge, MA', '—',
+      'Real-to-sim-to-real transfer, manipulation, VLA model research. RialTo framework improved IL 67% with same demos.',
+      ['Sim-to-Real','Manipulation','RialTo']),
+    people: [
+      { name: 'MIT CSAIL Robotics Team', role: 'Faculty & PhD Researchers', note: 'RialTo: 67% improvement over imitation learning with same number of demos.', dutch: false },
+    ]
+  },
+
+];
+
+// ─── Render main markers ───
+locations.forEach(loc => {
+  L.marker([loc.lat, loc.lng], { icon: icons[loc.type] })
+    .bindPopup(loc.popup, { maxWidth: 290 })
+    .addTo(map);
+});
+
+// ─── Cluster circles ───
+L.circle([37.65, -122.15], { radius: 80000, color: '#f78166', fillColor: '#f78166', fillOpacity: 0.04, weight: 1, dashArray: '5,4' }).addTo(map);
+L.circle([47.62, -122.25], { radius: 35000, color: '#58a6ff', fillColor: '#58a6ff', fillOpacity: 0.04, weight: 1, dashArray: '5,4' }).addTo(map);
+L.circle([42.45, -71.35],  { radius: 40000, color: '#58a6ff', fillColor: '#58a6ff', fillOpacity: 0.04, weight: 1, dashArray: '5,4' }).addTo(map);
+
+// ─── People overlay system ───
+
+const ZOOM_SHOW = 7;   // people appear at this zoom
+const ZOOM_FULL = 9;   // full fan at this zoom
+const overlay = document.getElementById('people-overlay');
+const zoomHint = document.getElementById('zoom-hint');
+
+let personEls = []; // { el, lat, lng, ox, oy }
+let rafId = null;
+let svgEl = null;
+
+function initials(name) {
+  return name.replace(/[^A-Za-z ]/g, '').split(' ')
+    .filter(w => w.length > 0 && w[0] === w[0].toUpperCase())
+    .slice(0, 2).map(w => w[0]).join('') || name.slice(0,2).toUpperCase();
+}
+
+function getFanOffset(i, total) {
+  const r = Math.max(78, 62 + total * 7);
+  if (total === 1) return { x: 0, y: -(r + 20) };
+  // Arc above the pin: from ~210° to ~330° in screen coords
+  const startA = (210 * Math.PI) / 180;
+  const endA   = (330 * Math.PI) / 180;
+  const angle  = startA + (i / (total - 1)) * (endA - startA);
+  return { x: Math.cos(angle) * r, y: Math.sin(angle) * r - 20 };
+}
+
+function buildOverlay() {
+  overlay.innerHTML = '';
+  personEls = [];
+
+  const zoom = map.getZoom();
+  if (zoom < ZOOM_SHOW) {
+    zoomHint.textContent = '🔍 Zoom in to reveal key people';
+    zoomHint.style.opacity = '1';
+    return;
+  }
+
+  zoomHint.textContent = '👤 Click any floating card to see details';
+  zoomHint.style.opacity = '0.7';
+
+  // Create SVG connector layer
+  svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgEl.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:498;overflow:visible;';
+  overlay.appendChild(svgEl);
+
+  locations.forEach(loc => {
+    if (!loc.people || loc.people.length === 0) return;
+    const color = colors[loc.type];
+
+    loc.people.forEach((person, pi) => {
+      const { x: ox, y: oy } = getFanOffset(pi, loc.people.length);
+
+      // Card element
+      const card = document.createElement('div');
+      card.className = 'person-card' + (person.dutch ? ' dutch' : '');
+      card.style.setProperty('--color', color);
+      card.style.borderColor = color + '55';
+      card.style.animationDelay = (pi * 40) + 'ms';
+
+      const av = document.createElement('div');
+      av.className = 'pa';
+      av.style.background = color;
+      av.textContent = initials(person.name);
+
+      const info = document.createElement('div');
+      info.innerHTML = `<div class="pn">${person.name}</div><div class="pr">${person.role}</div>`;
+
+      card.appendChild(av);
+      card.appendChild(info);
+      if (person.dutch) {
+        const flag = document.createElement('span');
+        flag.className = 'flag';
+        flag.textContent = '🇳🇱';
+        card.appendChild(flag);
+      }
+
+      card.addEventListener('click', e => {
+        e.stopPropagation();
+        showDetail(person, loc, color);
+      });
+
+      overlay.appendChild(card);
+
+      // SVG line (will be positioned in positionAll)
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('stroke', color);
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('stroke-opacity', '0.3');
+      line.setAttribute('stroke-dasharray', '3,3');
+      svgEl.appendChild(line);
+
+      personEls.push({ card, line, lat: loc.lat, lng: loc.lng, ox, oy });
+    });
+  });
+
+  positionAll();
+}
+
+function positionAll() {
+  personEls.forEach(({ card, line, lat, lng, ox, oy }) => {
+    const pt = map.latLngToContainerPoint([lat, lng]);
+    const cx = pt.x + ox;
+    const cy = pt.y + oy;
+
+    card.style.left = cx + 'px';
+    card.style.top  = cy + 'px';
+
+    // pin tip is at pt (bottom of 36px icon = pt.y, center is pt.y - 18)
+    const pinX = pt.x;
+    const pinY = pt.y - 18;
+    line.setAttribute('x1', pinX);
+    line.setAttribute('y1', pinY);
+    line.setAttribute('x2', cx);
+    line.setAttribute('y2', cy);
+  });
+}
+
+function rafPosition() {
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(positionAll);
+}
+
+map.on('zoomend', buildOverlay);
+map.on('move',    rafPosition);
+
+// Initial build
+buildOverlay();
+
+// ─── Detail panel ───
+function showDetail(person, loc, color) {
+  document.getElementById('dp-avatar').style.background = color;
+  document.getElementById('dp-avatar').textContent = initials(person.name);
+  document.getElementById('dp-name').textContent = person.name;
+  document.getElementById('dp-role').textContent = person.role;
+  document.getElementById('dp-role').style.color = color;
+  document.getElementById('dp-company').textContent = '📍 ' + loc.popup.match(/class="popup-company">(.*?)<\/div>/)?.[1] || '';
+  document.getElementById('dp-note').textContent = person.note;
+  const dutchEl = document.getElementById('dp-dutch');
+  dutchEl.style.display = person.dutch ? 'inline-flex' : 'none';
+
+  const panel = document.getElementById('detail-panel');
+  panel.classList.remove('visible');
+  void panel.offsetWidth; // reflow to re-trigger animation
+  panel.classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('visible');
+}
+
+map.on('click', closeDetail);
+</script>
+</body>
+</html>
