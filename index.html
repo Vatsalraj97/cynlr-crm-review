@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr CRM — Review</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.wrap{max-width:680px;width:100%;text-align:center}
+.logo{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#475569;margin-bottom:32px}
+h1{font-size:26px;font-weight:800;color:#f8fafc;margin-bottom:8px}
+.sub{font-size:14px;color:#64748b;margin-bottom:48px;line-height:1.6}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:40px}
+.card{background:#1e2535;border:1.5px solid #334155;border-radius:14px;padding:28px 24px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;display:block;text-align:left}
+.card:hover{border-color:#6366f1;transform:translateY(-2px)}
+.card-icon{font-size:28px;margin-bottom:14px}
+.card-title{font-size:15px;font-weight:700;color:#f8fafc;margin-bottom:6px}
+.card-desc{font-size:12px;color:#64748b;line-height:1.6}
+.card-cta{margin-top:16px;font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.5px}
+.note{font-size:11px;color:#334155;line-height:1.6}
+.note strong{color:#475569}
+@media(max-width:480px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">CynLr · Internal Review</div>
+  <h1>CRM Architecture Docs</h1>
+  <p class="sub">Two reference documents for review.<br>Click anywhere to add comments, then download and send back.</p>
+  <div class="cards">
+    <a class="card" href="schema_diagram.html">
+      <div class="card-icon">🗄️</div>
+      <div class="card-title">Schema &amp; Relationships</div>
+      <div class="card-desc">4-domain data model — Person, Company, Deal, Activity. Foreign key lines, field ownership, HubSpot sync bridges.</div>
+      <div class="card-cta">Open diagram →</div>
+    </a>
+    <a class="card" href="data_flow.html">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">Deal Journey Data Flow</div>
+      <div class="card-desc">12-stage pipeline from Discovery to Closed Won — what gets created, updated, and synced at each step, with UI screenshots.</div>
+      <div class="card-cta">Open data flow →</div>
+    </a>
+  </div>
+  <p class="note"><strong>How to review:</strong> Open either doc · type your name · click 💬 Comment · click anywhere to annotate · ⬇ Download &amp; Send the file back to Vatsal.</p>
+</div>
+</body>
+</html>
