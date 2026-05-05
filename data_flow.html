@@ -159,6 +159,29 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 <p class="sub">Cold Outreach (batch, AI-driven) &nbsp;·&nbsp; Organic (manual, relationship-first) &nbsp;·&nbsp; Both converge at Deal stage</p>
 <div class="v2-badge">v2 Architecture — Under Development</div>
 
+<!-- ══════════ THESIS ══════════ -->
+<div style="max-width:1140px;margin:0 auto 28px;background:#0c111a;border:1.5px solid #1e3a5f;border-radius:14px;padding:24px 28px">
+  <div style="font-size:13px;font-weight:800;color:#60a5fa;margin-bottom:6px">⬡ Design Thesis — Why Two Tracks?</div>
+  <div style="font-size:11px;color:#475569;margin-bottom:16px">Most CRM failures happen at the boundary between relationship and pipeline. A warm intro from Nikhil and a scraped LinkedIn profile are not the same object — but a flat schema treats them identically once imported. This architecture makes the entry condition a permanent, queryable fact.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+    <div style="background:#0b0d13;border:1px solid #1e3a5f;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:6px">Attribution Permanence</div>
+      <div style="font-size:11px;color:#64748b;line-height:1.6">Six months from now when a deal closes, you can answer "was this cold outreach or organic?" without guessing. <code style="background:#0f172a;padding:1px 4px;border-radius:3px;color:#94a3b8">entry_source</code> + <code style="background:#0f172a;padding:1px 4px;border-radius:3px;color:#94a3b8">origin_context</code> are written once at import and never change. No relying on memory.</div>
+    </div>
+    <div style="background:#0b0d13;border:1px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#34d399;margin-bottom:6px">Clean HubSpot Pipeline</div>
+      <div style="font-size:11px;color:#64748b;line-height:1.6">1,607+ contacts in local CRM. HubSpot sees only the ones with a real deal. By syncing at Meeting Set — not at import — every HubSpot metric is signal, not noise from batch imports that never converted.</div>
+    </div>
+    <div style="background:#0b0d13;border:1px solid #3b1f6e;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:6px">One Infrastructure, Two Modes</div>
+      <div style="font-size:11px;color:#64748b;line-height:1.6">Organic contacts never touch the campaign engine. Cold contacts get no ad-hoc nurture notes mixed in. But both use the same <code style="background:#0f172a;padding:1px 4px;border-radius:3px;color:#94a3b8">activity_log</code>, same deal pipeline, same HS sync. One codebase, zero duplication.</div>
+    </div>
+  </div>
+  <div style="padding:10px 14px;background:#12124a;border:1px solid #312e81;border-radius:8px;font-size:11px;color:#818cf8">
+    <strong>The convergence insight:</strong> Meeting Set is the right merge point because deals are deals regardless of origin. The entry path matters for <em>measurement</em> (what's generating ROI?) — not for <em>execution</em> (what do we do next?). Collapsing both tracks at this point means zero special-case code after Meeting Set.
+  </div>
+</div>
+
 <div class="legend">
   <div class="li"><span class="op cr">CREATE</span> New record inserted</div>
   <div class="li"><span class="op up">UPDATE</span> Existing record changed</div>
@@ -710,12 +733,13 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
           <div class="op-title"><span class="badge d1">Person</span> persons</div>
           <div class="fields">
             <span class="field-chip new">entry_source = organic</span>
+            <span class="field-chip new">origin_context = "AWS Summit Boston 2025"</span>
             <span class="field-chip new">name, email, linkedin_url</span>
             <span class="field-chip new">company_id →</span>
             <span class="field-chip">batch_id = NULL</span>
             <span class="field-chip">outreach_status = Active</span>
           </div>
-          <div class="desc">No batch_id. Status starts at Active (not Pending) — they're already in conversation.</div>
+          <div class="desc">No batch_id. Status starts at Active (not Pending) — they're already in conversation. <strong style="color:#4ade80">origin_context</strong> is free text: "AWS Summit", "Nikhil intro via LinkedIn", "CynLr website form". Written once, immutable. Lets you filter organic contacts by how they entered six months later.</div>
         </div>
       </div>
       <div class="op-row">
@@ -918,6 +942,137 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
       <div class="converge-step"><div class="converge-step-num">4</div>MSA / contract → deal stage: Negotiation</div>
       <div class="converge-step"><div class="converge-step-num">5</div>PO received → deal stage: Closed Won · is_closed = true</div>
     </div>
+  </div>
+</div>
+
+
+<!-- ══════════ SCHEMA REFERENCE ══════════ -->
+<div style="background:#0c111a;border:1.5px solid #1e293b;border-radius:14px;padding:24px;margin-top:36px;margin-bottom:28px">
+  <div style="font-size:14px;font-weight:800;color:#f8fafc;margin-bottom:4px">⬡ Schema Reference — 9 Tables</div>
+  <div style="font-size:11px;color:#475569;margin-bottom:18px">Complete target schema. <span style="color:#4ade80">Green border</span> = new table. <span style="color:#fb923c">Orange chips</span> = fields added to existing table.</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">companies <span style="font-weight:400;color:#064e3b;font-size:9px">NEW</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">id · name · domain (dedup key)<br>industry · geography · company_size<br>icp_fit · relationship_score<br><span style="color:#a78bfa">hs_account_id (nullable)</span></div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #1e3a5f;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#60a5fa;margin-bottom:8px">persons <span style="font-weight:400;color:#475569;font-size:9px">EXTENDED</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">id · name · headline · email · url<br>photo_path · enriched_at · metadata<br><span style="color:#fb923c">company_id → companies</span><br><span style="color:#4ade80">entry_source (organic|cold|inbound)</span><br><span style="color:#4ade80">origin_context (free text)</span><br><span style="color:#fb923c">batch_id → discovery_batches</span><br><span style="color:#a78bfa">hs_contact_id (nullable)</span><br>outreach_status · next_followup</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">deals <span style="font-weight:400;color:#064e3b;font-size:9px">NEW</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">id · name · stage · amount<br>company_id → companies<br>champion_id → persons<br>application_type · close_date<br><span style="color:#a78bfa">hs_deal_id (nullable until sync)</span><br>created_at</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">activity_log <span style="font-weight:400;color:#064e3b;font-size:9px">NEW — replaces notes+messages+activities</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">id · person_id → persons<br>deal_id → deals (nullable)<br>campaign_id → campaigns (nullable)<br>channel (email|linkedin|phone|meeting|note)<br>direction (inbound|outbound|internal)<br>subject · body · metadata_json<br>occurred_at</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">discovery_batches <span style="font-weight:400;color:#064e3b;font-size:9px">NEW</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">id · name · source_query<br>total_found · total_approved<br>created_at</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">contact_reviews <span style="font-weight:400;color:#064e3b;font-size:9px">NEW</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">person_id → persons<br>reviewer (e.g. "nikhil")<br>decision (yes|no|maybe|skip)<br>notes · reviewed_at</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">hs_sync_map <span style="font-weight:400;color:#064e3b;font-size:9px">NEW</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">entity_type (contact|deal|company)<br>local_id · hs_id<br>last_synced · sync_status (ok|pending|error)</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #064e3b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#34d399;margin-bottom:8px">message_templates <span style="font-weight:400;color:#064e3b;font-size:9px">NEW</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">id · name · channel · tone · version<br>subject_tmpl · body_tmpl<br>← campaigns.template_id points here</div>
+    </div>
+
+    <div style="background:#0b0d13;border:1.5px solid #1e293b;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:800;color:#94a3b8;margin-bottom:8px">contact_lists + list_members <span style="font-weight:400;color:#475569;font-size:9px">UNCHANGED</span></div>
+      <div style="font-size:10px;color:#475569;line-height:1.8;font-family:monospace">Already normalized junction table.<br>No changes needed.</div>
+    </div>
+
+  </div>
+  <div style="margin-top:14px;padding:10px 14px;background:#0a1929;border:1px solid #1e3a5f;border-radius:8px;font-size:11px;color:#60a5fa">
+    <strong>Single code entry point per operation:</strong> &nbsp;
+    <code style="background:#0f172a;padding:1px 5px;border-radius:3px">add_interaction(person_id, channel, direction, body, ...)</code> replaces
+    <code style="background:#0f172a;padding:1px 5px;border-radius:3px">add_note()</code> +
+    <code style="background:#0f172a;padding:1px 5px;border-radius:3px">add_message()</code> +
+    <code style="background:#0f172a;padding:1px 5px;border-radius:3px">add_activity()</code>.
+    MCP tools, campaign engine, and Obsidian vault all call one method.
+  </div>
+</div>
+
+<!-- ══════════ MIGRATION PLAN ══════════ -->
+<div style="background:#031510;border:1.5px solid #064e3b;border-radius:14px;padding:24px;margin-bottom:36px">
+  <div style="font-size:14px;font-weight:800;color:#34d399;margin-bottom:4px">↑ Migration Path — Current Schema → Target</div>
+  <div style="font-size:11px;color:#475569;margin-bottom:18px">All phases are additive. No existing data is deleted or overwritten. SQLite WAL mode stays on throughout.</div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #064e3b;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#34d399">P0</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Backup DB</div>
+      <div style="font-size:11px;color:#475569">Copy crm.db to crm_backup_YYYYMMDD.db before touching anything. One command, 2 seconds.</div>
+      <div style="font-size:10px;font-weight:700;color:#4ade80;text-align:right">Zero risk</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #064e3b;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#34d399">P1</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Add new tables</div>
+      <div style="font-size:11px;color:#475569">Add _init_companies(), _init_deals(), _init_activity_log(), _init_discovery_batches(), _init_contact_reviews(), _init_hs_sync_map(), _init_message_templates() to _migrate(). Additive — zero risk to existing data.</div>
+      <div style="font-size:10px;font-weight:700;color:#4ade80;text-align:right">Additive</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #064e3b;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#34d399">P2</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Add columns to persons</div>
+      <div style="font-size:11px;color:#475569">ALTER TABLE contacts ADD COLUMN company_id INTEGER, entry_source TEXT, origin_context TEXT, batch_id INTEGER via existing _migrate() pattern. Old company TEXT column stays (SQLite can't drop; legacy reads still work).</div>
+      <div style="font-size:10px;font-weight:700;color:#4ade80;text-align:right">Additive</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #1e3a5f;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#60a5fa">P3</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Backfill companies</div>
+      <div style="font-size:11px;color:#475569">One-time script: SELECT DISTINCT company FROM contacts WHERE company IS NOT NULL → INSERT INTO companies (name). Then UPDATE contacts SET company_id = companies.id WHERE contacts.company = companies.name. ~1,607 rows, runs in &lt;1s.</div>
+      <div style="font-size:10px;font-weight:700;color:#60a5fa;text-align:right">Low risk</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #1e3a5f;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#60a5fa">P4</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Update _CONTACT_JOIN</div>
+      <div style="font-size:11px;color:#475569">Add LEFT JOIN companies ON companies.id = contacts.company_id to _CONTACT_JOIN. All existing queries (get_all_contacts, search, filter) instantly get company.name, company.industry, company.icp_fit for free. 3 lines.</div>
+      <div style="font-size:10px;font-weight:700;color:#60a5fa;text-align:right">Low risk</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #451a03;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#fb923c">P5</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Migrate activity data</div>
+      <div style="font-size:11px;color:#475569">One-time script migrates notes → activity_log (channel=note, direction=internal), messages → activity_log (channel=email, direction=outbound), activities → activity_log (channel=note, direction=internal). Old tables kept read-only — no DELETE. New writes go to activity_log only.</div>
+      <div style="font-size:10px;font-weight:700;color:#fb923c;text-align:right">Medium — test first</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #1e3a5f;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#60a5fa">P6</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Update write paths</div>
+      <div style="font-size:11px;color:#475569">Replace add_note(), add_message(), add_activity() callers with add_interaction(). Update 14 MCP tools. Update Obsidian vault generator. Update campaign engine. Callers are all internal — no external API surface to break.</div>
+      <div style="font-size:10px;font-weight:700;color:#60a5fa;text-align:right">Low risk</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:32px 140px 1fr 100px;gap:12px;align-items:start;padding:10px 14px;background:#0b0d13;border:1px solid #064e3b;border-radius:8px">
+      <div style="font-size:11px;font-weight:800;color:#34d399">P7</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8">Status sync trigger</div>
+      <div style="font-size:11px;color:#475569">In set_status(): when status = Meeting Set, automatically create hs_sync_map rows + queue HubSpot push. campaign_recipients.reply_status drives outreach_status — one source of truth. 20 lines in set_status().</div>
+      <div style="font-size:10px;font-weight:700;color:#4ade80;text-align:right">Zero risk</div>
+    </div>
+
+  </div>
+  <div style="margin-top:14px;padding:10px 14px;background:#1a0808;border:1px solid #450a0a;border-radius:8px;font-size:11px;color:#f87171">
+    <strong>Do not skip P0.</strong> With 1,607 real contacts on a single SQLite file, one bad migration script = everything gone. Backup first, always.
   </div>
 </div>
 
