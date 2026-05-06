@@ -160,7 +160,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 <div class="v2-badge">v2 Architecture — Under Development</div>
 
 <!-- ══════════ THESIS ══════════ -->
-<div style="max-width:1140px;margin:0 auto 28px;background:#0c111a;border:1.5px solid #1e3a5f;border-radius:14px;padding:24px 28px">
+<div id="thesis" style="max-width:1140px;margin:0 auto 28px;background:#0c111a;border:1.5px solid #1e3a5f;border-radius:14px;padding:24px 28px">
   <div style="font-size:13px;font-weight:800;color:#60a5fa;margin-bottom:6px">⬡ Design Thesis — Why Two Tracks?</div>
   <div style="font-size:11px;color:#475569;margin-bottom:16px">Most CRM failures happen at the boundary between relationship and pipeline. A warm intro from Nikhil and a scraped LinkedIn profile are not the same object — but a flat schema treats them identically once imported. This architecture makes the entry condition a permanent, queryable fact.</div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
@@ -947,7 +947,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 
 
 <!-- ══════════ SCHEMA REFERENCE ══════════ -->
-<div style="background:#0c111a;border:1.5px solid #1e293b;border-radius:14px;padding:24px;margin-top:36px;margin-bottom:28px">
+<div id="schema-ref" style="background:#0c111a;border:1.5px solid #1e293b;border-radius:14px;padding:24px;margin-top:36px;margin-bottom:28px">
   <div style="font-size:14px;font-weight:800;color:#f8fafc;margin-bottom:4px">⬡ Schema Reference — 9 Tables</div>
   <div style="font-size:11px;color:#475569;margin-bottom:18px">Complete target schema. <span style="color:#4ade80">Green border</span> = new table. <span style="color:#fb923c">Orange chips</span> = fields added to existing table.</div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
@@ -1009,7 +1009,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </div>
 
 <!-- ══════════ MIGRATION PLAN ══════════ -->
-<div style="background:#031510;border:1.5px solid #064e3b;border-radius:14px;padding:24px;margin-bottom:36px">
+<div id="migration-plan" style="background:#031510;border:1.5px solid #064e3b;border-radius:14px;padding:24px;margin-bottom:36px">
   <div style="font-size:14px;font-weight:800;color:#34d399;margin-bottom:4px">↑ Migration Path — Current Schema → Target</div>
   <div style="font-size:11px;color:#475569;margin-bottom:18px">All phases are additive. No existing data is deleted or overwritten. SQLite WAL mode stays on throughout.</div>
   <div style="display:flex;flex-direction:column;gap:10px">
@@ -1079,6 +1079,297 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </div><!-- /page -->
 
 <div style="text-align:center;margin-top:24px;font-size:11px;color:#1e293b">data_flow_v2 · CynLr CRM Architecture · v2 under development</div>
+
+<!-- ═══════════════════════════════════════════════
+     NARRATION ENGINE
+     ═══════════════════════════════════════════════ -->
+<style>
+#narr-bar{position:fixed;bottom:0;left:0;right:0;z-index:99980;background:#0e1117ee;backdrop-filter:blur(12px);border-top:1px solid #1e293b;padding:10px 20px;display:flex;align-items:center;gap:14px;font-family:'Segoe UI',system-ui,sans-serif}
+#narr-section{flex:1;font-size:12px;font-weight:600;color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#narr-progress-wrap{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.narr-dot{width:6px;height:6px;border-radius:50%;background:#1e293b;transition:background .3s,transform .3s;cursor:pointer}
+.narr-dot.active{background:#60a5fa;transform:scale(1.4)}
+.narr-dot.played{background:#334155}
+#narr-btns{display:flex;gap:8px;align-items:center;flex-shrink:0}
+#narr-btns button{border:none;border-radius:8px;font-size:11px;font-weight:700;padding:6px 14px;cursor:pointer;transition:opacity .15s;letter-spacing:.3px}
+#narr-play-all{background:#6366f1;color:#fff}
+#narr-play-all.playing{background:#f59e0b;color:#0b0d13}
+#narr-replay{background:#1e293b;color:#94a3b8}
+#narr-mute{background:#1e293b;color:#94a3b8;padding:6px 10px;font-size:13px}
+#narr-speed{background:#1e293b;color:#94a3b8;font-size:10px}
+#narr-wpm{font-size:10px;color:#334155;min-width:32px;text-align:right}
+body{padding-bottom:56px}
+.narr-highlight{outline:2px solid #6366f144;outline-offset:6px;border-radius:14px;transition:outline .3s}
+</style>
+
+<div id="narr-bar">
+  <div id="narr-section">CynLr CRM v2 — Data Flow &amp; Schema</div>
+  <div id="narr-progress-wrap"></div>
+  <div id="narr-btns">
+    <button id="narr-speed">1×</button>
+    <span id="narr-wpm"></span>
+    <button id="narr-mute">🔊</button>
+    <button id="narr-replay">↩ Replay</button>
+    <button id="narr-play-all">▶ Play All</button>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  {
+    id: 'thesis',
+    label: 'Design Thesis',
+    text: `CynLr CRM version 2 uses a two-track outreach architecture. Most CRM failures happen at the boundary between relationship and pipeline. A warm introduction from Nikhil and a scraped LinkedIn profile are not the same object — but a flat schema treats them identically once imported. This design makes the entry condition a permanent, queryable fact. Three principles follow. First: attribution permanence — six months from now, when a deal closes, you can answer whether it came from cold outreach or an organic relationship, without guessing. Second: a clean HubSpot pipeline — 1,607 contacts live locally, but HubSpot only sees the ones with a real deal. Third: one infrastructure, two modes — both tracks use the same activity log, the same deal pipeline, the same HubSpot sync, but organic contacts never touch the campaign engine and cold contacts get no ad-hoc relationship notes mixed in.`
+  },
+  {
+    sel: '.track-header-cold',
+    label: 'Cold Track Overview',
+    text: `The Cold Outreach Track is programmatic, batch-driven, and AI-assisted. Starting from zero, Claude Code discovers and qualifies leads through ten stages: AI discovery, enrichment, Nikhil's swipe review, approval sync, list build, campaign setup, AI message drafting, your approval gate, scheduled send, and reply tracking. Every contact shares a batch ID that groups them as a cohort for analysis.`
+  },
+  {
+    stageIdx: 0,
+    label: 'C1 · AI Discovery',
+    text: `Stage C1: AI Discovery. Claude Code scrapes LinkedIn profiles using your search criteria. A discovery batch is opened — one row per session. Two records are created per person: a company row using domain as the deduplication key, so BMW only ever exists once, and a person row with entry source set to cold and a batch ID linking them to this discovery run. Status starts at Pending.`
+  },
+  {
+    stageIdx: 1,
+    label: 'C2 · Enrichment',
+    text: `Stage C2: Enrichment. The LinkedIn profile is fully scraped. Position, education, location, photo, and bio are pulled in. Company ICP fit is assessed — strong, medium, or weak. An activity log entry is written marking the enrichment as an internal event, giving you a timestamp for when the profile was last deepened.`
+  },
+  {
+    stageIdx: 2,
+    label: 'C3 · Swipe Review',
+    text: `Stage C3: Swipe Review. VCE swipe cards are generated by reading the enriched person and company data. Nikhil reviews each contact and marks them yes, no, maybe, or skip. This is the first human gate — the pipeline pauses here until Nikhil's decisions are returned. Critically, decisions are written to a separate contact reviews table, not onto the persons row. The person stays clean.`
+  },
+  {
+    stageIdx: 3,
+    label: 'C4 · Approval Sync',
+    text: `Stage C4: Approval Sync. Nikhil sends back the annotated decisions. Each one is written to the contact reviews table. The batch total approved count is updated. No change to the persons table — approval state is a review record, not a person attribute.`
+  },
+  {
+    stageIdx: 4,
+    label: 'C5 · List Build',
+    text: `Stage C5: List Build. The batch is filtered for contacts where decision equals yes. A contact list is created from this approved set — for example, April 26 APAC Approved. This list becomes the direct input to the campaign engine.`
+  },
+  {
+    stageIdx: 5,
+    label: 'C6 · Campaign Setup',
+    text: `Stage C6: Campaign Setup. A campaign is created from the approved list. A reusable message template is selected — templates are versioned and shared across campaigns, not duplicated. One campaign recipient row is created per approved contact, with briefing decision set to pending.`
+  },
+  {
+    stageIdx: 6,
+    label: 'C7 · Message Draft',
+    text: `Stage C7: Message Draft. For each recipient, the AI reads their enriched profile alongside the selected message template and generates a personalised email. Company name, industry, and ICP fit are used as context. The generated subject and body are stored as a snapshot in campaign recipients — a point-in-time record of exactly what was sent.`
+  },
+  {
+    stageIdx: 7,
+    label: 'C8 · Your Approval',
+    text: `Stage C8: Your Approval. Vatsal opens the campaign briefing view in the CRM. Each generated message is reviewed and marked approve, skip, or edit before anything sends. This is the second human gate. Only approved recipients proceed to the scheduler.`
+  },
+  {
+    stageIdx: 8,
+    label: 'C9 · Schedule & Send',
+    text: `Stage C9: Schedule and Send. Approved messages are queued to the email scheduler with staggered send times — preventing spam detection and letting you stay in control of cadence. On send, an activity log entry is written with direction outbound and channel email. Outreach status advances to Sent, and last contacted is stamped today.`
+  },
+  {
+    stageIdx: 9,
+    label: 'C10 · Reply Tracking',
+    text: `Stage C10: Reply Tracking. Replies are detected and logged as inbound activity entries. Status advances to Replied, then Meeting Set if the contact agrees to a call. At Meeting Set, the deal flow begins — a local deal record is created and the contact is queued for HubSpot sync. From this point, the cold track and the organic track are identical.`
+  },
+  {
+    sel: '.track-header-organic',
+    label: 'Organic Track Overview',
+    text: `The Organic Track is manual, individual, and relationship-first. No batch discovery, no swipe review, no campaign required. A conference introduction, an inbound LinkedIn DM, a referral from Nikhil — these contacts enter the system differently. Status starts at Active because the relationship is already in motion.`
+  },
+  {
+    stageIdx: 10,
+    label: 'O1 · Meet & Import',
+    text: `Stage O1: Meet and Import. Contact is added manually. Entry source is set to organic. Origin context captures exactly how you met — for example, AWS Summit Boston 2025, or Nikhil intro via LinkedIn. This field is free text, written once at import, and never changes. Six months later you can filter every organic contact by how they entered the system. Batch ID is null. Status starts at Active.`
+  },
+  {
+    stageIdx: 11,
+    label: 'O2 · Log Conversation',
+    text: `Stage O2: Log Conversation. Every interaction is logged as an activity entry — email, LinkedIn DM, phone call, or meeting note. Campaign ID is null for organic contacts, but every other field is identical to the cold track activity log. One table, one query surface, two entry paths.`
+  },
+  {
+    stageIdx: 12,
+    label: 'O3 · Follow-Up Loop',
+    text: `Stage O3: Follow-Up Loop. Ongoing relationship building. Next followup date and next action are tracked in the outreach row. Each touchpoint adds another activity entry. This loop repeats — potentially for months — until a deal signal is detected.`
+  },
+  {
+    stageIdx: 13,
+    label: 'O4 · Deal Signal',
+    text: `Stage O4: Deal Signal. The contact signals real interest — they reply positively, ask for pricing, or agree to a discovery call. A deal is opened in the local deals table with stage set to Prospecting. Outreach status advances to Meeting Set. From here, the organic track is identical to the cold track.`
+  },
+  {
+    stageIdx: 14,
+    label: 'O5 · HubSpot Promote',
+    text: `Stage O5: HubSpot Promote. Contact and deal are synced to HubSpot for the first time. An hs sync map row is created per entity, bridging local IDs to HubSpot object IDs. The CynLr special fields — bucket, priority, tags, event, connected on, and origin context — are pushed as custom properties prefixed with cynlr underscore. HubSpot only receives contacts when a deal is real. This keeps the pipeline clean and every metric meaningful.`
+  },
+  {
+    sel: '.converge',
+    label: 'Convergence',
+    text: `Both tracks converge at Meeting Set. Cold track contacts get there through a replied campaign email that escalates to a meeting. Organic contacts get there through sustained relationship building. From this point, both are treated identically — discovery call moves the deal to Qualification, presentation to Presentation Completed, proposal to Proposal in Drafting, contract to Negotiation, purchase order to Closed Won. The origin path is recorded permanently in entry source and origin context. The execution path from here is the same for everyone.`
+  },
+  {
+    id: 'schema-ref',
+    label: 'Schema Reference',
+    text: `The complete target schema has nine tables. Five are new: companies, with domain as the deduplication key. Deals, a local deal table separate from the HubSpot cache. Activity log, which replaces the three separate notes, messages, and activities tables with one unified write target. Discovery batches, which groups cold outreach contacts into cohorts. And contact reviews, which stores Nikhil's swipe decisions independently from the person record. Four existing tables gain new columns: contacts gets thirteen new fields including first name, last name, phone, city, state, country, LinkedIn URL, website, company ID as a foreign key, entry source, origin context, and batch ID. The five CynLr special fields — bucket, priority, event, tags, and connected on — are preserved exactly as-is and map to HubSpot custom properties on sync.`
+  },
+  {
+    id: 'migration-plan',
+    label: 'Migration Plan',
+    text: `The migration runs in nine phases, all additive — no existing data is deleted or overwritten at any phase. Phase zero: backup the database. With 1,607 real contacts on a single SQLite file, this is non-negotiable. Phase one: create all seven new tables. Phase two: add thirteen new columns to the contacts table using the existing migrate pattern. Phase three: backfill the companies table from the distinct company text values already in contacts. Phase four: backfill company ID on each contact by matching company name. Phase five: backfill first name, last name, and LinkedIn URL from the existing name and URL fields. Phase six: update the contact join query — three lines, every existing query gains company data for free. Phase seven is the most sensitive: migrate existing notes, messages, and activities into the activity log, then freeze the old tables as read-only. Phases eight and nine update write paths and wire the status sync trigger.`
+  }
+];
+
+// ── resolve element for each section ──────────────────────────
+function resolveEl(s) {
+  if (s.id) return document.getElementById(s.id);
+  if (s.sel) return document.querySelector(s.sel);
+  if (s.stageIdx !== undefined) return document.querySelectorAll('.stage')[s.stageIdx] || null;
+  return null;
+}
+
+// ── build progress dots ────────────────────────────────────────
+const wrap = document.getElementById('narr-progress-wrap');
+SECTIONS.forEach((s, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'narr-dot';
+  dot.title = s.label;
+  dot.addEventListener('click', () => jumpTo(i));
+  wrap.appendChild(dot);
+  s._dot = dot;
+});
+
+// ── state ──────────────────────────────────────────────────────
+let currentIdx = -1;
+let muted = false;
+let rate = 1;
+let playAllMode = false;
+let utterance = null;
+const synth = window.speechSynthesis;
+
+function getVoice() {
+  const voices = synth.getVoices();
+  return voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('neural'))
+    || voices.find(v => v.lang === 'en-US' && !v.name.toLowerCase().includes('espeak'))
+    || voices.find(v => v.lang.startsWith('en'))
+    || voices[0];
+}
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
+
+function setCurrentIdx(i) {
+  SECTIONS.forEach((s, j) => {
+    s._dot.classList.toggle('active', j === i);
+    if (j < i) s._dot.classList.add('played');
+  });
+  currentIdx = i;
+  const s = SECTIONS[i];
+  document.getElementById('narr-section').textContent = s.label;
+  // highlight
+  document.querySelectorAll('.narr-highlight').forEach(e => e.classList.remove('narr-highlight'));
+  const el = resolveEl(s);
+  if (el) el.classList.add('narr-highlight');
+}
+
+function speak(text, onEnd) {
+  synth.cancel();
+  if (muted) { onEnd && onEnd(); return; }
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = rate;
+  utterance.pitch = 1;
+  const v = getVoice();
+  if (v) utterance.voice = v;
+  utterance.onend = () => onEnd && onEnd();
+  utterance.onerror = () => onEnd && onEnd();
+  synth.speak(utterance);
+}
+
+function jumpTo(i) {
+  playAllMode = false;
+  synth.cancel();
+  document.getElementById('narr-play-all').textContent = '▶ Play All';
+  document.getElementById('narr-play-all').classList.remove('playing');
+  setCurrentIdx(i);
+  const el = resolveEl(SECTIONS[i]);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => speak(SECTIONS[i].text), 600);
+}
+
+function playAllFrom(i) {
+  if (!playAllMode || i >= SECTIONS.length) {
+    stopPlayAll();
+    return;
+  }
+  setCurrentIdx(i);
+  const el = resolveEl(SECTIONS[i]);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => {
+    speak(SECTIONS[i].text, () => {
+      if (playAllMode) setTimeout(() => playAllFrom(i + 1), 600);
+    });
+  }, 800);
+}
+
+function stopPlayAll() {
+  playAllMode = false;
+  synth.cancel();
+  document.getElementById('narr-play-all').textContent = '▶ Play All';
+  document.getElementById('narr-play-all').classList.remove('playing');
+}
+
+document.getElementById('narr-play-all').addEventListener('click', () => {
+  if (playAllMode) {
+    stopPlayAll();
+  } else {
+    playAllMode = true;
+    document.getElementById('narr-play-all').textContent = '⏹ Stop';
+    document.getElementById('narr-play-all').classList.add('playing');
+    const start = currentIdx >= 0 ? currentIdx : 0;
+    playAllFrom(start);
+  }
+});
+
+document.getElementById('narr-replay').addEventListener('click', () => {
+  if (currentIdx >= 0) {
+    synth.cancel();
+    speak(SECTIONS[currentIdx].text);
+  }
+});
+
+document.getElementById('narr-mute').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('narr-mute').textContent = muted ? '🔇' : '🔊';
+  if (muted) synth.cancel();
+});
+
+const speeds = [0.8, 1, 1.2, 1.5, 1.8];
+let speedIdx = 1;
+document.getElementById('narr-speed').addEventListener('click', () => {
+  speedIdx = (speedIdx + 1) % speeds.length;
+  rate = speeds[speedIdx];
+  document.getElementById('narr-speed').textContent = rate + '×';
+});
+
+// ── IntersectionObserver — trigger narration on scroll ────────
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const i = SECTIONS.findIndex(s => resolveEl(s) === entry.target);
+    if (i === -1) return;
+    if (playAllMode) return; // play-all manages its own flow
+    if (i === currentIdx) return;
+    setCurrentIdx(i);
+    speak(SECTIONS[i].text);
+  });
+}, { threshold: 0.45, rootMargin: '-80px 0px -80px 0px' });
+
+SECTIONS.forEach(s => {
+  const el = resolveEl(s);
+  if (el) io.observe(el);
+});
+</script>
 
 <!-- ═══════════════════════════════════════════════
      ANNOTATION LAYER v2
