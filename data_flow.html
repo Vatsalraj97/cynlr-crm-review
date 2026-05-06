@@ -1106,7 +1106,7 @@ body{padding-bottom:56px}
   <div id="narr-section">CynLr CRM v2 — Data Flow &amp; Schema</div>
   <div id="narr-progress-wrap"></div>
   <div id="narr-btns">
-    <button id="narr-speed">1×</button>
+    <button id="narr-speed">0.9×</button>
     <span id="narr-wpm"></span>
     <button id="narr-mute">🔊</button>
     <button id="narr-replay">↩ Replay</button>
@@ -1119,109 +1119,109 @@ const SECTIONS = [
   {
     id: 'thesis',
     label: 'Design Thesis',
-    text: `CynLr CRM version 2 uses a two-track outreach architecture. Most CRM failures happen at the boundary between relationship and pipeline. A warm introduction from Nikhil and a scraped LinkedIn profile are not the same object — but a flat schema treats them identically once imported. This design makes the entry condition a permanent, queryable fact. Three principles follow. First: attribution permanence — six months from now, when a deal closes, you can answer whether it came from cold outreach or an organic relationship, without guessing. Second: a clean HubSpot pipeline — 1,607 contacts live locally, but HubSpot only sees the ones with a real deal. Third: one infrastructure, two modes — both tracks use the same activity log, the same deal pipeline, the same HubSpot sync, but organic contacts never touch the campaign engine and cold contacts get no ad-hoc relationship notes mixed in.`
+    text: "Here's the problem every sales team eventually runs into. You have two completely different kinds of relationships sitting in the same system, being treated exactly the same way. The person you met at a conference last month, and the LinkedIn profile that was scraped last Tuesday — same table, same fields, same status. But they're not the same thing at all. One is a relationship you're building. The other is a name in a batch. This architecture makes that distinction permanent. Not as a tag you might remember to add later, but as a structural fact baked into how every contact enters the system from day one. Everything else is built on that foundation."
   },
   {
     sel: '.track-header-cold',
-    label: 'Cold Track Overview',
-    text: `The Cold Outreach Track is programmatic, batch-driven, and AI-assisted. Starting from zero, Claude Code discovers and qualifies leads through ten stages: AI discovery, enrichment, Nikhil's swipe review, approval sync, list build, campaign setup, AI message drafting, your approval gate, scheduled send, and reply tracking. Every contact shares a batch ID that groups them as a cohort for analysis.`
+    label: 'Cold Track',
+    text: "The Cold Outreach Track starts from nothing and ends at a warm reply. Ten stages. The first four are about finding the right people and getting sign-off. The next four are about crafting the right message and making sure you're happy with it before it goes out. The last two are about sending it, and listening for what comes back. Let's walk through each one."
   },
   {
     stageIdx: 0,
-    label: 'C1 · AI Discovery',
-    text: `Stage C1: AI Discovery. Claude Code scrapes LinkedIn profiles using your search criteria. A discovery batch is opened — one row per session. Two records are created per person: a company row using domain as the deduplication key, so BMW only ever exists once, and a person row with entry source set to cold and a batch ID linking them to this discovery run. Status starts at Pending.`
+    label: 'C1 · Discovery',
+    text: "It starts with a search. Claude goes out, finds profiles matching your criteria, and opens what we call a discovery batch. Think of it as a container that holds everything found in that one session. Every person, every company, every decision that follows gets linked back to it. So three months later, you can ask: what was the conversion rate on the APAC batch from April? And you'll actually get a real answer. Each company only ever exists once in the system. If two people both work at the same place, they share a company record, not two separate text entries."
   },
   {
     stageIdx: 1,
     label: 'C2 · Enrichment',
-    text: `Stage C2: Enrichment. The LinkedIn profile is fully scraped. Position, education, location, photo, and bio are pulled in. Company ICP fit is assessed — strong, medium, or weak. An activity log entry is written marking the enrichment as an internal event, giving you a timestamp for when the profile was last deepened.`
+    text: "Once the contacts are in, enrichment runs. Full LinkedIn profiles get pulled in. Role, education, location, even the photo. But the more important thing happening here is company scoring. Is this company a strong fit? Medium? Weak? That score travels with every contact from that company through the rest of the pipeline. So when Nikhil is reviewing them, he's not looking at raw data. He's looking at pre-qualified, scored context. That's what makes the review actually fast."
   },
   {
     stageIdx: 2,
     label: 'C3 · Swipe Review',
-    text: `Stage C3: Swipe Review. VCE swipe cards are generated by reading the enriched person and company data. Nikhil reviews each contact and marks them yes, no, maybe, or skip. This is the first human gate — the pipeline pauses here until Nikhil's decisions are returned. Critically, decisions are written to a separate contact reviews table, not onto the persons row. The person stays clean.`
+    text: "Now Nikhil comes in. The enriched profiles become swipe cards, the same format as the VC review tool. Name, headline, company, fit score, a bit of context. Yes, no, maybe, skip. The pipeline pauses here and waits. Nothing moves forward until he's done. And here's the design detail that matters most: his decisions don't touch the person's record at all. They go into a completely separate table. So if Nikhil changes his mind later, or if we want to audit past decisions, the person's data is always clean and untouched."
   },
   {
     stageIdx: 3,
     label: 'C4 · Approval Sync',
-    text: `Stage C4: Approval Sync. Nikhil sends back the annotated decisions. Each one is written to the contact reviews table. The batch total approved count is updated. No change to the persons table — approval state is a review record, not a person attribute.`
+    text: "Nikhil sends back his decisions. They land in the system. Each one gets attached to the right contact. The batch gets updated with how many were approved. Everything downstream now has a clean filter: show me only the yes contacts from this session. Clean, auditable, and reversible."
   },
   {
     stageIdx: 4,
     label: 'C5 · List Build',
-    text: `Stage C5: List Build. The batch is filtered for contacts where decision equals yes. A contact list is created from this approved set — for example, April 26 APAC Approved. This list becomes the direct input to the campaign engine.`
+    text: "The approved contacts get pulled into a named list. Something like April 26, APAC Approved. This list is the bridge between discovery and campaign. It's also permanent. You can always look back at any campaign and see exactly who was in the original approved set, and how many of them eventually converted."
   },
   {
     stageIdx: 5,
     label: 'C6 · Campaign Setup',
-    text: `Stage C6: Campaign Setup. A campaign is created from the approved list. A reusable message template is selected — templates are versioned and shared across campaigns, not duplicated. One campaign recipient row is created per approved contact, with briefing decision set to pending.`
+    text: "A campaign is created from the list. And here's something that matters: message templates are reusable. You don't write a new email from scratch for every batch. You write a great template once, refine it over time based on what's working, and the AI uses it as the foundation for personalisation. One template, used across many campaigns, getting better with each iteration."
   },
   {
     stageIdx: 6,
     label: 'C7 · Message Draft',
-    text: `Stage C7: Message Draft. For each recipient, the AI reads their enriched profile alongside the selected message template and generates a personalised email. Company name, industry, and ICP fit are used as context. The generated subject and body are stored as a snapshot in campaign recipients — a point-in-time record of exactly what was sent.`
+    text: "This is where it gets interesting. For each person on the list, the AI reads their full profile alongside the template. It knows their role, their company, their industry, their fit score. It writes a tailored message. Not a mail merge with a first name dropped in, but something that actually reflects who this person is and why you're reaching out to them specifically. The result is saved as a snapshot. Exactly what was generated, at this moment, using this template. Nothing gets lost."
   },
   {
     stageIdx: 7,
     label: 'C8 · Your Approval',
-    text: `Stage C8: Your Approval. Vatsal opens the campaign briefing view in the CRM. Each generated message is reviewed and marked approve, skip, or edit before anything sends. This is the second human gate. Only approved recipients proceed to the scheduler.`
+    text: "Before anything goes out, you review it. Every single message, per recipient. Approve it, skip it, or edit it right there. This is the second human gate in the cold track, and it's there by design. The AI drafts. You decide. Only the messages you approve move to the scheduler. This is how you stay in control of what goes out under your name, even at scale."
   },
   {
     stageIdx: 8,
-    label: 'C9 · Schedule & Send',
-    text: `Stage C9: Schedule and Send. Approved messages are queued to the email scheduler with staggered send times — preventing spam detection and letting you stay in control of cadence. On send, an activity log entry is written with direction outbound and channel email. Outreach status advances to Sent, and last contacted is stamped today.`
+    label: 'C9 · Send',
+    text: "Approved messages get queued. They go out with staggered timing, not all at once, but spread across a window you control. Each send is logged: who got it, when, what was in the subject line. Status flips to Sent. The activity log now has a complete outbound record of exactly what was delivered and when."
   },
   {
     stageIdx: 9,
     label: 'C10 · Reply Tracking',
-    text: `Stage C10: Reply Tracking. Replies are detected and logged as inbound activity entries. Status advances to Replied, then Meeting Set if the contact agrees to a call. At Meeting Set, the deal flow begins — a local deal record is created and the contact is queued for HubSpot sync. From this point, the cold track and the organic track are identical.`
+    text: "Now you wait. When a reply comes in, it gets detected and logged as an inbound event, same activity log, just the other direction. Status moves to Replied. If the conversation leads to a meeting request, it goes to Meeting Set. And at that point, something significant happens. A local deal record opens. The contact gets queued to sync to HubSpot for the very first time. They've earned their way into the pipeline."
   },
   {
     sel: '.track-header-organic',
-    label: 'Organic Track Overview',
-    text: `The Organic Track is manual, individual, and relationship-first. No batch discovery, no swipe review, no campaign required. A conference introduction, an inbound LinkedIn DM, a referral from Nikhil — these contacts enter the system differently. Status starts at Active because the relationship is already in motion.`
+    label: 'Organic Track',
+    text: "The Organic Track is a completely different experience. There's no batch. No AI discovery. No swipe review. Someone walks into your life, at a conference, through an introduction, from an inbound message, and you want to remember them properly. This track is built for exactly that kind of relationship. It's slower, more deliberate, and often more valuable."
   },
   {
     stageIdx: 10,
     label: 'O1 · Meet & Import',
-    text: `Stage O1: Meet and Import. Contact is added manually. Entry source is set to organic. Origin context captures exactly how you met — for example, AWS Summit Boston 2025, or Nikhil intro via LinkedIn. This field is free text, written once at import, and never changes. Six months later you can filter every organic contact by how they entered the system. Batch ID is null. Status starts at Active.`
+    text: "You meet someone at AWS Summit. You add them manually. Two fields get filled in that will matter more than you think. Where they came from, organic in this case, and exactly how you met them. You type something like AWS Summit Boston 2025 or Nikhil intro via LinkedIn. That's it. That note never changes. A year from now, when this person is deep in a deal, you'll know exactly where it started. Not because you remembered. Because the system remembered for you."
   },
   {
     stageIdx: 11,
     label: 'O2 · Log Conversation',
-    text: `Stage O2: Log Conversation. Every interaction is logged as an activity entry — email, LinkedIn DM, phone call, or meeting note. Campaign ID is null for organic contacts, but every other field is identical to the cold track activity log. One table, one query surface, two entry paths.`
+    text: "Every conversation goes into the same activity log as the cold track. An email, a LinkedIn message, a call, a meeting. The log doesn't care how this person came in. Same table, same structure. The only visible difference is that there's no campaign attached, because there was no campaign. There was just a relationship, and you're documenting it carefully."
   },
   {
     stageIdx: 12,
     label: 'O3 · Follow-Up Loop',
-    text: `Stage O3: Follow-Up Loop. Ongoing relationship building. Next followup date and next action are tracked in the outreach row. Each touchpoint adds another activity entry. This loop repeats — potentially for months — until a deal signal is detected.`
+    text: "This is the quiet middle of the organic track. You set a follow-up reminder. You have a call. You log it. You set another reminder. It might go on for weeks. It might go on for months. The system tracks when you last touched them and what the next move is. No automation running in the background. Just you, deliberately maintaining a relationship with someone you believe could matter."
   },
   {
     stageIdx: 13,
     label: 'O4 · Deal Signal',
-    text: `Stage O4: Deal Signal. The contact signals real interest — they reply positively, ask for pricing, or agree to a discovery call. A deal is opened in the local deals table with stage set to Prospecting. Outreach status advances to Meeting Set. From here, the organic track is identical to the cold track.`
+    text: "Something shifts. The contact asks about pricing. They reply to your check-in with 'actually, let's find some time.' A deal opens, a real local deal record that lives on your machine. Stage set to Prospecting. Status moves to Meeting Set. And at this moment, the organic track and the cold track become the same thing. The path to get here was different. Where you go from here is identical."
   },
   {
     stageIdx: 14,
-    label: 'O5 · HubSpot Promote',
-    text: `Stage O5: HubSpot Promote. Contact and deal are synced to HubSpot for the first time. An hs sync map row is created per entity, bridging local IDs to HubSpot object IDs. The CynLr special fields — bucket, priority, tags, event, connected on, and origin context — are pushed as custom properties prefixed with cynlr underscore. HubSpot only receives contacts when a deal is real. This keeps the pipeline clean and every metric meaningful.`
+    label: 'O5 · HubSpot',
+    text: "Only now does HubSpot hear about this person. Not when you added them to the CRM. Not when you had a coffee chat. Only when there's a real deal worth tracking. The contact and the deal both get pushed across. Everything specific to how CynLr tracks relationships, their priority score, their bucket, the event where you met them, their origin story, travels with them as custom fields. HubSpot's pipeline stays clean because it only ever sees contacts that actually matter commercially."
   },
   {
     sel: '.converge',
     label: 'Convergence',
-    text: `Both tracks converge at Meeting Set. Cold track contacts get there through a replied campaign email that escalates to a meeting. Organic contacts get there through sustained relationship building. From this point, both are treated identically — discovery call moves the deal to Qualification, presentation to Presentation Completed, proposal to Proposal in Drafting, contract to Negotiation, purchase order to Closed Won. The origin path is recorded permanently in entry source and origin context. The execution path from here is the same for everyone.`
+    text: "Both paths lead here. A cold outreach contact who replied to a campaign email and agreed to a meeting. An organic contact who finally signalled real interest after months of conversation. They're both at the same point now. Both have a local deal. Both are in HubSpot. And from here, the system treats them exactly the same. Discovery call. Qualification. Presentation. Proposal. Negotiation. Closed won. The origin is recorded permanently in the data and it never changes, but the work of closing the deal is the same regardless of where the relationship started."
   },
   {
     id: 'schema-ref',
-    label: 'Schema Reference',
-    text: `The complete target schema has nine tables. Five are new: companies, with domain as the deduplication key. Deals, a local deal table separate from the HubSpot cache. Activity log, which replaces the three separate notes, messages, and activities tables with one unified write target. Discovery batches, which groups cold outreach contacts into cohorts. And contact reviews, which stores Nikhil's swipe decisions independently from the person record. Four existing tables gain new columns: contacts gets thirteen new fields including first name, last name, phone, city, state, country, LinkedIn URL, website, company ID as a foreign key, entry source, origin context, and batch ID. The five CynLr special fields — bucket, priority, event, tags, and connected on — are preserved exactly as-is and map to HubSpot custom properties on sync.`
+    label: 'Schema',
+    text: "Behind everything you just saw are nine tables. Five are brand new. Companies, so a company is finally its own record and not a piece of text copied onto every person from that company. Deals, a local deal table that exists on your machine before anything ever touches HubSpot. The activity log, one place for every interaction across both tracks, replacing three separate tables that were doing the same job independently. Discovery batches, giving cold outreach contacts their cohort identity. And contact reviews, keeping Nikhil's decisions completely separate from the person records. The contacts table itself gains thirteen new fields, including the HubSpot-parity ones like phone number, city, and LinkedIn URL, so that any contact can be pushed to HubSpot cleanly, whenever you choose, without any data transformation."
   },
   {
     id: 'migration-plan',
-    label: 'Migration Plan',
-    text: `The migration runs in nine phases, all additive — no existing data is deleted or overwritten at any phase. Phase zero: backup the database. With 1,607 real contacts on a single SQLite file, this is non-negotiable. Phase one: create all seven new tables. Phase two: add thirteen new columns to the contacts table using the existing migrate pattern. Phase three: backfill the companies table from the distinct company text values already in contacts. Phase four: backfill company ID on each contact by matching company name. Phase five: backfill first name, last name, and LinkedIn URL from the existing name and URL fields. Phase six: update the contact join query — three lines, every existing query gains company data for free. Phase seven is the most sensitive: migrate existing notes, messages, and activities into the activity log, then freeze the old tables as read-only. Phases eight and nine update write paths and wire the status sync trigger.`
+    label: 'Migration',
+    text: "Getting from where the system is today to this target happens in nine phases, and every single one is additive. Nothing gets deleted. Nothing gets overwritten. The existing sixteen hundred contacts, their notes, their history, all of it stays intact throughout. Phase zero is a backup, always. The middle phases add the new tables and columns, and backfill the company relationships automatically from the data that's already there. The sensitive phase is migrating existing notes and messages into the unified activity log, and that one runs with a dry-run check before anything commits. The final phases update the code paths and wire up the status sync. The whole migration runs locally on your machine. Nothing touches HubSpot until you explicitly decide to push something across."
   }
-];
+]
 
 // ── resolve element for each section ──────────────────────────
 function resolveEl(s) {
@@ -1245,17 +1245,24 @@ SECTIONS.forEach((s, i) => {
 // ── state ──────────────────────────────────────────────────────
 let currentIdx = -1;
 let muted = false;
-let rate = 1;
+let rate = 0.88;
 let playAllMode = false;
 let utterance = null;
 const synth = window.speechSynthesis;
 
 function getVoice() {
   const voices = synth.getVoices();
-  return voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('neural'))
-    || voices.find(v => v.lang === 'en-US' && !v.name.toLowerCase().includes('espeak'))
-    || voices.find(v => v.lang.startsWith('en'))
-    || voices[0];
+  const prefer = [
+    v => v.name.includes('Aria') || v.name.includes('Jenny') || v.name.includes('Guy'),
+    v => v.lang === 'en-US' && v.name.toLowerCase().includes('neural'),
+    v => v.lang === 'en-US' && v.name.toLowerCase().includes('natural'),
+    v => v.lang === 'en-GB' && !v.name.toLowerCase().includes('espeak'),
+    v => v.lang === 'en-US' && !v.name.toLowerCase().includes('espeak'),
+    v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('espeak'),
+    () => voices[0],
+  ];
+  for (const fn of prefer) { const v = voices.find(fn); if (v) return v; }
+  return voices[0];
 }
 if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
 
@@ -1278,7 +1285,7 @@ function speak(text, onEnd) {
   if (muted) { onEnd && onEnd(); return; }
   utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = rate;
-  utterance.pitch = 1;
+  utterance.pitch = 0.95;
   const v = getVoice();
   if (v) utterance.voice = v;
   utterance.onend = () => onEnd && onEnd();
@@ -1344,7 +1351,7 @@ document.getElementById('narr-mute').addEventListener('click', () => {
   if (muted) synth.cancel();
 });
 
-const speeds = [0.8, 1, 1.2, 1.5, 1.8];
+const speeds = [0.75, 0.88, 1, 1.2, 1.5];
 let speedIdx = 1;
 document.getElementById('narr-speed').addEventListener('click', () => {
   speedIdx = (speedIdx + 1) % speeds.length;
