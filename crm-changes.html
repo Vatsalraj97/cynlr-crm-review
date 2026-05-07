@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr CRM — Architecture Changes (May 2026)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;min-height:100vh;padding:40px 20px}
+a{color:#6366f1;text-decoration:none}
+a:hover{color:#818cf8}
+
+.wrap{max-width:960px;margin:0 auto}
+.logo{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#334155;text-align:center;margin-bottom:16px}
+h1{font-size:28px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:6px}
+.sub{font-size:13px;color:#64748b;text-align:center;margin-bottom:32px}
+
+/* ── Section ── */
+.section{margin-bottom:48px}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#334155;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:#1e293b}
+
+h2{font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:4px}
+.section-sub{font-size:12px;color:#64748b;margin-bottom:20px}
+
+/* ── Badge row ── */
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:36px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:4px 11px;border-radius:20px;letter-spacing:.4px}
+.b-new{background:#031a10;color:#34d399;border:1px solid #065f46}
+.b-rm{background:#1a0808;color:#f87171;border:1px solid #450a0a}
+.b-fix{background:#1f1200;color:#fb923c;border:1px solid #451a03}
+.b-note{background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f}
+
+/* ── Before/After ── */
+.ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.ba-col{background:#1e2535;border:1.5px solid #334155;border-radius:12px;padding:20px}
+.ba-col.after{border-color:#1e3a5f;background:#0a1929}
+.ba-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.ba-col:first-child .ba-label{color:#f87171}
+.ba-col.after .ba-label{color:#34d399}
+.field-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.field-list li{font-size:12px;padding:5px 10px;border-radius:6px;display:flex;align-items:center;gap:8px}
+.field-removed{background:#1a0a0a;color:#f87171;text-decoration:line-through;opacity:.65}
+.field-kept{background:#111827;color:#94a3b8}
+.field-new{background:#031a10;color:#34d399;font-weight:600}
+.field-changed{background:#1f1200;color:#fb923c}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-rm{background:#f87171}
+.dot-kept{background:#334155}
+.dot-new{background:#34d399}
+.dot-changed{background:#fb923c}
+
+/* ── Tables ── */
+.tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.table-card{background:#1e2535;border:1.5px solid #334155;border-radius:12px;overflow:hidden}
+.table-header{padding:12px 16px;border-bottom:1px solid #334155;display:flex;align-items:center;gap:10px}
+.table-name{font-size:13px;font-weight:700;color:#f8fafc;font-family:'Courier New',monospace}
+.table-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.3px}
+.tb-new{background:#031a10;color:#34d399;border:1px solid #065f46}
+.table-cols{padding:12px 16px;display:flex;flex-direction:column;gap:4px}
+.col-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid #111827}
+.col-row:last-child{border-bottom:none}
+.col-name{font-family:'Courier New',monospace;color:#e2e8f0}
+.col-type{color:#334155;font-size:10px}
+.col-note{font-size:10px;color:#6366f1;margin-left:4px}
+.col-pk{color:#f7c26a}
+.col-fk{color:#6ab4f7}
+
+/* ── Deal sections visual ── */
+.sections-flow{display:flex;flex-direction:column;gap:8px}
+.deal-section{border-radius:10px;padding:12px 16px;display:flex;align-items:flex-start;gap:14px;border:1px solid}
+.ds-icon{font-size:18px;margin-top:1px;flex-shrink:0;width:24px;text-align:center}
+.ds-body{}
+.ds-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.ds-desc{font-size:11px;color:#64748b;line-height:1.6}
+.ds-journey{background:#0f172a;border-color:#1e3a5f}.ds-journey .ds-title{color:#6ab4f7}
+.ds-intel{background:#0f1117;border-color:#1e293b}.ds-intel .ds-title{color:#94a3b8}
+.ds-nextsteps{background:#0a1929;border-color:#1e3a5f}.ds-nextsteps .ds-title{color:#4ade80}
+.ds-team{background:#0c0a1e;border-color:#2e1b6e}.ds-team .ds-title{color:#7c6af7}
+.ds-tags{background:#0a0f1e;border-color:#1e3a5f}.ds-tags .ds-title{color:#6af7c2}
+.ds-activity{background:#1a1000;border-color:#3a2600}.ds-activity .ds-title{color:#f7c26a}
+.ds-notes{background:#0f0a18;border-color:#2e1b4e}.ds-notes .ds-title{color:#e88af7}
+.ds-desc2{background:#0f1117;border-color:#1e293b}.ds-desc2 .ds-title{color:#94a3b8}
+.ds-email{background:#0a1929;border-color:#1e3a5f}.ds-email .ds-title{color:#60a5fa}
+.ds-rm{background:#1a0808;border-color:#450a0a;opacity:.5}.ds-rm .ds-title{color:#f87171;text-decoration:line-through}
+
+/* ── Rec engine ── */
+.rec-rules{display:flex;flex-direction:column;gap:8px}
+.rec-rule{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:start;background:#1e2535;border-radius:8px;padding:12px 16px;font-size:12px}
+.rec-trigger{color:#64748b;font-size:11px;font-family:'Courier New',monospace}
+.rec-output{color:#e2e8f0;line-height:1.6}
+.rec-icon{display:inline-block;width:20px;font-weight:700;margin-right:4px}
+.rc-blue{color:#6ab4f7}
+.rc-amber{color:#f7c26a}
+.rc-red{color:#f76a8a}
+.rc-green{color:#4ade80}
+.rc-purple{color:#e88af7}
+
+/* ── Email pattern ── */
+.pattern-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pattern-card{background:#1e2535;border:1px solid #334155;border-radius:10px;padding:16px}
+.pattern-card h4{font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:10px}
+.pattern-example{font-family:'Courier New',monospace;font-size:11px;padding:4px 8px;background:#111827;border-radius:4px;margin-bottom:4px;color:#6af7c2}
+.pattern-result{font-size:11px;color:#64748b;padding:0 8px;margin-bottom:8px}
+
+/* ── Deferred ── */
+.deferred-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.deferred-item{background:#0f1117;border:1px solid #1e293b;border-radius:8px;padding:12px}
+.deferred-item h4{font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px}
+.deferred-item p{font-size:10px;color:#334155;line-height:1.6}
+
+/* ── Sync arch ── */
+.sync-arch{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;background:#1e2535;border:1px solid #334155;border-radius:12px;padding:24px;gap:0}
+.sync-node{background:#111827;border-radius:10px;padding:14px 20px;text-align:center;min-width:140px}
+.sync-node h4{font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:4px}
+.sync-node p{font-size:10px;color:#64748b;line-height:1.5}
+.sync-arrow{padding:0 16px;color:#334155;font-size:20px;font-weight:300}
+.sync-arrow-label{font-size:9px;text-align:center;margin-top:2px;color:#334155}
+
+/* ── Back link ── */
+.back{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#334155;margin-bottom:32px;text-decoration:none}
+.back:hover{color:#6366f1}
+
+@media(max-width:600px){
+  .ba-grid,.tables-grid,.pattern-grid,.deferred-grid{grid-template-columns:1fr}
+  .rec-rule{grid-template-columns:1fr}
+  .sync-arch{flex-direction:column}
+  .sync-arrow{transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="index.html">&#8592; Back to Index</a>
+
+  <div class="logo">CynLr · Internal · May 2026</div>
+  <h1>CRM Architecture Changes</h1>
+  <p class="sub">Everything that changed in the deal space, data model, and contact profile — reviewed and approved by Nikhil.</p>
+
+  <div class="badge-row">
+    <span class="badge b-new">4 new tables</span>
+    <span class="badge b-rm">6 fields removed</span>
+    <span class="badge b-fix">Deal object restructured</span>
+    <span class="badge b-note">Recommendation engine live</span>
+    <span class="badge b-new">Email pattern prediction</span>
+    <span class="badge b-fix">Activity log as own object</span>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 1. DEAL OBJECT BEFORE / AFTER                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Deal Object</div>
+    <h2>Before → After</h2>
+    <p class="section-sub">Fields removed, restructured, or replaced. Everything still in HubSpot is pulled on sync — we just stopped surfacing noise.</p>
+
+    <div class="ba-grid">
+      <div class="ba-col">
+        <div class="ba-label">Removed / Killed</div>
+        <ul class="field-list">
+          <li class="field-removed"><span class="dot dot-rm"></span>action_item + action_due</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>blockers</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>pain_point</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>competitors</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>champion (fixed single field)</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>economic_buyer (fixed single field)</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>stage, amount, close date (kept)</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>pipeline, probability (kept)</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>application type, segment, geography (kept)</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>description, email history (kept)</li>
+        </ul>
+      </div>
+      <div class="ba-col after">
+        <div class="ba-label">Added / Replaced</div>
+        <ul class="field-list">
+          <li class="field-new"><span class="dot dot-new"></span>Deal Team — flexible people list with role tags</li>
+          <li class="field-new"><span class="dot dot-new"></span>Activity Log — own table, linked to deal</li>
+          <li class="field-new"><span class="dot dot-new"></span>Notes — timestamped, with author</li>
+          <li class="field-new"><span class="dot dot-new"></span>Tags — free multi-tag chips</li>
+          <li class="field-new"><span class="dot dot-new"></span>Next Steps — recommendation engine</li>
+          <li class="field-changed"><span class="dot dot-changed"></span>Owner renamed CynLr Owner</li>
+          <li class="field-changed"><span class="dot dot-changed"></span>Sync status — colored dot + timestamp</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 2. DEAL DETAIL PAGE LAYOUT                             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Deal Detail Page Layout</div>
+    <h2>Section Order (Top → Bottom)</h2>
+    <p class="section-sub">Every section visible when you open a deal, in order.</p>
+
+    <div class="sections-flow">
+      <div class="deal-section ds-journey">
+        <div class="ds-icon">&#9654;</div>
+        <div class="ds-body">
+          <div class="ds-title">Customer Journey</div>
+          <div class="ds-desc">8-stage timeline bar. Current stage highlighted. Connector fills in as deal progresses.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-intel">
+        <div class="ds-icon">&#9632;</div>
+        <div class="ds-body">
+          <div class="ds-title">Deal Intelligence</div>
+          <div class="ds-desc">8 metric cards: Stage, Pipeline, Close Date, Probability, <strong>CynLr Owner</strong>, Contacts, Created, Last Activity. Sync status badge in header (green = &lt;24h, amber = stale, red = never).</div>
+        </div>
+      </div>
+      <div class="deal-section ds-nextsteps">
+        <div class="ds-icon">&#8594;</div>
+        <div class="ds-body">
+          <div class="ds-title">Next Steps  <em style="font-weight:400;font-size:11px;color:#64748b">(recommendation engine)</em></div>
+          <div class="ds-desc">Stage-specific recommended action + warnings for staleness, overdue close date, missing champion / economic buyer. Rule-based today; feedback loop will teach it Nikhil's patterns over time.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-intel">
+        <div class="ds-icon">&#9642;</div>
+        <div class="ds-body">
+          <div class="ds-title">Details</div>
+          <div class="ds-desc">Application Type, Segment, Geography, Product/Services, Account Name, Primary Contact, Lead Source. Pain points and competitors removed.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-team">
+        <div class="ds-icon">&#9632;</div>
+        <div class="ds-body">
+          <div class="ds-title">Deal Team  <em style="font-weight:400;font-size:11px;color:#64748b">(replaces fixed champion / economic buyer)</em></div>
+          <div class="ds-desc">Flexible list. Each person gets one or more role tags: <span style="color:#4ade80">Champion</span> · <span style="color:#f7c26a">Economic Buyer</span> · <span style="color:#6ab4f7">Budget Influencer</span> · <span style="color:#e88af7">Technical Gatekeeper</span>. Same person can hold multiple roles. Add / remove inline.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-tags">
+        <div class="ds-icon">#</div>
+        <div class="ds-body">
+          <div class="ds-title">Tags</div>
+          <div class="ds-desc">Free multi-tag chips. Comma-separated input. Color-coded. Persisted to local DB. Visible on deal cards in the list view.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-activity">
+        <div class="ds-icon">&#9719;</div>
+        <div class="ds-body">
+          <div class="ds-title">Activity Log  <em style="font-weight:400;font-size:11px;color:#64748b">(own table, not embedded in deal)</em></div>
+          <div class="ds-desc">Log any interaction: Email · Call · Teams Call · Meeting · Demo · LinkedIn · Site Visit · Conference · Other. Each entry: type + direction (Inbound / Outbound / Internal) + date + notes. Links to Company + Contact + Deal IDs. Will be auto-populated by email/Teams agent in Phase 2.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-notes">
+        <div class="ds-icon">&#9998;</div>
+        <div class="ds-body">
+          <div class="ds-title">Notes</div>
+          <div class="ds-desc">Quick timestamped notes. Each note: body + author name + created_at. Author field defaults to Vatsal but is editable per note.</div>
+        </div>
+      </div>
+      <div class="deal-section ds-desc2">
+        <div class="ds-icon">&#9776;</div>
+        <div class="ds-body">
+          <div class="ds-title">Description</div>
+          <div class="ds-desc">Deal description pulled from HubSpot. Read-only (HubSpot is source of truth).</div>
+        </div>
+      </div>
+      <div class="deal-section ds-email">
+        <div class="ds-icon">&#9993;</div>
+        <div class="ds-body">
+          <div class="ds-title">Email History</div>
+          <div class="ds-desc">Last 20 emails linked to this deal via HubSpot. Subject + date + body preview.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 3. NEW TABLES                                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">New Database Tables</div>
+    <h2>Schema</h2>
+    <p class="section-sub">All 4 new tables added this session. Local SQLite — HubSpot is source of truth for deal/contact data; these tables hold CynLr-side annotations and derived objects.</p>
+
+    <div class="tables-grid">
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-name">deal_people</div>
+          <div class="table-badge tb-new">NEW</div>
+        </div>
+        <div class="table-cols">
+          <div class="col-row"><span class="col-name col-pk">id</span><span class="col-type">INTEGER PK</span></div>
+          <div class="col-row"><span class="col-name col-fk">deal_id</span><span class="col-type">FK → hubspot_deals</span></div>
+          <div class="col-row"><span class="col-name">person_name</span><span class="col-type">TEXT</span></div>
+          <div class="col-row"><span class="col-name">person_hubspot_id</span><span class="col-type">TEXT (optional)</span></div>
+          <div class="col-row"><span class="col-name">role_tags</span><span class="col-type">TEXT <span class="col-note">comma-separated</span></span></div>
+          <div class="col-row"><span class="col-name">added_at</span><span class="col-type">TEXT datetime</span></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-name">activity_log</div>
+          <div class="table-badge tb-new">NEW</div>
+        </div>
+        <div class="table-cols">
+          <div class="col-row"><span class="col-name col-pk">id</span><span class="col-type">INTEGER PK</span></div>
+          <div class="col-row"><span class="col-name">company_name</span><span class="col-type">TEXT</span></div>
+          <div class="col-row"><span class="col-name col-fk">contact_id</span><span class="col-type">FK → contacts (nullable)</span></div>
+          <div class="col-row"><span class="col-name col-fk">deal_id</span><span class="col-type">FK → hubspot_deals (nullable)</span></div>
+          <div class="col-row"><span class="col-name">activity_type</span><span class="col-type">TEXT <span class="col-note">Call / Email / Demo…</span></span></div>
+          <div class="col-row"><span class="col-name">direction</span><span class="col-type">TEXT <span class="col-note">In / Out / Internal</span></span></div>
+          <div class="col-row"><span class="col-name">notes</span><span class="col-type">TEXT</span></div>
+          <div class="col-row"><span class="col-name">happened_at</span><span class="col-type">TEXT date</span></div>
+          <div class="col-row"><span class="col-name">created_at</span><span class="col-type">TEXT datetime</span></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-name">company_profiles</div>
+          <div class="table-badge tb-new">NEW</div>
+        </div>
+        <div class="table-cols">
+          <div class="col-row"><span class="col-name col-pk">id</span><span class="col-type">INTEGER PK</span></div>
+          <div class="col-row"><span class="col-name">name</span><span class="col-type">TEXT UNIQUE</span></div>
+          <div class="col-row"><span class="col-name">website</span><span class="col-type">TEXT</span></div>
+          <div class="col-row"><span class="col-name">email_domain</span><span class="col-type">TEXT <span class="col-note">e.g. cynlr.com</span></span></div>
+          <div class="col-row"><span class="col-name">email_pattern</span><span class="col-type">TEXT <span class="col-note">e.g. first.last</span></span></div>
+          <div class="col-row"><span class="col-name">industry</span><span class="col-type">TEXT</span></div>
+          <div class="col-row"><span class="col-name">nda_signed</span><span class="col-type">INTEGER <span class="col-note">0 / 1</span></span></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-name">deal_notes</div>
+          <div class="table-badge tb-new">NEW</div>
+        </div>
+        <div class="table-cols">
+          <div class="col-row"><span class="col-name col-pk">id</span><span class="col-type">INTEGER PK</span></div>
+          <div class="col-row"><span class="col-name col-fk">deal_id</span><span class="col-type">FK → hubspot_deals</span></div>
+          <div class="col-row"><span class="col-name">body</span><span class="col-type">TEXT</span></div>
+          <div class="col-row"><span class="col-name">author</span><span class="col-type">TEXT <span class="col-note">default: Vatsal</span></span></div>
+          <div class="col-row"><span class="col-name">created_at</span><span class="col-type">TEXT datetime</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 4. RECOMMENDATION ENGINE                               -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Recommendation Engine</div>
+    <h2>Rule Logic</h2>
+    <p class="section-sub">Fires on every deal open. Rule-based today. Feedback loop (thumbs up/down) will train it to Nikhil's judgment over time — Phase 3.</p>
+
+    <div class="rec-rules">
+      <div class="rec-rule">
+        <div class="rec-trigger">Stage match</div>
+        <div class="rec-output"><span class="rec-icon rc-blue">→</span> Stage-specific next action. E.g. "App Note Requested" → <em>"Follow up on pending app note — check if customer has questions or blockers."</em></div>
+      </div>
+      <div class="rec-rule">
+        <div class="rec-trigger">Stale &gt; 14 days</div>
+        <div class="rec-output"><span class="rec-icon rc-amber">!</span> "No activity in N days — send a touchpoint or update deal status."</div>
+      </div>
+      <div class="rec-rule">
+        <div class="rec-trigger">Close date ≤ 14 days</div>
+        <div class="rec-output"><span class="rec-icon rc-amber">!</span> "Close date in N days — prioritize this deal."</div>
+      </div>
+      <div class="rec-rule">
+        <div class="rec-trigger">Close date passed</div>
+        <div class="rec-output"><span class="rec-icon rc-red">!</span> "Close date passed N days ago — update expected close or reassess deal."</div>
+      </div>
+      <div class="rec-rule">
+        <div class="rec-trigger">No Champion<br><em style="font-size:10px;color:#334155">(post initial contact)</em></div>
+        <div class="rec-output"><span class="rec-icon rc-purple">?</span> "Identify and document a champion at the customer's organization." Triggered via Deal Team — if no person has Champion role tag.</div>
+      </div>
+      <div class="rec-rule">
+        <div class="rec-trigger">No Economic Buyer<br><em style="font-size:10px;color:#334155">(proposal stage+)</em></div>
+        <div class="rec-output"><span class="rec-icon rc-purple">?</span> "Confirm economic buyer — ensure proposal reaches the decision-maker."</div>
+      </div>
+      <div class="rec-rule">
+        <div class="rec-trigger">All clear</div>
+        <div class="rec-output"><span class="rec-icon rc-green">✓</span> "Deal is on track — no immediate actions needed."</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 5. EMAIL PATTERN ENGINE                                -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Company Email Pattern Engine</div>
+    <h2>predict_email( company, first, last )</h2>
+    <p class="section-sub">Stored per company in company_profiles. One pattern covers every contact at that company. Zero external dependency — no Apollo, no Hunter.</p>
+
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <h4>Stored once per company</h4>
+        <div class="pattern-example">email_domain: &quot;renault.com&quot;</div>
+        <div class="pattern-example">email_pattern: &quot;first.last&quot;</div>
+        <div style="font-size:11px;color:#64748b;margin-top:8px;line-height:1.7">
+          Pattern is derived from any known contact at the company.<br>
+          One confirmed email → pattern for everyone there.
+        </div>
+      </div>
+      <div class="pattern-card">
+        <h4>Supported patterns</h4>
+        <div class="pattern-example">first.last → john.smith@domain.com</div>
+        <div class="pattern-example">f.last &nbsp;→ j.smith@domain.com</div>
+        <div class="pattern-example">firstlast → johnsmith@domain.com</div>
+        <div class="pattern-example">flast &nbsp;&nbsp;→ jsmith@domain.com</div>
+        <div class="pattern-example">first &nbsp;&nbsp;→ john@domain.com</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 6. SYNC ARCHITECTURE                                   -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Sync Architecture</div>
+    <h2>HubSpot = Source of Truth</h2>
+    <p class="section-sub">Local SQLite is a working copy. Sync badge on every deal shows when it was last pulled. Deal notes, team, activity log are local-only — to be written back via HubSpot Engagements API in a later phase.</p>
+
+    <div class="sync-arch">
+      <div class="sync-node">
+        <h4 style="color:#6ab4f7">HubSpot CRM</h4>
+        <p>Deals · Contacts · Emails<br>Source of truth</p>
+      </div>
+      <div>
+        <div class="sync-arrow">&#8594;</div>
+        <div class="sync-arrow-label">Pull on sync</div>
+      </div>
+      <div class="sync-node">
+        <h4 style="color:#4ade80">Local SQLite</h4>
+        <p>Working copy<br>+ annotations</p>
+      </div>
+      <div>
+        <div class="sync-arrow">&#8594;</div>
+        <div class="sync-arrow-label" style="color:#334155">Phase 2: write back</div>
+      </div>
+      <div class="sync-node" style="opacity:.5">
+        <h4 style="color:#f7c26a">HubSpot Notes API</h4>
+        <p>Deal notes + activity log<br>(Phase 2)</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 7. CONTACT PROFILE SIMPLIFICATION                      -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Contact Profile</div>
+    <h2>Simplified Left Panel</h2>
+    <p class="section-sub">Lifecycle stages (cold/warm/hot) were never in the UI. Event and Connected date removed from the info form — only what drives workflow stays.</p>
+
+    <div class="ba-grid">
+      <div class="ba-col">
+        <div class="ba-label">Removed</div>
+        <ul class="field-list">
+          <li class="field-removed"><span class="dot dot-rm"></span>Event (conference / event tag)</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>Connected on (LinkedIn date)</li>
+          <li class="field-removed"><span class="dot dot-rm"></span>Lifecycle stage (was never shown — confirmed clean)</li>
+        </ul>
+      </div>
+      <div class="ba-col after">
+        <div class="ba-label">Kept</div>
+        <ul class="field-list">
+          <li class="field-kept"><span class="dot dot-kept"></span>Bucket (category tags: VC, Founder, Researcher…)</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>Priority score</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>Enrichment (Company, Position, Location, College)</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>Outreach status buttons</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>Follow-up date + Next action</li>
+          <li class="field-kept"><span class="dot dot-kept"></span>Lists membership</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 8. DEFERRED                                            -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Deferred — Not This Phase</div>
+    <h2>What's Waiting</h2>
+    <p class="section-sub">Agreed direction, not yet built.</p>
+
+    <div class="deferred-grid">
+      <div class="deferred-item">
+        <h4>AI Meters (Engagement / Sentiment / Interest)</h4>
+        <p>Needs background scheduler + full email bodies. Engagement meter (rule-based on count + recency) is first to build.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Recommendation ML</h4>
+        <p>Feedback loop (thumbs up/down) can be built now. True Nikhil-patterned ML needs ~100 labeled examples — 6–12 months of data at current deal volume.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Teams Auto-fill</h4>
+        <p>Activity log auto-population from Microsoft Teams requires Graph API + OAuth. Out of scope short-term.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Email Auto-fill (Activity Log)</h4>
+        <p>Email auto-population is feasible — we already pull email history. Wire-up is low effort, next sprint.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>HubSpot Write-back (Notes + Activities)</h4>
+        <p>Write deal_notes and activity_log back to HubSpot via Engagements API. Straightforward, deferred for data security phase.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Website Form → HubSpot Contact</h4>
+        <p>Drop HubSpot form embed on CynLr website. 30 minutes when website access is confirmed.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Silent Email Ping</h4>
+        <p>Verify predicted email before sending. Reliable option = Hunter.io verify API (~$49/mo). Pure SMTP handshake works ~60% of the time.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Document Repository</h4>
+        <p>NDAs, RFPs, proposals per company/deal. Architecture decision needed: local folder + DB refs vs HubSpot-native file storage.</p>
+      </div>
+      <div class="deferred-item">
+        <h4>Deal-Contact HubSpot Parity</h4>
+        <p>deal_people is local. For HubSpot parity: serialize role assignments to a custom JSON deal property "people_roles" on sync.</p>
+      </div>
+    </div>
+  </div>
+
+  <p style="text-align:center;font-size:11px;color:#1e293b;margin-top:16px">CynLr · Internal · Not for distribution &nbsp;·&nbsp; Generated 2026-05-07</p>
+
+</div>
+</body>
+</html>
