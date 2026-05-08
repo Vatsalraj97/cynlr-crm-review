@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr HubSpot — Full Data Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#080a10;color:#e2e8f0;padding:36px 24px 80px}
+a{color:inherit;text-decoration:none}
+
+/* typography */
+h1{font-size:22px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:4px}
+h2{font-size:13px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+h2::after{content:'';flex:1;height:1px;background:#1e293b}
+h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#475569;margin-bottom:8px}
+.sub{text-align:center;font-size:12px;color:#475569;margin-bottom:32px}
+
+/* layout */
+.wrap{max-width:1200px;margin:0 auto}
+.section{margin-bottom:40px}
+
+/* stat grid */
+.stat-grid{display:grid;gap:10px;margin-bottom:32px}
+.sg3{grid-template-columns:repeat(3,1fr)}
+.sg4{grid-template-columns:repeat(4,1fr)}
+.sg6{grid-template-columns:repeat(6,1fr)}
+.stat{background:#111827;border:1.5px solid #1e293b;border-radius:11px;padding:14px 16px}
+.stat-n{font-size:26px;font-weight:800;line-height:1;margin-bottom:3px}
+.stat-l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
+.stat-sub{font-size:9px;margin-top:4px;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block}
+.ok{color:#34d399}.ok .stat-sub{background:#031a10;color:#34d399}
+.warn{color:#fbbf24}.warn .stat-sub{background:#1f1200;color:#fb923c}
+.danger{color:#f87171}.danger .stat-sub{background:#1a0808;color:#f87171}
+.info{color:#60a5fa}.info .stat-sub{background:#0a1929;color:#60a5fa}
+.purple{color:#c084fc}.purple .stat-sub{background:#16103a;color:#a78bfa}
+
+/* health score */
+.health{text-align:center;margin-bottom:36px}
+.health-score{font-size:72px;font-weight:900;line-height:1}
+.health-label{font-size:12px;color:#475569;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.health-bar{height:8px;border-radius:4px;background:#1e293b;margin:12px auto;max-width:300px;overflow:hidden}
+.health-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#ef4444,#f59e0b,#10b981);width:28%}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#334155;padding:7px 10px;border-bottom:1.5px solid #1e293b;text-align:left;background:#0d1117;white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid #0f1117;vertical-align:top}
+.tbl tr:hover td{background:#0f1420}
+.mono{font-family:'Cascadia Code','Courier New',monospace;font-size:10px;color:#94a3b8}
+.tbl-wrap{border:1.5px solid #1e293b;border-radius:11px;overflow:hidden;margin-bottom:20px}
+
+/* pills */
+.pill{font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:8px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;display:inline-block}
+.p-ok{background:#031a10;color:#34d399}
+.p-warn{background:#1f1200;color:#fb923c}
+.p-danger{background:#1a0808;color:#f87171}
+.p-info{background:#0a1929;color:#60a5fa}
+.p-purple{background:#16103a;color:#a78bfa}
+.p-gray{background:#0d1117;color:#475569}
+
+/* issue cards */
+.issues{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.issue{border:1.5px solid;border-radius:10px;padding:14px}
+.issue-sev{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.issue-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.issue-body{font-size:11px;color:#64748b;line-height:1.6}
+.sev-critical{border-color:#450a0a;background:#0d0505}.sev-critical .issue-sev{color:#f87171}
+.sev-high{border-color:#451a03;background:#0d0800}.sev-high .issue-sev{color:#fb923c}
+.sev-med{border-color:#422006;background:#0a0800}.sev-med .issue-sev{color:#fbbf24}
+.sev-low{border-color:#1e3a5f;background:#040d18}.sev-low .issue-sev{color:#60a5fa}
+
+/* duplicate viz */
+.dup-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #0f1117}
+.dup-row:last-child{border-bottom:none}
+.dup-cell{background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:8px 12px;font-size:11px}
+.dup-arrow{font-size:18px;color:#334155;text-align:center}
+.dup-same{border-color:#064e3b}.dup-diff{border-color:#451a03}
+
+/* stage pipeline visual */
+.pipeline{display:flex;gap:0;margin-bottom:20px;overflow-x:auto}
+.pipe-stage{flex:1;min-width:80px;text-align:center;padding:10px 6px;border-right:1px solid #1e293b}
+.pipe-stage:last-child{border-right:none}
+.pipe-n{font-size:22px;font-weight:800}
+.pipe-label{font-size:9px;color:#475569;margin-top:3px;line-height:1.3}
+.pipe-deals{font-size:9px;margin-top:4px;color:#334155}
+
+/* contact breakdown bars */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bar-label{font-size:10px;color:#94a3b8;width:140px;flex-shrink:0}
+.bar-track{flex:1;height:8px;background:#111827;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+.bar-val{font-size:10px;font-weight:700;width:60px;text-align:right;flex-shrink:0}
+
+@media(max-width:700px){.sg4,.sg6{grid-template-columns:repeat(2,1fr)}.issues{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>CynLr HubSpot — Full Data Report</h1>
+<p class="sub">Portal 243444910 &nbsp;·&nbsp; Live pull May 2026 &nbsp;·&nbsp; Contacts · Companies · Deals · Associations · Quality</p>
+
+<!-- HEALTH SCORE -->
+<div class="health">
+  <div class="health-score" style="color:#f87171">28<span style="font-size:36px;color:#334155">/100</span></div>
+  <div class="health-label">Overall data health score</div>
+  <div class="health-bar"><div class="health-fill"></div></div>
+  <div style="font-size:11px;color:#475569;margin-top:8px">Critical issues on all 3 objects · 0 cynlr_* properties · 24/24 deals missing amount</div>
+</div>
+
+<!-- TOP STATS -->
+<div class="stat-grid sg6" style="margin-bottom:12px">
+  <div class="stat info"><div class="stat-n">2,047</div><div class="stat-l">Total Contacts</div><div class="stat-sub">live records</div></div>
+  <div class="stat info"><div class="stat-n">1,175</div><div class="stat-l">Total Companies</div><div class="stat-sub">live records</div></div>
+  <div class="stat info"><div class="stat-n">24</div><div class="stat-l">Total Deals</div><div class="stat-sub">2 pipelines</div></div>
+  <div class="stat danger"><div class="stat-n">0</div><div class="stat-l">cynlr_* Props</div><div class="stat-sub">need 21</div></div>
+  <div class="stat danger"><div class="stat-n">0</div><div class="stat-l">Deal Amounts</div><div class="stat-sub">all blank</div></div>
+  <div class="stat warn"><div class="stat-n">13</div><div class="stat-l">HS Owners</div><div class="stat-sub">across team</div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ DEALS ═══ -->
+<div class="section">
+<h2>💼 &nbsp; Deals — 24 records</h2>
+
+<!-- pipeline visual -->
+<h3>Stage Distribution</h3>
+<div class="pipeline" style="background:#111827;border:1.5px solid #1e293b;border-radius:11px;margin-bottom:20px">
+  <div class="pipe-stage"><div class="pipe-n ok">2</div><div class="pipe-label">Initial Contact Made</div><div class="pipe-deals">JLR · TVS</div></div>
+  <div class="pipe-stage"><div class="pipe-n" style="color:#475569">0</div><div class="pipe-label">Presentation Completed</div></div>
+  <div class="pipe-stage"><div class="pipe-n warn">3</div><div class="pipe-label">App Note Requested</div><div class="pipe-deals">B Braun · JLR · Ford</div></div>
+  <div class="pipe-stage"><div class="pipe-n warn">1</div><div class="pipe-label">App Note Received</div><div class="pipe-deals">BMW</div></div>
+  <div class="pipe-stage"><div class="pipe-n warn">5</div><div class="pipe-label">Proposal in Drafting</div><div class="pipe-deals">Mercedes×2 · Kerrigan · Hyundai · Tech Mahindra</div></div>
+  <div class="pipe-stage"><div class="pipe-n" style="color:#fb923c">6</div><div class="pipe-label">Proposal Submitted</div><div class="pipe-deals">Mercedes · TVS · BMW · Schneider×2 · TCS</div></div>
+  <div class="pipe-stage"><div class="pipe-n" style="color:#f59e0b">3</div><div class="pipe-label">Negotiation</div><div class="pipe-deals">Audi 2 · B Braun · Jaybel</div></div>
+  <div class="pipe-stage"><div class="pipe-n" style="color:#34d399">4</div><div class="pipe-label">Closed Won</div><div class="pipe-deals">AMAT×2 · Audi 1 · LAM Research</div></div>
+</div>
+
+<!-- all deals table -->
+<h3>All 24 Deals — Full Detail</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+  <tr><th>#</th><th>Deal Name</th><th>Batch</th><th>Stage</th><th>Contact</th><th>Email</th><th>Company Linked</th><th>Owner</th><th>Amount</th><th>Issues</th></tr>
+  <tr><td>1</td><td><b>AMAT</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-ok">Closed Won</span></td><td>Kenny Nguyen · Operations Lead</td><td class="mono">kenny_k_nguyen@amat.com</td><td><span class="pill p-warn">blank name record</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr><td>2</td><td><b>BMW</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-warn">App Note Received</span></td><td>Nikita Aleshin · Innovation Automation PM</td><td class="mono">nikita.aleshin@bmw.de</td><td><span class="pill p-danger">not linked</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr><td>3</td><td><b>Mercedes</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-purple">Proposal Submitted</span></td><td>Kishore Kumar · Program Manager</td><td class="mono">kishore.k.kumar@mercedes-benz.com</td><td><span class="pill p-danger">not linked</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">3 Mercedes deals</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr><td>4</td><td><b>B Braun</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-warn">App Note Requested</span></td><td>Alexander Katzung · Investment &amp; Innovation</td><td class="mono">alexander.katzung@bbraun.com</td><td><span class="pill p-danger">not linked</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr><td>5</td><td><b>TVS</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-purple">Proposal Submitted</span></td><td>Anand (no surname/title)</td><td class="mono">anand@theyellow.network</td><td><span class="pill p-danger">not linked</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate</span> <span class="pill p-danger">wrong email domain</span></td></tr>
+  <tr><td>6</td><td><b>JLR</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-warn">App Note Requested</span></td><td>contact unnamed (kvarughe)</td><td class="mono">kvarughe@jaguarlandrover.com</td><td><span class="pill p-danger">not linked</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate</span> <span class="pill p-danger">no contact name</span></td></tr>
+  <tr><td>7</td><td><b>Ford</b></td><td><span class="pill p-info">Jan</span></td><td><span class="pill p-warn">App Note Requested</span></td><td>Omar Al-Naggar · Robotics Product Lead</td><td class="mono">oalnagga@ford.com</td><td><span class="pill p-ok">Ford ✓</span></td><td>Perry Deu</td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>8</td><td><b>Audi 1</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-ok">Closed Won</span></td><td>Christoph Schneider</td><td class="mono">christoph.schneider@audi.de</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">same co as Audi 2</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>9</td><td><b>AMAT</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-ok">Closed Won</span></td><td>Kenny Nguyen · Operations Lead</td><td class="mono">kenny_k_nguyen@amat.com</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">exact duplicate of Jan AMAT</span></td></tr>
+  <tr style="background:#0a1000"><td>10</td><td><b>LAM Research</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-ok">Closed Won</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no contact, no company, no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>11</td><td><b>Audi 2</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Negotiation</span></td><td>Simon Fischer</td><td class="mono">simon.fischer@audi.de</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">same co as Audi 1</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>12</td><td><b>B Braun</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Negotiation</span></td><td>Jochen Krause</td><td class="mono">jochen.krause@bbraun.com</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate of Jan B Braun</span> <span class="pill p-danger">no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>13</td><td><b>Jaybel</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Negotiation</span></td><td>Viral Dani</td><td class="mono">viral@jaybel.com.au</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no amount, no company</span></td></tr>
+  <tr style="background:#0a1000"><td>14</td><td><b>BMW</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-purple">Proposal Submitted</span></td><td>Nikita Aleshin · Innovation Automation PM</td><td class="mono">nikita.aleshin@bmw.de</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">exact duplicate of Jan BMW</span></td></tr>
+  <tr style="background:#0a1000"><td>15</td><td><b>Schneider 1</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-purple">Proposal Submitted</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no contact, no company, no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>16</td><td><b>Schneider 2</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-purple">Proposal Submitted</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">intentional split (use cases)</span> <span class="pill p-danger">no contact</span></td></tr>
+  <tr style="background:#0a1000"><td>17</td><td><b>Mercedes 2</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Proposal in Drafting</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">3rd Mercedes deal</span> <span class="pill p-danger">no contact</span></td></tr>
+  <tr style="background:#0a1000"><td>18</td><td><b>Kerrigan</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Proposal in Drafting</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no contact, no company, no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>19</td><td><b>Mercedes 1</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Proposal in Drafting</span></td><td>Kishore Kumar · Program Manager</td><td class="mono">kishore.k.kumar@mercedes-benz.com</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">same contact as Jan Mercedes</span></td></tr>
+  <tr style="background:#0a1000"><td>20</td><td><b>JLR</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-ok">Initial Contact Made</span></td><td>unnamed (kvarughe)</td><td class="mono">kvarughe@jaguarlandrover.com</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">same contact, earlier stage than Jan JLR</span></td></tr>
+  <tr style="background:#0a1000"><td>21</td><td><b>Hyundai</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Proposal in Drafting</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no contact, no company, no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>22</td><td><b>TVS</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-ok">Initial Contact Made</span></td><td><span class="pill p-danger">none</span></td><td>—</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-warn">duplicate</span> <span class="pill p-danger">no contact, no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>23</td><td><b>TCS</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-purple">Proposal Submitted</span></td><td>Venkat Raju</td><td class="mono">venkat.raju@tcs.com</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no company linked, no amount</span></td></tr>
+  <tr style="background:#0a1000"><td>24</td><td><b>Tech Mahindra</b></td><td><span class="pill p-purple">Apr</span></td><td><span class="pill p-warn">Proposal in Drafting</span></td><td>Vanathy Senthilnathan</td><td class="mono">vanathy.senthilnathan@techmahindra.com</td><td><span class="pill p-danger">not linked</span></td><td><span class="pill p-danger">no owner</span></td><td><span class="pill p-danger">—</span></td><td><span class="pill p-danger">no company linked, no amount</span></td></tr>
+</table>
+</div>
+
+<!-- duplicate deals -->
+<h3>Deal Duplicates — Jan vs Apr Batch</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+  <tr><th>Company</th><th>Jan 2026 Deal</th><th>Jan Stage</th><th>Apr 2026 Deal(s)</th><th>Apr Stage</th><th>Same Contact?</th><th>Verdict</th></tr>
+  <tr><td><b>AMAT</b></td><td class="mono">ID:256863983308</td><td><span class="pill p-ok">Closed Won</span></td><td class="mono">ID:319265674977</td><td><span class="pill p-ok">Closed Won</span></td><td><span class="pill p-warn">✓ same (Kenny Nguyen)</span></td><td><span class="pill p-danger">True duplicate — merge or close one</span></td></tr>
+  <tr><td><b>BMW</b></td><td class="mono">ID:257643129542</td><td><span class="pill p-warn">App Note Received</span></td><td class="mono">ID:319265674981</td><td><span class="pill p-purple">Proposal Submitted</span></td><td><span class="pill p-warn">✓ same (Nikita Aleshin)</span></td><td><span class="pill p-danger">True duplicate — Apr is further, close Jan</span></td></tr>
+  <tr><td><b>Mercedes</b></td><td class="mono">ID:257089791692</td><td><span class="pill p-purple">Proposal Submitted</span></td><td>ID:319243877059 + ID:319249274608</td><td><span class="pill p-warn">Proposal Drafting ×2</span></td><td><span class="pill p-warn">Mercedes 1 = same (Kishore Kumar)</span></td><td><span class="pill p-warn">Possibly 2 use cases — needs clarification</span></td></tr>
+  <tr><td><b>B Braun</b></td><td class="mono">ID:256655434430</td><td><span class="pill p-warn">App Note Requested</span></td><td class="mono">ID:319238477531</td><td><span class="pill p-warn">Negotiation</span></td><td><span class="pill p-info">✗ different contacts</span></td><td><span class="pill p-warn">Different contacts — possibly new opp</span></td></tr>
+  <tr><td><b>TVS</b></td><td class="mono">ID:256648200896</td><td><span class="pill p-purple">Proposal Submitted</span></td><td class="mono">ID:319219195582</td><td><span class="pill p-ok">Initial Contact Made</span></td><td><span class="pill p-danger">Apr has no contact</span></td><td><span class="pill p-danger">Apr regresses to earlier stage — likely stale dup</span></td></tr>
+  <tr><td><b>JLR</b></td><td class="mono">ID:256654713552</td><td><span class="pill p-warn">App Note Requested</span></td><td class="mono">ID:319219195581</td><td><span class="pill p-ok">Initial Contact Made</span></td><td><span class="pill p-warn">✓ same (kvarughe)</span></td><td><span class="pill p-danger">Apr regresses — likely stale dup, close Apr</span></td></tr>
+  <tr><td><b>Audi</b></td><td colspan="2" style="color:#475569">— not in Jan batch</td><td>ID:319297867453 (Closed) + ID:319278235362 (Nego)</td><td><span class="pill p-warn">Different stages</span></td><td><span class="pill p-info">different contacts</span></td><td><span class="pill p-warn">Likely 2 separate projects (Audi 1/2)</span></td></tr>
+  <tr><td><b>Schneider</b></td><td colspan="2" style="color:#475569">— not in Jan batch</td><td>ID:319219195580 + ID:319238477535</td><td><span class="pill p-purple">Proposal Submitted ×2</span></td><td><span class="pill p-danger">both have no contacts</span></td><td><span class="pill p-info">Intentional split — different use cases</span></td></tr>
+</table>
+</div>
+
+<!-- owners -->
+<h3>Deal Ownership Split</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+  <tr><th>Owner</th><th>Deals</th><th>Batch</th><th>Note</th></tr>
+  <tr><td><b>Perry Deu</b> <span class="mono">perry.deu@cynlr.com</span></td><td>7</td><td><span class="pill p-info">Jan only</span></td><td>All Jan deals assigned to Perry — is this correct?</td></tr>
+  <tr><td><span class="pill p-danger">No Owner</span></td><td>17</td><td><span class="pill p-purple">Apr only</span></td><td>All 17 Apr deals were created without an owner assigned</td></tr>
+  <tr><td><b>Vatsal Raj</b> <span class="mono">vatsal.raj@cynlr.com</span></td><td>0</td><td>—</td><td>Not assigned to any deals despite being primary sales contact</td></tr>
+  <tr><td><b>Nikhil Ramaswamy</b></td><td>0</td><td>—</td><td>Not assigned</td></tr>
+</table>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ COMPANIES ═══ -->
+<div class="section">
+<h2>🏢 &nbsp; Companies — 1,175 records</h2>
+
+<div class="stat-grid sg4" style="margin-bottom:20px">
+  <div class="stat ok"><div class="stat-n">960</div><div class="stat-l">Named companies</div><div class="stat-sub">82% of total</div></div>
+  <div class="stat danger"><div class="stat-n">215</div><div class="stat-l">Blank name</div><div class="stat-sub">18% — no name set</div></div>
+  <div class="stat danger"><div class="stat-n">2</div><div class="stat-l">With deals linked</div><div class="stat-sub">only Ford + AMAT(blank)</div></div>
+  <div class="stat warn"><div class="stat-n">13</div><div class="stat-l">Duplicate name groups</div><div class="stat-sub">same name, diff domain</div></div>
+</div>
+
+<h3>Data Completeness (of 960 named)</h3>
+<div style="background:#111827;border:1.5px solid #1e293b;border-radius:11px;padding:16px;margin-bottom:20px">
+  <div class="bar-row"><div class="bar-label">Has domain</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:100%"></div></div><div class="bar-val ok">100%</div></div>
+  <div class="bar-row"><div class="bar-label">Has name</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:82%"></div></div><div class="bar-val ok">82%</div></div>
+  <div class="bar-row"><div class="bar-label">Has country</div><div class="bar-track"><div class="bar-fill" style="background:#f59e0b;width:17%"></div></div><div class="bar-val warn">17%</div></div>
+  <div class="bar-row"><div class="bar-label">Has industry</div><div class="bar-track"><div class="bar-fill" style="background:#f59e0b;width:17%"></div></div><div class="bar-val warn">17%</div></div>
+  <div class="bar-row"><div class="bar-label">Has deal linked</div><div class="bar-track"><div class="bar-fill" style="background:#ef4444;width:0.2%"></div></div><div class="bar-val danger">0.2%</div></div>
+</div>
+
+<h3>Duplicate Companies — Same Name, Different Domains</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+  <tr><th>Company Name</th><th>Count</th><th>Domains</th><th>Action</th></tr>
+  <tr><td><b>Edmund Optics</b></td><td><span class="pill p-danger">3×</span></td><td class="mono">edmundoptics.com · edmundoptics.de · edmundoptics.in</td><td><span class="pill p-warn">merge → keep .com, alias others</span></td></tr>
+  <tr><td><b>Schneider Electric</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">se.com · schneider-electric.com</td><td><span class="pill p-warn">merge → keep se.com</span></td></tr>
+  <tr><td><b>Continental</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">continental.com · continental-corporation.com</td><td><span class="pill p-warn">merge → keep continental.com</span></td></tr>
+  <tr><td><b>Capgemini</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">capgemini.com · <b style="color:#f87171">capgmini.com</b></td><td><span class="pill p-danger">typo domain — delete capgmini record</span></td></tr>
+  <tr><td><b>L&amp;T Technology Services</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">ltts.com · lnttechservices.com</td><td><span class="pill p-warn">merge → keep ltts.com</span></td></tr>
+  <tr><td><b>Velodyne Lidar</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">velodynelidar.com · velodyne.com</td><td><span class="pill p-info">rebrand — merge, keep velodyne.com</span></td></tr>
+  <tr><td><b>PwC</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">pwc.com · in.pwc.com</td><td><span class="pill p-warn">India subsidiary — associate under parent</span></td></tr>
+  <tr><td><b>IGUS</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">igus.net · igus.in</td><td><span class="pill p-warn">India subsidiary — associate under parent</span></td></tr>
+  <tr><td><b>UST</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">ust.com · ust.co</td><td><span class="pill p-warn">same company — merge, keep ust.com</span></td></tr>
+  <tr><td><b>Dickinson Wright</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">dickinson-wright.com · dickinsonwright.com</td><td><span class="pill p-warn">same company — merge</span></td></tr>
+  <tr><td><b>NASSCOM</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">nasscom.in · mail.nasscom.in</td><td><span class="pill p-info">mail subdomain auto-created — delete mail. record</span></td></tr>
+  <tr><td><b>Amrita Vishwa Vidyapeetham</b></td><td><span class="pill p-warn">2×</span></td><td class="mono">amrita.edu · blr.amrita.edu</td><td><span class="pill p-info">campus subdomain — associate under parent</span></td></tr>
+</table>
+</div>
+
+<h3>Industry Breakdown (960 named companies)</h3>
+<div style="background:#111827;border:1.5px solid #1e293b;border-radius:11px;padding:16px;margin-bottom:20px">
+  <div class="bar-row"><div class="bar-label" style="color:#475569">No industry set</div><div class="bar-track"><div class="bar-fill" style="background:#334155;width:83%"></div></div><div class="bar-val" style="color:#475569">798 (83%)</div></div>
+  <div class="bar-row"><div class="bar-label">Computer Software</div><div class="bar-track"><div class="bar-fill" style="background:#6366f1;width:2.7%"></div></div><div class="bar-val info">26</div></div>
+  <div class="bar-row"><div class="bar-label">Machinery</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:1.7%"></div></div><div class="bar-val ok">16</div></div>
+  <div class="bar-row"><div class="bar-label">Electrical/Electronic</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:1.5%"></div></div><div class="bar-val ok">14</div></div>
+  <div class="bar-row"><div class="bar-label">Industrial Automation</div><div class="bar-track"><div class="bar-fill" style="background:#34d399;width:1.0%"></div></div><div class="bar-val ok">10</div></div>
+  <div class="bar-row"><div class="bar-label">Automotive</div><div class="bar-track"><div class="bar-fill" style="background:#fbbf24;width:0.7%"></div></div><div class="bar-val warn">7</div></div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CONTACTS ═══ -->
+<div class="section">
+<h2>👤 &nbsp; Contacts — 2,047 records</h2>
+
+<div class="stat-grid sg4" style="margin-bottom:20px">
+  <div class="stat ok"><div class="stat-n">0</div><div class="stat-l">Duplicate emails</div><div class="stat-sub">clean ✓</div></div>
+  <div class="stat danger"><div class="stat-n">223</div><div class="stat-l">No name</div><div class="stat-sub">11% of contacts</div></div>
+  <div class="stat danger"><div class="stat-n">1,292</div><div class="stat-l">No company</div><div class="stat-sub">63% unattributed</div></div>
+  <div class="stat warn"><div class="stat-n">1,164</div><div class="stat-l">No job title</div><div class="stat-sub">57% missing</div></div>
+</div>
+
+<h3>Data Completeness (2,047 contacts)</h3>
+<div style="background:#111827;border:1.5px solid #1e293b;border-radius:11px;padding:16px;margin-bottom:20px">
+  <div class="bar-row"><div class="bar-label">Has email</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:98.8%"></div></div><div class="bar-val ok">98.8%</div></div>
+  <div class="bar-row"><div class="bar-label">Has name</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:89%"></div></div><div class="bar-val ok">89%</div></div>
+  <div class="bar-row"><div class="bar-label">Has job title</div><div class="bar-track"><div class="bar-fill" style="background:#f59e0b;width:43%"></div></div><div class="bar-val warn">43%</div></div>
+  <div class="bar-row"><div class="bar-label">Has company</div><div class="bar-track"><div class="bar-fill" style="background:#ef4444;width:37%"></div></div><div class="bar-val danger">37%</div></div>
+  <div class="bar-row"><div class="bar-label">Lead status set</div><div class="bar-track"><div class="bar-fill" style="background:#ef4444;width:0.6%"></div></div><div class="bar-val danger">0.6%</div></div>
+  <div class="bar-row"><div class="bar-label">Is opportunity+</div><div class="bar-track"><div class="bar-fill" style="background:#ef4444;width:0.7%"></div></div><div class="bar-val danger">0.7%</div></div>
+</div>
+
+<h3>Lifecycle Stage Breakdown</h3>
+<div style="background:#111827;border:1.5px solid #1e293b;border-radius:11px;padding:16px;margin-bottom:20px">
+  <div class="bar-row"><div class="bar-label">lead</div><div class="bar-track"><div class="bar-fill" style="background:#334155;width:99.3%"></div></div><div class="bar-val" style="color:#475569">2,032</div></div>
+  <div class="bar-row"><div class="bar-label">opportunity</div><div class="bar-track"><div class="bar-fill" style="background:#fbbf24;width:0.6%"></div></div><div class="bar-val warn">13</div></div>
+  <div class="bar-row"><div class="bar-label">customer</div><div class="bar-track"><div class="bar-fill" style="background:#10b981;width:0.1%"></div></div><div class="bar-val ok">2</div></div>
+</div>
+
+<h3>Active Deal Contacts — Full Detail</h3>
+<div class="tbl-wrap">
+<table class="tbl">
+  <tr><th>Deal</th><th>Contact Name</th><th>Title</th><th>Email</th><th>Notes</th></tr>
+  <tr><td>AMAT (×2)</td><td>Kenny Nguyen</td><td>Operations Lead</td><td class="mono">kenny_k_nguyen@amat.com</td><td><span class="pill p-warn">linked to both Jan + Apr AMAT deals</span></td></tr>
+  <tr><td>BMW (×2)</td><td>Nikita Aleshin</td><td>Innovation Automation Program Manager</td><td class="mono">nikita.aleshin@bmw.de</td><td><span class="pill p-warn">linked to both Jan + Apr BMW deals</span></td></tr>
+  <tr><td>Mercedes (Jan + Apr 1)</td><td>Kishore Kumar</td><td>Program Manager</td><td class="mono">kishore.k.kumar@mercedes-benz.com</td><td><span class="pill p-warn">linked to Jan + Mercedes 1 Apr</span></td></tr>
+  <tr><td>B Braun (Jan)</td><td>Alexander Katzung</td><td>Investment &amp; Innovation</td><td class="mono">alexander.katzung@bbraun.com</td><td><span class="pill p-ok">unique to Jan deal</span></td></tr>
+  <tr><td>B Braun (Apr)</td><td>Jochen Krause</td><td>—</td><td class="mono">jochen.krause@bbraun.com</td><td><span class="pill p-info">different person — new opp?</span></td></tr>
+  <tr><td>JLR (×2)</td><td><span class="pill p-danger">unnamed</span></td><td>—</td><td class="mono">kvarughe@jaguarlandrover.com</td><td><span class="pill p-danger">no name · linked to both JLR deals</span></td></tr>
+  <tr><td>TVS (Jan)</td><td>Anand</td><td>—</td><td class="mono">anand@theyellow.network</td><td><span class="pill p-danger">email domain ≠ TVS — wrong contact?</span></td></tr>
+  <tr><td>Ford</td><td>Omar Al-Naggar</td><td>Robotics Product Lead</td><td class="mono">oalnagga@ford.com</td><td><span class="pill p-ok">clean</span></td></tr>
+  <tr><td>Audi 1</td><td>Christoph Schneider</td><td>—</td><td class="mono">christoph.schneider@audi.de</td><td><span class="pill p-info">no title enriched</span></td></tr>
+  <tr><td>Audi 2</td><td>Simon Fischer</td><td>—</td><td class="mono">simon.fischer@audi.de</td><td><span class="pill p-info">different person from Audi 1</span></td></tr>
+  <tr><td>Jaybel</td><td>Viral Dani</td><td>—</td><td class="mono">viral@jaybel.com.au</td><td><span class="pill p-info">no title enriched</span></td></tr>
+  <tr><td>TCS</td><td>Venkat Raju</td><td>—</td><td class="mono">venkat.raju@tcs.com</td><td><span class="pill p-info">no title enriched</span></td></tr>
+  <tr><td>Tech Mahindra</td><td>Vanathy Senthilnathan</td><td>—</td><td class="mono">vanathy.senthilnathan@techmahindra.com</td><td><span class="pill p-info">no title enriched</span></td></tr>
+</table>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ OWNERS ═══ -->
+<div class="section">
+<h2>👥 &nbsp; HubSpot Owners — 13 users</h2>
+<div class="tbl-wrap">
+<table class="tbl">
+  <tr><th>Name</th><th>Email</th><th>Deals Owned</th><th>Note</th></tr>
+  <tr><td><b>Perry Deu</b></td><td class="mono">perry.deu@cynlr.com</td><td>7 (all Jan)</td><td><span class="pill p-warn">only Jan batch assigned to him — why?</span></td></tr>
+  <tr><td><b>Vatsal Raj</b></td><td class="mono">vatsal.raj@cynlr.com</td><td>0</td><td><span class="pill p-danger">0 deals — should own pipeline deals</span></td></tr>
+  <tr><td><b>Nikhil Ramaswamy</b></td><td class="mono">nikhil@cynlr.com</td><td>0</td><td><span class="pill p-info">reviewer role — no deals expected</span></td></tr>
+  <tr><td><b>Rajeev Krishnan</b></td><td class="mono">rajeev.krishnan@cynlr.com</td><td>0</td><td><span class="pill p-info">should possibly co-own some deals</span></td></tr>
+  <tr><td>Sandeep B</td><td class="mono">sandeep.b@cynlr.com</td><td>0</td><td></td></tr>
+  <tr><td>CynLr Marketing</td><td class="mono">marketing@cynlr.com</td><td>0</td><td><span class="pill p-info">shared inbox account</span></td></tr>
+  <tr><td>Jithin J</td><td class="mono">jithin.j@cynlr.com</td><td>0</td><td></td></tr>
+  <tr><td>Tarun Shetty</td><td class="mono">tarun.shetty@cynlr.com</td><td>0</td><td></td></tr>
+  <tr><td>Prashant Somani</td><td class="mono">prashant.somani@cynlr.com</td><td>0</td><td></td></tr>
+  <tr><td>KAIF b</td><td class="mono">kaifali.bhojani@cynlr.com</td><td>0</td><td></td></tr>
+  <tr><td>Pranav Nair</td><td class="mono">pranav.nair@cynlr.com</td><td>0</td><td></td></tr>
+  <tr><td><span class="pill p-gray">unnamed</span></td><td class="mono">ajayprabhakar.kavungal@cynlr.com</td><td>0</td><td><span class="pill p-warn">no display name set</span></td></tr>
+  <tr><td><span class="pill p-gray">unnamed</span></td><td class="mono">sandhya.v@cynlr.com</td><td>0</td><td><span class="pill p-warn">no display name set</span></td></tr>
+</table>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PRIORITY ISSUES ═══ -->
+<div class="section">
+<h2>🚨 &nbsp; Prioritised Issues — Fix Order</h2>
+<div class="issues">
+  <div class="issue sev-critical">
+    <div class="issue-sev">🔴 Critical</div>
+    <div class="issue-title">24/24 deals have no amount</div>
+    <div class="issue-body">Every single deal in the pipeline has a blank amount/value field. Pipeline reporting, revenue forecasting, and weighted pipeline calculations are all zero. This is the single highest-priority fix.</div>
+  </div>
+  <div class="issue sev-critical">
+    <div class="issue-sev">🔴 Critical</div>
+    <div class="issue-title">17 Apr deals have no owner</div>
+    <div class="issue-body">All 17 deals created in April have no HubSpot owner assigned. Deal notifications, task routing, and reporting by rep are broken for 71% of the pipeline. Vatsal and Rajeev should own these.</div>
+  </div>
+  <div class="issue sev-critical">
+    <div class="issue-sev">🔴 Critical</div>
+    <div class="issue-title">22/24 deals not linked to a company</div>
+    <div class="issue-body">Only Ford and one AMAT deal have a company record associated. All others are floating deals. Company-level reporting, contact associations, and the companies object are effectively unused for the pipeline.</div>
+  </div>
+  <div class="issue sev-critical">
+    <div class="issue-sev">🔴 Critical</div>
+    <div class="issue-title">True duplicates: AMAT + BMW + JLR + TVS</div>
+    <div class="issue-body">4 companies appear in both Jan and Apr batches with the same contact and same or regressed stage. These are confirmed duplicate deals that will inflate pipeline counts and confuse reporting. Close or merge the stale versions.</div>
+  </div>
+  <div class="issue sev-high">
+    <div class="issue-sev">🟠 High</div>
+    <div class="issue-title">215 companies with no name</div>
+    <div class="issue-body">18% of the companies object has no name field. These were auto-created from email domains during contact import. HubSpot's built-in company enrichment (Insights) can backfill names from domain automatically — enable it or run a manual enrichment pass.</div>
+  </div>
+  <div class="issue sev-high">
+    <div class="issue-sev">🟠 High</div>
+    <div class="issue-title">63% of contacts have no company</div>
+    <div class="issue-body">1,292 contacts have no company association. This means account-based views, company rollups, and deal associations are all broken for the majority of the database. The email domain can be used to auto-associate via HubSpot's company matching.</div>
+  </div>
+  <div class="issue sev-high">
+    <div class="issue-sev">🟠 High</div>
+    <div class="issue-title">0 cynlr_* custom properties exist</div>
+    <div class="issue-body">The entire v3 schema's CynLr property layer (poc_status, outreach_status, icp_fit, entry_source, etc.) doesn't exist in HubSpot yet. 21 properties across 5 groups need to be created before the local CRM can sync meaningfully to HS.</div>
+  </div>
+  <div class="issue sev-high">
+    <div class="issue-sev">🟠 High</div>
+    <div class="issue-title">99% of contacts stuck at "lead" lifecycle</div>
+    <div class="issue-body">2,032 of 2,047 contacts are lifecycle stage "lead" with no lead status set. The lifecycle progression (lead → MQL → SQL → opportunity) is entirely unused. This prevents any funnel analytics or automated sequences from firing.</div>
+  </div>
+  <div class="issue sev-med">
+    <div class="issue-sev">🟡 Medium</div>
+    <div class="issue-title">8 deals missing contacts</div>
+    <div class="issue-body">LAM Research, Schneider 1, Schneider 2, Mercedes 2, Kerrigan, Hyundai, TVS (Apr), and missing others have no contact linked. Deal-based email tasks and contact sequences can't run without an associated contact.</div>
+  </div>
+  <div class="issue sev-med">
+    <div class="issue-sev">🟡 Medium</div>
+    <div class="issue-title">12 duplicate company name groups</div>
+    <div class="issue-body">13 company names appear 2–3× with different domains (regional offices, rebrands, typos). The most urgent: Capgemini has a typo domain (capgmini.com) creating a ghost record. Schneider Electric has 2 records despite being an active deal company.</div>
+  </div>
+  <div class="issue sev-med">
+    <div class="issue-sev">🟡 Medium</div>
+    <div class="issue-title">TVS contact email doesn't match TVS domain</div>
+    <div class="issue-body">The Jan TVS deal's contact (Anand) has email anand@theyellow.network — not a TVS email address. This may be a wrong contact association or a consultant/reseller. Needs verification before outreach.</div>
+  </div>
+  <div class="issue sev-med">
+    <div class="issue-sev">🟡 Medium</div>
+    <div class="issue-title">JLR contact has no name</div>
+    <div class="issue-body">The contact linked to both JLR deals (kvarughe@jaguarlandrover.com) has no first or last name set. Personalized emails and LinkedIn lookups will fail until this is enriched.</div>
+  </div>
+  <div class="issue sev-low">
+    <div class="issue-sev">🔵 Low</div>
+    <div class="issue-title">17 deprecated deal properties still live</div>
+    <div class="issue-body">champion, economic_buyer, pain_point_business_need, blockers_risks, action_item, decision_criteria, competitors, discount, potential_replication — all removed in v3 schema but still visible in HubSpot. Should be hidden from deal views to reduce noise.</div>
+  </div>
+  <div class="issue sev-low">
+    <div class="issue-sev">🔵 Low</div>
+    <div class="issue-title">2 unnamed HubSpot users</div>
+    <div class="issue-body">ajayprabhakar.kavungal@cynlr.com and sandhya.v@cynlr.com have no display name set in HubSpot. Minor but shows in owner dropdowns and task assignments as blank.</div>
+  </div>
+</div>
+</div>
+
+</div><!-- /wrap -->
+
+<div style="text-align:center;margin-top:36px;font-size:11px;color:#1e293b">
+  Portal 243444910 · Live pull May 2026 · cynlr-crm-review
+</div>
+</body>
+</html>
