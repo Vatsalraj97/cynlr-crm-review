@@ -123,6 +123,7 @@ h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:
   <div class="tab active" onclick="show('contacts')">Contacts / Persons</div>
   <div class="tab" onclick="show('companies')">Companies</div>
   <div class="tab" onclick="show('deals')">Deals</div>
+  <div class="tab" onclick="show('campaigns')">Campaigns</div>
   <div class="tab" onclick="show('crm-only')">CRM-Only Entities</div>
   <div class="tab" onclick="show('entity-map')">Full Entity Map</div>
 </div>
@@ -356,110 +357,240 @@ h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:
 
 <!-- ═══════════════════════════ DEALS ═══════════════════════════ -->
 <div id="deals" class="panel">
+
+<!-- context banner -->
+<div style="max-width:1300px;margin:0 auto 18px;padding:12px 18px;background:#0a1020;border:1px solid #1e3a5f;border-radius:10px;display:flex;align-items:flex-start;gap:12px">
+  <div style="font-size:18px;flex-shrink:0">&#128204;</div>
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:4px">DEALS START AFTER A MEETING IS BOOKED</div>
+    <div style="font-size:11px;color:#64748b;line-height:1.7">A deal is created in HubSpot the moment a meeting is confirmed. Everything before that — discovery, outreach, email exchanges to <em>get</em> the meeting — belongs to a Campaign. Deal stages represent the post-meeting lifecycle: requirements exchange, POC, proposal, negotiation, close. Campaigns and Deals are sequential, not parallel.</div>
+  </div>
+</div>
+
+<!-- lifecycle strip -->
+<div style="max-width:1300px;margin:0 auto 22px">
+  <div style="display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:4px">
+    <div style="flex-shrink:0;background:#1c1005;border:1px solid #451a03;border-radius:7px 0 0 7px;padding:10px 14px;text-align:center;min-width:130px">
+      <div style="font-size:9px;font-weight:700;color:#fb923c;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">CAMPAIGN</div>
+      <div style="font-size:10px;color:#64748b;line-height:1.6">Discovery<br>Outreach emails<br>Follow-ups<br>Email replies</div>
+      <div style="font-size:9px;color:#451a03;margin-top:6px;font-weight:700">LIVES IN LOCAL CRM</div>
+    </div>
+    <div style="flex-shrink:0;font-size:20px;color:#334155;padding:0 2px">&#8594;</div>
+    <div style="flex-shrink:0;background:#1a0f2e;border:1px solid #4c1d95;border-radius:0;padding:10px 14px;text-align:center;min-width:130px">
+      <div style="font-size:9px;font-weight:700;color:#a78bfa;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">TRIGGER</div>
+      <div style="font-size:13px;font-weight:800;color:#c4b5fd">Meeting<br>Booked</div>
+      <div style="font-size:9px;color:#4c1d95;margin-top:6px;font-weight:700">HANDOFF POINT</div>
+    </div>
+    <div style="flex-shrink:0;font-size:20px;color:#334155;padding:0 2px">&#8594;</div>
+    <div style="flex-shrink:0;background:#051c24;border:1px solid #164e63;border-radius:0;padding:10px 14px;text-align:center;min-width:130px">
+      <div style="font-size:9px;font-weight:700;color:#38bdf8;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">DEAL — Stage 1</div>
+      <div style="font-size:10px;color:#64748b;line-height:1.6">Initial Contact<br>Made</div>
+    </div>
+    <div style="flex-shrink:0;font-size:20px;color:#1e293b;padding:0 2px">&#8594;</div>
+    <div style="flex-shrink:0;background:#051c24;border:1px solid #164e63;border-radius:0;padding:10px 14px;text-align:center;min-width:130px">
+      <div style="font-size:9px;font-weight:700;color:#38bdf8;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">Stage 2–4</div>
+      <div style="font-size:10px;color:#64748b;line-height:1.6">Presentation<br>App Note<br>Requirements</div>
+    </div>
+    <div style="flex-shrink:0;font-size:20px;color:#1e293b;padding:0 2px">&#8594;</div>
+    <div style="flex-shrink:0;background:#051c24;border:1px solid #164e63;border-radius:0;padding:10px 14px;text-align:center;min-width:130px">
+      <div style="font-size:9px;font-weight:700;color:#38bdf8;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">Stage 5–6</div>
+      <div style="font-size:10px;color:#64748b;line-height:1.6">POC / Proposal<br>Drafting + Send</div>
+    </div>
+    <div style="flex-shrink:0;font-size:20px;color:#1e293b;padding:0 2px">&#8594;</div>
+    <div style="flex-shrink:0;background:#051c24;border:1px solid #14532d;border-radius:0 7px 7px 0;padding:10px 14px;text-align:center;min-width:130px">
+      <div style="font-size:9px;font-weight:700;color:#4ade80;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">Stage 7–10</div>
+      <div style="font-size:10px;color:#64748b;line-height:1.6">Negotiation<br>Closed Won<br>Billing</div>
+    </div>
+  </div>
+</div>
+
 <div class="grid">
 
   <div class="col-local">
-    <div class="col-head">Local CRM — deals</div>
+    <div class="col-head">Local CRM — deals table</div>
     <div class="col-body">
-      <div class="section-label">Core</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>title</strong></div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>stage</strong> — 10 stages with auto-transition log</div></div>
+      <div class="section-label">Starts when: meeting booked</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>title</strong> — company name + program</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>stage</strong> — 10 stages, trigger auto-logs every transition</div></div>
       <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>pipeline</strong></div></div>
       <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>company_id</strong> → companies FK</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>source_campaign_id</strong> → campaigns FK — which campaign generated the meeting</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Intel Fields</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>application_type</strong></div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>segment / geography</strong></div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>product_services</strong></div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>competitors</strong></div></div>
+      <div class="section-label">Requirements &amp; Technical</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>application_type</strong> — what they want CynLr for</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>product_services</strong> — which CynLr offering</div></div>
       <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>pain_point_business_need</strong></div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>lead_source</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>competitors</strong></div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Action Tracking</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item</strong></div></div>
+      <div class="section-label">POC Tracking</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item</strong> — current task (e.g. "send demo setup")</div></div>
       <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item_due_date</strong></div></div>
       <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>blockers_risks</strong></div></div>
       <div class="section-divider"></div>
-      <div class="section-label">People</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>champion</strong> — text</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>economic_buyer</strong></div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>deal_team</strong> — table with flexible role tags</div></div>
+      <div class="section-label">Commercial</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>amount</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>segment / geography</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>lead_source</strong> — cold_campaign / organic / referral / inbound</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Auto-logged</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>deal_stage_transitions</strong> — trigger on every stage UPDATE</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>activity_log</strong> — dedup_key prevents double-log</div></div>
+      <div class="section-label">People on the Deal</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>champion / economic_buyer</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>deal_team</strong> — CynLr-side, flexible role tags</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">HubSpot Bridge</div>
+      <div class="section-label">Auto-logged via trigger</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>deal_stage_transitions</strong> — full stage history, never manual</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">HS Bridge</div>
       <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_deal_id</strong></div></div>
-      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>sync_conflicts</strong> — conflict audit trail</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>sync_conflicts</strong> — field-level conflict log</div></div>
     </div>
   </div>
 
   <div class="col-hs-now">
     <div class="col-head">HubSpot Now — 24 deals</div>
     <div class="col-body">
-      <div class="section-label">Standard Pipeline</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealname</strong> — all 24 have it</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealstage</strong> — 8 custom stages mapped</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>pipeline</strong> — Deal Pipeline + Investments</div></div>
-      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>amount</strong> — <strong>0/24 filled</strong> <span class="field-tag tag-legacy">critical gap</span></div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hubspot_owner_id</strong> — 8/24 assigned (all Jan batch)</div></div>
+      <div class="section-label">What's there</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealname</strong> — all 24 filled</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealstage</strong> — pipeline stages set correctly</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>amount</strong> — <strong>0/24</strong> <span class="field-tag tag-legacy">critical</span></div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hubspot_owner_id</strong> — only 8/24 (Jan batch only)</div></div>
       <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>closedate</strong> — sparse</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Existing Custom Fields (dealinformation group)</div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>account_name</strong> — only Jan batch filled</div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>application_type / segment / geography</strong></div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>action_item / action_item_due_date</strong></div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>blockers_risks / champion / economic_buyer</strong></div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>competitors / pain_point_business_need</strong></div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>product_services / lead_source</strong></div></div>
+      <div class="section-label">Custom fields (dealinformation group)</div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>account_name</strong> — Jan batch only</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>application_type / segment / geography</strong> — exist, mostly empty</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>action_item / blockers_risks / champion / economic_buyer</strong> — exist, mostly empty</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>competitors / pain_point / product_services / lead_source</strong> — exist, mostly empty</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Associations</div>
-      <div class="stat-row"><span class="stat-label">Linked to company</span><span class="stat-val red">2 / 24</span></div>
-      <div class="stat-row"><span class="stat-label">Has contact</span><span class="stat-val orange">17 / 24</span></div>
+      <div class="section-label">What's missing entirely</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> No link to which campaign generated this deal</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> No POC-specific fields (technical_win, budget_confirmed)</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> 22/24 deals not linked to a company record</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> 7/24 have no contact associated</div>
       <div class="section-divider"></div>
-      <div class="section-label">Duplicate deals (5 pairs)</div>
-      <div class="stat-row"><span class="stat-label">AMAT (Jan Closed Won + Apr)</span><span class="stat-val red">×2</span></div>
-      <div class="stat-row"><span class="stat-label">BMW (Jan App Note + Apr)</span><span class="stat-val red">×2</span></div>
-      <div class="stat-row"><span class="stat-label">TVS (Jan Proposal + Apr)</span><span class="stat-val red">×2</span></div>
-      <div class="stat-row"><span class="stat-label">JLR (Jan App Note + Apr)</span><span class="stat-val red">×2</span></div>
-      <div class="stat-row"><span class="stat-label">B Braun (both active)</span><span class="stat-val orange">×2</span></div>
-      <div class="section-divider"></div>
-      <div class="section-label">Missing cynlr_* props</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_technical_win — missing</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_budget_confirmed — missing</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_owner — missing</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_tags — missing</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_action_due — missing</div>
+      <div class="section-label">Duplicate deals (5 name pairs)</div>
+      <div class="stat-row"><span class="stat-label">AMAT — Jan Closed Won vs Apr</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">BMW — Jan App Note vs Apr</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">TVS — Jan Proposal vs Apr</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">JLR — Jan App Note vs Apr</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">B Braun — both active, different stages</span><span class="stat-val orange">×2</span></div>
     </div>
   </div>
 
   <div class="col-hs-target">
     <div class="col-head">HubSpot Target</div>
     <div class="col-body">
-      <div class="section-label">Standard (keep &amp; fill)</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealname / dealstage / pipeline</strong></div></div>
-      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>amount</strong> — must fill all 24 deals</div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hubspot_owner_id</strong> — assign to 16 Apr deals</div></div>
-      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>closedate</strong> — set expected close for open deals</div></div>
+      <div class="section-label">Rule: deals created only post-meeting</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Campaign ends when meeting is booked</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Deal stage 1 = "Initial Contact Made" = first meeting happened</div>
       <div class="section-divider"></div>
-      <div class="section-label">Existing fields — already good</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>account_name, application_type, segment, geography</strong> — keep, populate for Apr batch</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item, blockers_risks, champion, economic_buyer</strong> — keep using as-is</div></div>
+      <div class="section-label">Standard — fill in gaps</div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>amount</strong> — add to all 24 existing deals</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hubspot_owner_id</strong> — assign all 16 Apr deals</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>closedate</strong> — expected close for all open deals</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Existing custom fields — keep &amp; populate</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>application_type, segment, geography</strong> — populate for Apr batch</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item, blockers, champion, economic_buyer</strong> — use actively</div></div>
       <div class="section-divider"></div>
       <div class="section-label">Group: CynLr Deal Intel <span class="field-tag tag-new">CREATE</span></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_source_campaign</strong> <span class="field-tag tag-new">new</span> — which campaign set up this meeting</div></div>
       <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_technical_win</strong> <span class="field-tag tag-new">new</span> — bool: POC passed</div></div>
       <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_budget_confirmed</strong> <span class="field-tag tag-new">new</span> — bool</div></div>
-      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_owner</strong> <span class="field-tag tag-new">new</span> — CynLr-side owner (not HS user)</div></div>
-      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_tags</strong> <span class="field-tag tag-new">new</span> — multi-select</div></div>
-      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_action_due</strong> <span class="field-tag tag-new">new</span> — date</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_owner</strong> <span class="field-tag tag-new">new</span> — CynLr team member on deal</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_action_due</strong> <span class="field-tag tag-new">new</span> — date for current action item</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Fix associations</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Link all 24 deals to company records</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Delete 4 confirmed dup deals (AMAT/BMW/TVS/JLR Apr)</div>
-      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Confirm B Braun dup — merge or keep both</div>
-      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Rename Mercedes ×3 by program name</div>
-      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Stage pipeline structure is solid — keep it</div>
+      <div class="section-label">Cleanup required</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Delete 4 dup deals — AMAT/BMW/TVS/JLR Apr versions</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Confirm B Braun — same deal or two separate programs?</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Link all 24 deals to company records</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Rename Mercedes 1/2/3 to reflect program name</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════ CAMPAIGNS ═══════════════════════════ -->
+<div id="campaigns" class="panel">
+
+<div style="max-width:1300px;margin:0 auto 18px;padding:12px 18px;background:#0a1020;border:1px solid #1e3a5f;border-radius:10px;display:flex;align-items:flex-start;gap:12px">
+  <div style="font-size:18px;flex-shrink:0">&#128231;</div>
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:4px">CAMPAIGNS EXIST TO BOOK ONE MEETING. THAT'S IT.</div>
+    <div style="font-size:11px;color:#64748b;line-height:1.7">A campaign is a targeted email outreach effort sent to a segmented list of contacts. Goal: get a meeting booked. Once the meeting is confirmed, the campaign's job is done and a Deal is created in HubSpot. All the email-back-and-forth in between — replies, follow-ups, re-scheduling — is campaign activity, not deal activity. Campaigns live entirely in the local CRM. HubSpot only receives a trace: the campaign name gets stamped on the resulting deal and contact.</div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <div class="col-local">
+    <div class="col-head">Local CRM — campaigns</div>
+    <div class="col-body">
+      <div class="section-label">Campaign Definition</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>name</strong> — e.g. "Semicon Q2 — Decision Makers"</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>objective</strong> — always: book intro meeting</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>template_id</strong> → message_templates FK</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>list_id</strong> → person_lists FK — which target segment</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>start_date / end_date</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>status</strong> — draft / active / paused / complete</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Per-contact send tracking (campaign_members)</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>send_status</strong> — queued / sent / replied / meeting_booked / suppressed</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>sent_at</strong> — when email was dispatched</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>replied_at</strong> — first reply timestamp</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>meeting_booked_at</strong> — handoff timestamp to deal</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>follow_up_count</strong> — number of follow-ups sent</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Compliance gates</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions check</strong> — email/domain blocked before queue</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong> — human approval before first send</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Handoff to Deal</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>When send_status = meeting_booked:</strong> create deal in HS, stamp cynlr_source_campaign on it</div></div>
+    </div>
+  </div>
+
+  <div class="col-hs-now">
+    <div class="col-head">HubSpot Now — no campaign concept</div>
+    <div class="col-body">
+      <div class="section-label">What HS has for "campaigns"</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> No outreach campaign object in HS</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> HS has "Campaigns" but it's a marketing attribution tool — tracks UTM sources, not SDR email sequences</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> HS has "Sequences" — automated email cadences, but fires from HS, not from local CRM</div>
+      <div class="section-divider"></div>
+      <div class="section-label">What's actually in HS from past outreach</div>
+      <div class="stat-row"><span class="stat-label">Contacts from Integration source</span><span class="stat-val blue">835</span></div>
+      <div class="stat-row"><span class="stat-label">Contacts from Mobile (iOS+Android)</span><span class="stat-val">898</span></div>
+      <div class="stat-row"><span class="stat-label">Contacts imported from lists</span><span class="stat-val">131</span></div>
+      <div class="field" style="margin-top:8px"><div class="field-dot dot-red"></div><div class="field-text">None of these have a campaign tag — no way to tell <strong>which campaign added them</strong> or <strong>what their send status was</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Current gap</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> 0 contacts have cynlr_batch_id or campaign origin stamped</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> No way to attribute which deal came from which campaign</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> No meeting-booked signal sent to HS when campaign converts</div>
+    </div>
+  </div>
+
+  <div class="col-hs-target">
+    <div class="col-head">HubSpot Target — what HS should receive</div>
+    <div class="col-body">
+      <div class="section-label">HS does NOT run campaigns — it receives traces</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Campaign logic, send queue, templates all stay in local CRM</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> HS Sequences not used — we control our own send timing</div>
+      <div class="section-divider"></div>
+      <div class="section-label">What gets pushed to HS when a contact enters a campaign</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>cynlr_entry_source</strong> — stamped on contact as "cold_campaign"</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>cynlr_batch_id</strong> — which campaign/batch added this contact</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>cynlr_outreach_status</strong> — updated as campaign progresses (not_started → in_progress → replied → meeting_set)</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">What gets pushed when meeting is booked</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>New Deal created in HS</strong> — with cynlr_source_campaign stamped</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>Contact lifecyclestage</strong> updated: lead → opportunity</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>cynlr_poc_status</strong> on contact updated: cold → warm</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Email activity trace</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>Each email sent</strong> → pushed as HS Engagement (type=EMAIL) for open/click tracking in HS timeline</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>Each reply received</strong> → update campaign_member.replied_at + HS contact note</div></div>
     </div>
   </div>
 
@@ -471,78 +602,74 @@ h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:
 <div class="grid">
 
   <div class="col-local">
-    <div class="col-head">Local CRM — unique tables</div>
+    <div class="col-head">Local CRM — infrastructure tables</div>
     <div class="col-body">
-      <div class="section-label">Discovery &amp; Outreach</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>discovery_batches</strong> — each AI scrape run with source URL, filters, status</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong> — per-contact review decision (approve/reject/skip) before outreach</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>person_lists</strong> — named target lists (e.g. "Semicon Q2")</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>person_list_members</strong> — junction: person → list</div></div>
+      <div class="section-label">Pre-campaign: discovery pipeline</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>discovery_batches</strong> — each AI scrape run: source URL, filters, date, status</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong> — human approve/reject/skip before any contact enters a campaign</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>person_lists</strong> + <strong>person_list_members</strong> — named target segments fed into campaigns</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Messaging &amp; Campaigns</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>message_templates</strong> — versioned outreach templates with tone + track tags</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaigns</strong> — named campaign with start/end, template FK, status</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaign_members</strong> — junction: person → campaign + send_status</div></div>
+      <div class="section-label">Campaign execution</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>message_templates</strong> — versioned email templates, tone tags, A/B variants</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaigns</strong> — the campaign object: name, objective, template, list, dates, status</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaign_members</strong> — per-contact: queued / sent / replied / meeting_booked / suppressed</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong> — compliance block list, checked before every queue entry</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Compliance</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong> — email/domain-level, reason, expiry. Checked pre-send.</div></div>
-      <div class="section-divider"></div>
-      <div class="section-label">Enrichment</div>
+      <div class="section-label">Infrastructure</div>
       <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>enrichment_jobs</strong> — queued enrichment with retry tracking, next_retry_at</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>activity_log</strong> — dedup_key unified log: email sent, reply, meeting booked, stage change</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Activity</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>activity_log</strong> — unified event log (email sent, stage change, review, call) with dedup_key</div></div>
-      <div class="section-divider"></div>
-      <div class="section-label">Sync</div>
-      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_sync_map</strong> — maps local_id → hs_id per object type</div></div>
-      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>sync_conflicts</strong> — field-level conflict log with local vs remote value</div></div>
+      <div class="section-label">HubSpot sync plumbing</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_sync_map</strong> — local_id → hs_id per object type</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>sync_conflicts</strong> — field-level conflict log (local value vs HS value)</div></div>
     </div>
   </div>
 
   <div class="col-hs-now">
-    <div class="col-head">HubSpot Now — equivalents</div>
+    <div class="col-head">HubSpot Now — what exists</div>
     <div class="col-body">
-      <div class="section-label">No equivalents for</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> discovery_batches — no concept in HS</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> contact_reviews — no pre-outreach review flow</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> person_lists — no named segmented lists (HS uses static/active lists differently)</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> message_templates — no template versioning</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> suppressions — no compliance suppression list</div>
-      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> enrichment_jobs — no retry queue concept</div>
+      <div class="section-label">No equivalent for</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> discovery_batches</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> contact_reviews — no pre-send human gate</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> message_templates — no versioned SDR templates</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> campaigns (SDR type) — HS "Campaigns" is marketing attribution, not this</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> suppressions — HS has unsubscribe, not a pre-send compliance list</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> enrichment_jobs — no retry queue</div>
       <div class="section-divider"></div>
       <div class="section-label">Partial equivalents</div>
-      <div class="gap-row gap-partial"><span class="gap-icon">~</span> <strong>campaigns</strong> — HS has "Campaigns" but for marketing emails, not SDR sequences</div>
-      <div class="gap-row gap-partial"><span class="gap-icon">~</span> <strong>activity_log</strong> — HS has Engagements (calls, emails, notes) but no dedup_key, no unified log</div>
-      <div class="gap-row gap-partial"><span class="gap-icon">~</span> <strong>Lists</strong> — HS has active/static lists but not the same as person_lists in local CRM</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> activity_log → HS Engagements (no dedup_key, no unified format, not queryable the same way)</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> person_lists → HS Lists (exist but unused, not linked to any campaign flow)</div>
       <div class="section-divider"></div>
-      <div class="section-label">HS-native things local CRM doesn't have</div>
-      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Email sequences (automated multi-step cadences)</div>
-      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Meeting scheduler (calendar booking links)</div>
-      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Email open/click tracking</div>
-      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Deal board visual Kanban</div>
-      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> hs_lead_status workflow automation</div>
+      <div class="section-label">HS-native things we should use</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Email open/click tracking on sent engagements</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Deal Kanban board for post-meeting pipeline</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Meeting booking links (embed in campaign emails)</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Workflow automation on deal stage change</div>
     </div>
   </div>
 
   <div class="col-hs-target">
-    <div class="col-head">Where these should live</div>
+    <div class="col-head">Where each thing lives — final answer</div>
     <div class="col-body">
-      <div class="section-label">Stay in local CRM only</div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>discovery_batches</strong> — AI scraping is local-only, no HS equivalent needed</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong> — pre-outreach review happens before anything goes to HS</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong> — local enforcement layer, checked before send queue</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>enrichment_jobs</strong> — retry queue is a local infra concern</div></div>
-      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>message_templates</strong> — template versioning lives locally</div></div>
+      <div class="section-label">Stays in local CRM — never goes to HS</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>discovery_batches</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>message_templates</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaigns + campaign_members</strong> — execution is local</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>enrichment_jobs</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>hs_sync_map + sync_conflicts</strong></div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Mirror to HubSpot</div>
-      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>campaigns</strong> — push campaign name + status to a HS custom deal property so deals show campaign origin</div></div>
-      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>activity_log sends</strong> — push email send events as HS Engagements (type=EMAIL) for open/click tracking</div></div>
-      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>person_lists</strong> — mirror to HS static lists for HS-side segmentation and reporting</div></div>
+      <div class="section-label">Pushed to HS as traces / events</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>Campaign sends</strong> → HS Engagements (email type) for timeline + open tracking</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>Meeting booked</strong> → create HS Deal + stamp cynlr_source_campaign</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>Campaign entry</strong> → stamp cynlr_batch_id + cynlr_outreach_status on contact</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>person_lists</strong> → mirror to HS static lists for HS-side segmentation</div></div>
       <div class="section-divider"></div>
-      <div class="section-label">Use HS natively</div>
-      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Sequences</strong> — for multi-step follow-ups after initial send from local CRM</div></div>
-      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Deal board</strong> — all deal management happens in HS, local CRM mirrors in</div></div>
-      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Meeting links</strong> — Nikhil/Vatsal meeting links embedded in emails sent from local CRM</div></div>
+      <div class="section-label">HS handles natively (don't rebuild locally)</div>
+      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Open/click tracking</strong> on emails pushed as Engagements</div></div>
+      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Deal pipeline Kanban</strong> — owned by HS post-meeting</div></div>
+      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Meeting links</strong> — embed in campaign email bodies</div></div>
     </div>
   </div>
 
@@ -581,10 +708,10 @@ h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:
   <td><span class="pill pill-red">14% complete</span></td>
 </tr>
 <tr>
-  <td><strong>Deals</strong></td>
+  <td><strong>Deals</strong><br><span style="font-size:9px;color:#475569">Starts at meeting booked. Requirements exchange, POC, proposal, close.</span></td>
   <td>deals, deal_team, deal_stage_transitions</td>
-  <td><span class="pill pill-orange">partial</span> 24 records, fields exist but mostly empty</td>
-  <td>+ 5 cynlr_* props in 1 group, fix amounts/owners</td>
+  <td><span class="pill pill-orange">partial</span> 24 records, fields exist but mostly empty. 0 amounts. 22/24 not linked to company.</td>
+  <td>+ 5 cynlr_* props incl. cynlr_source_campaign. All amounts/owners filled. Company linked.</td>
   <td><span class="pill pill-purple">bidirectional</span></td>
   <td><span class="pill pill-red">40% complete</span></td>
 </tr>
@@ -629,11 +756,11 @@ h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:
   <td>Not started</td>
 </tr>
 <tr>
-  <td><strong>Campaigns</strong></td>
-  <td>campaigns, campaign_members</td>
-  <td><span class="pill pill-orange">partial</span> HS Campaigns ≠ SDR campaigns</td>
-  <td>Push campaign name to deal prop + contact prop</td>
-  <td><span class="pill pill-blue">local → HS push</span></td>
+  <td><strong>Campaigns</strong><br><span style="font-size:9px;color:#475569">Goal: book one meeting. Ends when meeting confirmed. Email sequences, follow-ups, replies all live here.</span></td>
+  <td>campaigns, campaign_members, message_templates, suppressions</td>
+  <td><span class="pill pill-red">none</span> HS "Campaigns" is marketing attribution — not SDR outreach. No equivalent.</td>
+  <td>Stays local. On meeting booked: push trace to HS (cynlr_source_campaign on deal, cynlr_outreach_status on contact, email events as Engagements)</td>
+  <td><span class="pill pill-green">local only + trace push</span></td>
   <td>Not started</td>
 </tr>
 <tr>
@@ -671,12 +798,12 @@ h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:
       <div style="font-size:11px;color:#86efac;line-height:1.8">discovery_batches<br>contact_reviews<br>message_templates<br>person_lists<br>suppressions<br>enrichment_jobs<br>hs_sync_map + sync_conflicts</div>
     </div>
     <div style="background:#0c1a40;border:1px solid #1e3a5f;border-radius:8px;padding:12px">
-      <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:8px">LOCAL → HS PUSH (4 entities)</div>
-      <div style="font-size:11px;color:#93c5fd;line-height:1.8">persons → contacts<br>companies → companies<br>activity_log → engagements<br>campaigns → contact/deal props</div>
+      <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:8px">LOCAL → HS PUSH / TRACE (4)</div>
+      <div style="font-size:11px;color:#93c5fd;line-height:1.8">persons → contacts<br>companies → companies<br>activity_log → HS Engagements<br>campaigns → trace on meeting booked<br><span style="font-size:9px;color:#3b82f6">(campaign itself stays local)</span></div>
     </div>
     <div style="background:#2e1065;border:1px solid #4c1d95;border-radius:8px;padding:12px">
       <div style="font-size:10px;font-weight:700;color:#a78bfa;margin-bottom:8px">BIDIRECTIONAL (1 entity)</div>
-      <div style="font-size:11px;color:#c4b5fd;line-height:1.8">deals ↔ HubSpot deals<br><br><span style="color:#7c3aed;font-size:10px">Stage changes + owner updates come back from HS. Local CRM is source of truth for intel fields.</span></div>
+      <div style="font-size:11px;color:#c4b5fd;line-height:1.8">deals ↔ HubSpot deals<br><br><span style="color:#7c3aed;font-size:10px">Deals are created in HS when a meeting is booked. Stage changes, owner updates come back to local CRM. Local CRM is source of truth for intel fields (POC status, blockers, action items).</span></div>
     </div>
   </div>
 </div>
