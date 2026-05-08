@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr CRM — Schema Comparison</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#080b10;color:#cbd5e1;min-height:100vh;padding:32px 20px}
+h1{font-size:18px;font-weight:800;color:#f1f5f9;text-align:center;margin-bottom:4px}
+.subtitle{font-size:12px;color:#475569;text-align:center;margin-bottom:28px}
+
+/* Tab nav */
+.tabs{display:flex;gap:6px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:6px 18px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #1e293b;color:#64748b;background:#0f1420;letter-spacing:.4px;transition:all .15s}
+.tab.active{border-color:#6366f1;color:#a5b4fc;background:#1a1f3a}
+.tab:hover:not(.active){border-color:#334155;color:#94a3b8}
+
+/* 3-col grid */
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;max-width:1300px;margin:0 auto}
+.col-head{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;border-radius:8px 8px 0 0;text-align:center}
+.col-local .col-head{background:#0a1f10;color:#4ade80;border:1.5px solid #14532d;border-bottom:none}
+.col-hs-now .col-head{background:#1a1208;color:#fb923c;border:1.5px solid #431407;border-bottom:none}
+.col-hs-target .col-head{background:#0d1240;color:#818cf8;border:1.5px solid #312e81;border-bottom:none}
+
+.col-body{border-radius:0 0 10px 10px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.col-local .col-body{background:#0a1410;border:1.5px solid #14532d;border-top:none}
+.col-hs-now .col-body{background:#120e08;border:1.5px solid #431407;border-top:none}
+.col-hs-target .col-body{background:#090d24;border:1.5px solid #312e81;border-top:none}
+
+.section-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#334155;margin-top:4px;padding-bottom:4px;border-bottom:1px solid #1e293b}
+
+.field{display:flex;align-items:flex-start;gap:6px;padding:4px 0}
+.field-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.dot-green{background:#22c55e}
+.dot-orange{background:#f97316}
+.dot-red{background:#ef4444}
+.dot-blue{background:#60a5fa}
+.dot-purple{background:#a78bfa}
+.dot-gray{background:#475569}
+.dot-yellow{background:#eab308}
+.field-text{font-size:11px;line-height:1.5;color:#94a3b8}
+.field-text strong{color:#e2e8f0;font-weight:600}
+.field-tag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;white-space:nowrap}
+.tag-new{background:#052e16;color:#4ade80}
+.tag-missing{background:#450a0a;color:#fca5a5}
+.tag-exists{background:#052e16;color:#86efac}
+.tag-legacy{background:#431407;color:#fdba74}
+.tag-auto{background:#0c1a40;color:#93c5fd}
+.tag-sync{background:#2e1065;color:#c4b5fd}
+
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;background:#0f1620;border:1px solid #1e293b;margin-bottom:2px}
+.stat-label{font-size:10px;color:#64748b}
+.stat-val{font-size:11px;font-weight:700;color:#e2e8f0}
+.stat-val.red{color:#f87171}
+.stat-val.orange{color:#fb923c}
+.stat-val.green{color:#4ade80}
+.stat-val.blue{color:#60a5fa}
+
+.gap-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;margin-bottom:4px;font-size:11px}
+.gap-missing{background:#1c0505;border:1px solid #450a0a;color:#fca5a5}
+.gap-partial{background:#1c1005;border:1px solid #451a03;color:#fdba74}
+.gap-ok{background:#051c0a;border:1px solid #14532d;color:#86efac}
+.gap-icon{font-size:13px;flex-shrink:0}
+
+.entity-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;margin-bottom:6px}
+.eb-local{background:#052e16;color:#4ade80;border:1px solid #14532d}
+.eb-hs{background:#1e1b4b;color:#818cf8;border:1px solid #312e81}
+.eb-none{background:#1c0d00;color:#9a3412;border:1px solid #431407}
+
+.legend{display:flex;gap:14px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:#64748b}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+
+.section-divider{height:1px;background:#1e293b;margin:6px 0}
+
+/* table for entity map */
+.entity-table{width:100%;border-collapse:collapse;font-size:11px}
+.entity-table th{padding:8px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#475569;border-bottom:1px solid #1e293b}
+.entity-table td{padding:7px 10px;border-bottom:1px solid #0f1620;vertical-align:top}
+.entity-table tr:last-child td{border-bottom:none}
+.entity-table tr:hover td{background:#0f1825}
+
+.pill{display:inline-block;font-size:9px;font-weight:700;padding:1px 7px;border-radius:10px;white-space:nowrap}
+.pill-green{background:#052e16;color:#4ade80;border:1px solid #14532d}
+.pill-orange{background:#1c1005;color:#fb923c;border:1px solid #431407}
+.pill-red{background:#1c0505;color:#f87171;border:1px solid #450a0a}
+.pill-blue{background:#0c1a40;color:#60a5fa;border:1px solid #1e3a5f}
+.pill-purple{background:#2e1065;color:#a78bfa;border:1px solid #4c1d95}
+.pill-gray{background:#0f1620;color:#475569;border:1px solid #1e293b}
+
+.summary-bar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.sbar{padding:8px 16px;border-radius:8px;text-align:center;min-width:100px}
+.sbar-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+.sbar-val{font-size:22px;font-weight:800;line-height:1}
+.sbar-sub{font-size:9px;margin-top:2px;opacity:.7}
+.sbar-red{background:#1c0505;border:1px solid #450a0a;color:#f87171}
+.sbar-orange{background:#1c1005;border:1px solid #451a03;color:#fb923c}
+.sbar-green{background:#051c0a;border:1px solid #14532d;color:#4ade80}
+.sbar-blue{background:#0c1a40;border:1px solid #1e3a5f;color:#60a5fa}
+.sbar-purple{background:#1e0840;border:1px solid #4c1d95;color:#a78bfa}
+
+.panel{display:none}
+.panel.active{display:block}
+
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1>CynLr CRM — Schema Comparison</h1>
+<p class="subtitle">Local CRM v3 &nbsp;·&nbsp; HubSpot Now (Portal 243444910) &nbsp;·&nbsp; HubSpot Target</p>
+
+<div class="summary-bar">
+  <div class="sbar sbar-green"><div class="sbar-label">Local Tables</div><div class="sbar-val">30</div><div class="sbar-sub">10 core entities</div></div>
+  <div class="sbar sbar-orange"><div class="sbar-label">HS Records</div><div class="sbar-val">3,246</div><div class="sbar-sub">2047 + 1175 + 24</div></div>
+  <div class="sbar sbar-red"><div class="sbar-label">Custom Props</div><div class="sbar-val">0</div><div class="sbar-sub">0 cynlr_* exist</div></div>
+  <div class="sbar sbar-purple"><div class="sbar-label">Props Needed</div><div class="sbar-val">21</div><div class="sbar-sub">across 5 groups</div></div>
+  <div class="sbar sbar-blue"><div class="sbar-label">Health Score</div><div class="sbar-val">28</div><div class="sbar-sub">/ 100</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="show('contacts')">Contacts / Persons</div>
+  <div class="tab" onclick="show('companies')">Companies</div>
+  <div class="tab" onclick="show('deals')">Deals</div>
+  <div class="tab" onclick="show('crm-only')">CRM-Only Entities</div>
+  <div class="tab" onclick="show('entity-map')">Full Entity Map</div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Exists &amp; clean</div>
+  <div class="leg"><div class="leg-dot" style="background:#f97316"></div>Exists but legacy/incomplete</div>
+  <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>Missing / needs to be created</div>
+  <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Auto-synced from local CRM</div>
+  <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>HS-native, no local equivalent</div>
+</div>
+
+<!-- ═══════════════════════════ CONTACTS ═══════════════════════════ -->
+<div id="contacts" class="panel active">
+<div class="grid">
+
+  <!-- LOCAL -->
+  <div class="col-local">
+    <div class="col-head">Local CRM — persons</div>
+    <div class="col-body">
+      <div class="section-label">Identity</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>full_name</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>linkedin_url</strong> — primary key for dedup</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>headline</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>about</strong> — AI-scraped bio</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>profile_pic_url</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>location</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Contact Emails — separate table</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_emails.email</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_emails.is_primary</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_emails.verified_at</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_emails.source</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Employment — separate table</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_employments.company_name</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_employments.title</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_employments.is_current</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_employments.start_date / end_date</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">CRM State</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>poc_status</strong> — cold/warm/hot/converted</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>outreach_status</strong> — not_started/in_progress/done</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>relationship_strength</strong> — 0–10</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>entry_source</strong> — discovery/referral/event/inbound</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>batch_id</strong> → discovery_batches FK</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Tags — normalized</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_tags</strong> — junction table, not text blob</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Search</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contacts_fts</strong> — FTS5 virtual table (name + headline + about)</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Suppression</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong> — checked before every send</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">HubSpot Bridge</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_contact_id</strong> — sync key</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_synced_at</strong></div></div>
+    </div>
+  </div>
+
+  <!-- HS NOW -->
+  <div class="col-hs-now">
+    <div class="col-head">HubSpot Now — 2,047 contacts</div>
+    <div class="col-body">
+      <div class="section-label">Standard Identity</div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>firstname / lastname</strong> — 223 contacts have neither <span class="field-tag tag-legacy">10% blank</span></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>email</strong> — 2022 have it</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>jobtitle</strong> — 56% blank</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>company</strong> — 63% blank <span class="field-tag tag-legacy">critical</span></div></div>
+      <div class="field"><div class="field-dot dot-gray"></div><div class="field-text"><strong>phone / mobilephone</strong> — sparse</div></div>
+      <div class="field"><div class="field-dot dot-gray"></div><div class="field-text"><strong>city / state / country</strong> — mostly blank</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Standard CRM</div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>lifecyclestage</strong> — 99% stuck at "lead"</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hs_lead_status</strong> — not being used</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>hs_email_domain</strong> — auto-computed</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Custom CynLr Props</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> <strong>No cynlr_* properties exist</strong></div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> poc_status — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> outreach_status — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> relationship_strength — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> entry_source — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> batch_id — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_linkedin_url — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_verified_email — missing</div>
+      <div class="section-divider"></div>
+      <div class="section-label">Sources (how 2047 got in)</div>
+      <div class="stat-row"><span class="stat-label">Integration (scrapers)</span><span class="stat-val blue">835</span></div>
+      <div class="stat-row"><span class="stat-label">Mobile iOS</span><span class="stat-val">516</span></div>
+      <div class="stat-row"><span class="stat-label">Mobile Android</span><span class="stat-val">382</span></div>
+      <div class="stat-row"><span class="stat-label">Form</span><span class="stat-val">167</span></div>
+      <div class="stat-row"><span class="stat-label">Import</span><span class="stat-val">131</span></div>
+      <div class="stat-row"><span class="stat-label">CRM UI</span><span class="stat-val">15</span></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Junk to remove</div>
+      <div class="stat-row"><span class="stat-label">No name + no title + no deal</span><span class="stat-val red">219</span></div>
+    </div>
+  </div>
+
+  <!-- HS TARGET -->
+  <div class="col-hs-target">
+    <div class="col-head">HubSpot Target — what it should be</div>
+    <div class="col-body">
+      <div class="section-label">Standard (keep as-is)</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>firstname / lastname / email</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>jobtitle / company / phone</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>lifecyclestage</strong> — actually use it (lead → opportunity → customer)</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>hs_lead_status</strong> — map to poc_status values</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Group: CynLr CRM <span class="field-tag tag-new">CREATE</span></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_poc_status</strong> <span class="field-tag tag-new">new</span> — enumeration: cold/warm/hot/converted</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_outreach_status</strong> <span class="field-tag tag-new">new</span></div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_relationship_strength</strong> <span class="field-tag tag-new">new</span> — number 0–10</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_linkedin_url</strong> <span class="field-tag tag-new">new</span></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Group: CynLr Acquisition <span class="field-tag tag-new">CREATE</span></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_entry_source</strong> <span class="field-tag tag-new">new</span> — discovery/referral/event/inbound</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_batch_id</strong> <span class="field-tag tag-new">new</span> — which discovery run</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_verified_email</strong> <span class="field-tag tag-new">new</span> — boolean</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Clean-up required first</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Delete 219 empty-stub contacts</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Link 1292 contacts → companies via domain match</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Backfill jobtitle for 1164 contacts via enrichment</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> No duplicate emails (already clean)</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════ COMPANIES ═══════════════════════════ -->
+<div id="companies" class="panel">
+<div class="grid">
+
+  <div class="col-local">
+    <div class="col-head">Local CRM — companies</div>
+    <div class="col-body">
+      <div class="section-label">Identity</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>name</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>domain</strong> — unique, used for dedup</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>website_url</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>linkedin_url</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Firmographics</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>industry</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>company_size</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>country / city</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>description</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">CynLr-Specific</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>icp_fit</strong> — boolean, is this our ICP</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>segment</strong> — automotive/semicon/industrial/other</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>geography</strong> — APAC/EMEA/Americas</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>relationship_score</strong> — 0–100</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Email Intel</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>email_domain</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>email_pattern</strong> — first.last@ / f.last@ etc.</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>nda_signed</strong> — boolean</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">HubSpot Bridge</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_company_id</strong></div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_synced_at</strong></div></div>
+    </div>
+  </div>
+
+  <div class="col-hs-now">
+    <div class="col-head">HubSpot Now — 1,175 companies</div>
+    <div class="col-body">
+      <div class="section-label">Standard</div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>name</strong> — 215 blank (auto-stub from domain) <span class="field-tag tag-legacy">18% blank</span></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>domain</strong> — 100% filled (only good field)</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>industry</strong> — 86% blank</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>country</strong> — 85% blank</div></div>
+      <div class="field"><div class="field-dot dot-gray"></div><div class="field-text"><strong>annualrevenue / numberofemployees</strong> — all blank</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Associations</div>
+      <div class="stat-row"><span class="stat-label">Has contacts linked</span><span class="stat-val green">1169</span></div>
+      <div class="stat-row"><span class="stat-label">Has deals linked</span><span class="stat-val red">2</span></div>
+      <div class="stat-row"><span class="stat-label">Ghost (0 contacts, 0 deals)</span><span class="stat-val red">6</span></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Duplicate groups (12)</div>
+      <div class="stat-row"><span class="stat-label">Edmund Optics</span><span class="stat-val red">×3</span></div>
+      <div class="stat-row"><span class="stat-label">L&T Technology Services</span><span class="stat-val orange">×2</span></div>
+      <div class="stat-row"><span class="stat-label">Schneider Electric</span><span class="stat-val orange">×2</span></div>
+      <div class="stat-row"><span class="stat-label">Continental</span><span class="stat-val orange">×2</span></div>
+      <div class="stat-row"><span class="stat-label">+ 8 more groups</span><span class="stat-val orange">×2 each</span></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Custom CynLr Props</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> icp_fit — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> segment — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> geography — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> relationship_score — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> email_pattern — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> nda_signed — missing</div>
+    </div>
+  </div>
+
+  <div class="col-hs-target">
+    <div class="col-head">HubSpot Target</div>
+    <div class="col-body">
+      <div class="section-label">Standard (keep)</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>name / domain / website</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>industry / country / city</strong> — backfill via Insights</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Group: CynLr CRM <span class="field-tag tag-new">CREATE</span></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_icp_fit</strong> <span class="field-tag tag-new">new</span> — bool checkbox</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_segment</strong> <span class="field-tag tag-new">new</span> — dropdown: automotive / semicon / industrial / other</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_geography</strong> <span class="field-tag tag-new">new</span> — dropdown: APAC / EMEA / Americas</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_relationship_score</strong> <span class="field-tag tag-new">new</span> — number</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Group: CynLr Email Intel <span class="field-tag tag-new">CREATE</span></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_email_pattern</strong> <span class="field-tag tag-new">new</span> — text</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_nda_signed</strong> <span class="field-tag tag-new">new</span> — bool</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Clean-up required first</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Delete 6 ghost companies</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Merge 12 duplicate groups (~25 records)</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Enable Insights enrichment on 215 blank-name stubs</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Link 22 open deals to company records</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> All 1175 have domain (enrichment base exists)</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════ DEALS ═══════════════════════════ -->
+<div id="deals" class="panel">
+<div class="grid">
+
+  <div class="col-local">
+    <div class="col-head">Local CRM — deals</div>
+    <div class="col-body">
+      <div class="section-label">Core</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>title</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>stage</strong> — 10 stages with auto-transition log</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>pipeline</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>company_id</strong> → companies FK</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Intel Fields</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>application_type</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>segment / geography</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>product_services</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>competitors</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>pain_point_business_need</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>lead_source</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Action Tracking</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item_due_date</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>blockers_risks</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">People</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>champion</strong> — text</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>economic_buyer</strong></div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>deal_team</strong> — table with flexible role tags</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Auto-logged</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>deal_stage_transitions</strong> — trigger on every stage UPDATE</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>activity_log</strong> — dedup_key prevents double-log</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">HubSpot Bridge</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_deal_id</strong></div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>sync_conflicts</strong> — conflict audit trail</div></div>
+    </div>
+  </div>
+
+  <div class="col-hs-now">
+    <div class="col-head">HubSpot Now — 24 deals</div>
+    <div class="col-body">
+      <div class="section-label">Standard Pipeline</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealname</strong> — all 24 have it</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealstage</strong> — 8 custom stages mapped</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>pipeline</strong> — Deal Pipeline + Investments</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>amount</strong> — <strong>0/24 filled</strong> <span class="field-tag tag-legacy">critical gap</span></div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hubspot_owner_id</strong> — 8/24 assigned (all Jan batch)</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>closedate</strong> — sparse</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Existing Custom Fields (dealinformation group)</div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>account_name</strong> — only Jan batch filled</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>application_type / segment / geography</strong></div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>action_item / action_item_due_date</strong></div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>blockers_risks / champion / economic_buyer</strong></div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>competitors / pain_point_business_need</strong></div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>product_services / lead_source</strong></div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Associations</div>
+      <div class="stat-row"><span class="stat-label">Linked to company</span><span class="stat-val red">2 / 24</span></div>
+      <div class="stat-row"><span class="stat-label">Has contact</span><span class="stat-val orange">17 / 24</span></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Duplicate deals (5 pairs)</div>
+      <div class="stat-row"><span class="stat-label">AMAT (Jan Closed Won + Apr)</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">BMW (Jan App Note + Apr)</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">TVS (Jan Proposal + Apr)</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">JLR (Jan App Note + Apr)</span><span class="stat-val red">×2</span></div>
+      <div class="stat-row"><span class="stat-label">B Braun (both active)</span><span class="stat-val orange">×2</span></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Missing cynlr_* props</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_technical_win — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_budget_confirmed — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_owner — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_tags — missing</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> cynlr_action_due — missing</div>
+    </div>
+  </div>
+
+  <div class="col-hs-target">
+    <div class="col-head">HubSpot Target</div>
+    <div class="col-body">
+      <div class="section-label">Standard (keep &amp; fill)</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>dealname / dealstage / pipeline</strong></div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>amount</strong> — must fill all 24 deals</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>hubspot_owner_id</strong> — assign to 16 Apr deals</div></div>
+      <div class="field"><div class="field-dot dot-orange"></div><div class="field-text"><strong>closedate</strong> — set expected close for open deals</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Existing fields — already good</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>account_name, application_type, segment, geography</strong> — keep, populate for Apr batch</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>action_item, blockers_risks, champion, economic_buyer</strong> — keep using as-is</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Group: CynLr Deal Intel <span class="field-tag tag-new">CREATE</span></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_technical_win</strong> <span class="field-tag tag-new">new</span> — bool: POC passed</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_budget_confirmed</strong> <span class="field-tag tag-new">new</span> — bool</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_owner</strong> <span class="field-tag tag-new">new</span> — CynLr-side owner (not HS user)</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_tags</strong> <span class="field-tag tag-new">new</span> — multi-select</div></div>
+      <div class="field"><div class="field-dot dot-red"></div><div class="field-text"><strong>cynlr_action_due</strong> <span class="field-tag tag-new">new</span> — date</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Fix associations</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Link all 24 deals to company records</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">⚠</span> Delete 4 confirmed dup deals (AMAT/BMW/TVS/JLR Apr)</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Confirm B Braun dup — merge or keep both</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">⚡</span> Rename Mercedes ×3 by program name</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Stage pipeline structure is solid — keep it</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════ CRM ONLY ═══════════════════════════ -->
+<div id="crm-only" class="panel">
+<div class="grid">
+
+  <div class="col-local">
+    <div class="col-head">Local CRM — unique tables</div>
+    <div class="col-body">
+      <div class="section-label">Discovery &amp; Outreach</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>discovery_batches</strong> — each AI scrape run with source URL, filters, status</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong> — per-contact review decision (approve/reject/skip) before outreach</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>person_lists</strong> — named target lists (e.g. "Semicon Q2")</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>person_list_members</strong> — junction: person → list</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Messaging &amp; Campaigns</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>message_templates</strong> — versioned outreach templates with tone + track tags</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaigns</strong> — named campaign with start/end, template FK, status</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>campaign_members</strong> — junction: person → campaign + send_status</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Compliance</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong> — email/domain-level, reason, expiry. Checked pre-send.</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Enrichment</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>enrichment_jobs</strong> — queued enrichment with retry tracking, next_retry_at</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Activity</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>activity_log</strong> — unified event log (email sent, stage change, review, call) with dedup_key</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Sync</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>hs_sync_map</strong> — maps local_id → hs_id per object type</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>sync_conflicts</strong> — field-level conflict log with local vs remote value</div></div>
+    </div>
+  </div>
+
+  <div class="col-hs-now">
+    <div class="col-head">HubSpot Now — equivalents</div>
+    <div class="col-body">
+      <div class="section-label">No equivalents for</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> discovery_batches — no concept in HS</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> contact_reviews — no pre-outreach review flow</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> person_lists — no named segmented lists (HS uses static/active lists differently)</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> message_templates — no template versioning</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> suppressions — no compliance suppression list</div>
+      <div class="gap-row gap-missing"><span class="gap-icon">✗</span> enrichment_jobs — no retry queue concept</div>
+      <div class="section-divider"></div>
+      <div class="section-label">Partial equivalents</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> <strong>campaigns</strong> — HS has "Campaigns" but for marketing emails, not SDR sequences</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> <strong>activity_log</strong> — HS has Engagements (calls, emails, notes) but no dedup_key, no unified log</div>
+      <div class="gap-row gap-partial"><span class="gap-icon">~</span> <strong>Lists</strong> — HS has active/static lists but not the same as person_lists in local CRM</div>
+      <div class="section-divider"></div>
+      <div class="section-label">HS-native things local CRM doesn't have</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Email sequences (automated multi-step cadences)</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Meeting scheduler (calendar booking links)</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Email open/click tracking</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> Deal board visual Kanban</div>
+      <div class="gap-row gap-ok"><span class="gap-icon">✓</span> hs_lead_status workflow automation</div>
+    </div>
+  </div>
+
+  <div class="col-hs-target">
+    <div class="col-head">Where these should live</div>
+    <div class="col-body">
+      <div class="section-label">Stay in local CRM only</div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>discovery_batches</strong> — AI scraping is local-only, no HS equivalent needed</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>contact_reviews</strong> — pre-outreach review happens before anything goes to HS</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>suppressions</strong> — local enforcement layer, checked before send queue</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>enrichment_jobs</strong> — retry queue is a local infra concern</div></div>
+      <div class="field"><div class="field-dot dot-green"></div><div class="field-text"><strong>message_templates</strong> — template versioning lives locally</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Mirror to HubSpot</div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>campaigns</strong> — push campaign name + status to a HS custom deal property so deals show campaign origin</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>activity_log sends</strong> — push email send events as HS Engagements (type=EMAIL) for open/click tracking</div></div>
+      <div class="field"><div class="field-dot dot-blue"></div><div class="field-text"><strong>person_lists</strong> — mirror to HS static lists for HS-side segmentation and reporting</div></div>
+      <div class="section-divider"></div>
+      <div class="section-label">Use HS natively</div>
+      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Sequences</strong> — for multi-step follow-ups after initial send from local CRM</div></div>
+      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Deal board</strong> — all deal management happens in HS, local CRM mirrors in</div></div>
+      <div class="field"><div class="field-dot dot-purple"></div><div class="field-text"><strong>Meeting links</strong> — Nikhil/Vatsal meeting links embedded in emails sent from local CRM</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════ ENTITY MAP ═══════════════════════════ -->
+<div id="entity-map" class="panel">
+<div style="max-width:1100px;margin:0 auto">
+<table class="entity-table">
+<thead>
+<tr>
+  <th>Entity</th>
+  <th>Local CRM Table(s)</th>
+  <th>In HubSpot Now</th>
+  <th>HubSpot Target</th>
+  <th>Direction</th>
+  <th>Data Quality Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Persons / Contacts</strong></td>
+  <td>persons, contact_emails, contact_employments, contact_tags</td>
+  <td><span class="pill pill-orange">partial</span> 2047 records, 0 cynlr_* props</td>
+  <td>+ 7 cynlr_* props in 2 groups</td>
+  <td><span class="pill pill-blue">local → HS push</span></td>
+  <td><span class="pill pill-red">28% complete</span></td>
+</tr>
+<tr>
+  <td><strong>Companies</strong></td>
+  <td>companies</td>
+  <td><span class="pill pill-orange">partial</span> 1175 records, 0 cynlr_* props</td>
+  <td>+ 6 cynlr_* props in 2 groups</td>
+  <td><span class="pill pill-blue">local → HS push</span></td>
+  <td><span class="pill pill-red">14% complete</span></td>
+</tr>
+<tr>
+  <td><strong>Deals</strong></td>
+  <td>deals, deal_team, deal_stage_transitions</td>
+  <td><span class="pill pill-orange">partial</span> 24 records, fields exist but mostly empty</td>
+  <td>+ 5 cynlr_* props in 1 group, fix amounts/owners</td>
+  <td><span class="pill pill-purple">bidirectional</span></td>
+  <td><span class="pill pill-red">40% complete</span></td>
+</tr>
+<tr>
+  <td><strong>Activity Log</strong></td>
+  <td>activity_log</td>
+  <td><span class="pill pill-orange">partial</span> HS Engagements (no dedup, no unified format)</td>
+  <td>Push email events as HS Engagements</td>
+  <td><span class="pill pill-blue">local → HS push</span></td>
+  <td><span class="pill pill-orange">60% aligned</span></td>
+</tr>
+<tr>
+  <td><strong>Discovery Batches</strong></td>
+  <td>discovery_batches</td>
+  <td><span class="pill pill-gray">none</span></td>
+  <td>batch_id as contact property only</td>
+  <td><span class="pill pill-green">local only</span></td>
+  <td>N/A</td>
+</tr>
+<tr>
+  <td><strong>Contact Reviews</strong></td>
+  <td>contact_reviews</td>
+  <td><span class="pill pill-gray">none</span></td>
+  <td>No equivalent needed</td>
+  <td><span class="pill pill-green">local only</span></td>
+  <td>N/A</td>
+</tr>
+<tr>
+  <td><strong>Message Templates</strong></td>
+  <td>message_templates</td>
+  <td><span class="pill pill-gray">none</span></td>
+  <td>No equivalent needed</td>
+  <td><span class="pill pill-green">local only</span></td>
+  <td>N/A</td>
+</tr>
+<tr>
+  <td><strong>Person Lists</strong></td>
+  <td>person_lists, person_list_members</td>
+  <td><span class="pill pill-orange">partial</span> HS Lists exist but unused</td>
+  <td>Mirror to HS static lists</td>
+  <td><span class="pill pill-blue">local → HS push</span></td>
+  <td>Not started</td>
+</tr>
+<tr>
+  <td><strong>Campaigns</strong></td>
+  <td>campaigns, campaign_members</td>
+  <td><span class="pill pill-orange">partial</span> HS Campaigns ≠ SDR campaigns</td>
+  <td>Push campaign name to deal prop + contact prop</td>
+  <td><span class="pill pill-blue">local → HS push</span></td>
+  <td>Not started</td>
+</tr>
+<tr>
+  <td><strong>HS Sync Map</strong></td>
+  <td>hs_sync_map, sync_conflicts</td>
+  <td><span class="pill pill-gray">none</span></td>
+  <td>Internal plumbing, no HS side needed</td>
+  <td><span class="pill pill-green">local only</span></td>
+  <td>N/A</td>
+</tr>
+<tr>
+  <td><strong>Suppressions</strong></td>
+  <td>suppressions</td>
+  <td><span class="pill pill-gray">none</span> HS has unsubscribe but not compliance list</td>
+  <td>Local enforcement; sync opt-outs to HS unsubscribe</td>
+  <td><span class="pill pill-green">local only + sync</span></td>
+  <td>N/A</td>
+</tr>
+<tr>
+  <td><strong>Enrichment Jobs</strong></td>
+  <td>enrichment_jobs</td>
+  <td><span class="pill pill-gray">none</span></td>
+  <td>No equivalent needed</td>
+  <td><span class="pill pill-green">local only</span></td>
+  <td>N/A</td>
+</tr>
+</tbody>
+</table>
+
+<div style="margin-top:24px;padding:16px;background:#0a0f1a;border:1px solid #1e293b;border-radius:10px">
+  <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#334155;margin-bottom:12px">Summary: what goes where</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+    <div style="background:#051c0a;border:1px solid #14532d;border-radius:8px;padding:12px">
+      <div style="font-size:10px;font-weight:700;color:#4ade80;margin-bottom:8px">LOCAL ONLY (7 tables)</div>
+      <div style="font-size:11px;color:#86efac;line-height:1.8">discovery_batches<br>contact_reviews<br>message_templates<br>person_lists<br>suppressions<br>enrichment_jobs<br>hs_sync_map + sync_conflicts</div>
+    </div>
+    <div style="background:#0c1a40;border:1px solid #1e3a5f;border-radius:8px;padding:12px">
+      <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:8px">LOCAL → HS PUSH (4 entities)</div>
+      <div style="font-size:11px;color:#93c5fd;line-height:1.8">persons → contacts<br>companies → companies<br>activity_log → engagements<br>campaigns → contact/deal props</div>
+    </div>
+    <div style="background:#2e1065;border:1px solid #4c1d95;border-radius:8px;padding:12px">
+      <div style="font-size:10px;font-weight:700;color:#a78bfa;margin-bottom:8px">BIDIRECTIONAL (1 entity)</div>
+      <div style="font-size:11px;color:#c4b5fd;line-height:1.8">deals ↔ HubSpot deals<br><br><span style="color:#7c3aed;font-size:10px">Stage changes + owner updates come back from HS. Local CRM is source of truth for intel fields.</span></div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
