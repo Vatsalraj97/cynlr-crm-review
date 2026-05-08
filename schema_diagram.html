@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CynLr CRM — Schema & Relationships</title>
+<title>CynLr CRM v3 — Schema & Relationships</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:36px 24px 60px}
@@ -82,8 +82,8 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </head>
 <body>
 
-<h1>CynLr CRM v2 — Schema &amp; Relationships</h1>
-<p class="sub">Local SQLite (source of truth) &nbsp;⟷&nbsp; HubSpot Portal 243444910 &nbsp;·&nbsp; <span style="color:#10b981;font-weight:700">v2 Architecture — Under Development</span></p>
+<h1>CynLr CRM v3 — Schema &amp; Relationships</h1>
+<p class="sub">Local SQLite (source of truth) &nbsp;⟷&nbsp; HubSpot Portal 243444910 &nbsp;·&nbsp; <span style="color:#10b981;font-weight:700">30 tables · 15 new in v3 · 5 auto-triggers</span> &nbsp;·&nbsp; <span style="color:#f59e0b;font-weight:700">Updated May 2026 — Nikhil's changes applied</span></p>
 
 <div class="legend">
   <div class="li"><div class="ld" style="background:#60a5fa"></div>Primary Key</div>
@@ -94,6 +94,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
   <div class="li"><div class="ld" style="background:#86efac"></div>Dedup key</div>
   <div class="li"><div class="lb" style="background:#4ade80"></div>FK relationship line</div>
   <div class="li"><div class="lb" style="background:#6366f1;border-top:2px dashed #6366f1;background:none"></div>Sync bridge</div>
+  <div class="li"><div class="ld" style="background:#34d399;border:1px solid #065f46"></div>v3 hardening table</div>
 </div>
 
 <div class="wrap" id="wrap">
@@ -124,7 +125,8 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
         <div class="f"><span class="pill lo">L</span><span class="fn">outreach_status</span></div>
         <div class="f"><span class="pill lo">L</span><span class="fn">next_followup_at</span></div>
         <div class="f"><span class="fn">bucket, tags, priority</span></div>
-        <div class="f"><span class="fn">source, event</span></div>
+        <div class="f"><span class="fn">source</span></div>
+        <div class="f" style="opacity:.45;text-decoration:line-through"><span class="fn">event</span><span class="ft">removed</span></div>
       </div>
       <div class="fg"><div class="fgl">Enrichment</div>
         <div class="f"><span class="fn">location, college, about</span></div>
@@ -155,7 +157,12 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
         <div class="f"><span class="fn">industry</span></div>
         <div class="f"><span class="fn">segment</span><span class="ft">Ent/SMB/Start/Gov</span></div>
         <div class="f"><span class="fn">geography</span><span class="ft">APAC/NA/EU/…</span></div>
-        <div class="f"><span class="fn">company_size</span></div>
+        <div class="f" style="opacity:.45;text-decoration:line-through"><span class="fn">company_size</span><span class="ft">removed</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Email Pattern <span style="color:#4ade80">(NEW)</span></div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80">email_domain</span><span class="ft">e.g. renault.com</span></div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80">email_pattern</span><span class="ft">first.last / f.last / …</span></div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80">nda_signed</span><span class="ft">BOOL</span></div>
       </div>
       <div class="fg"><div class="fgl">CRM Intel <span style="color:#fb923c">(local)</span></div>
         <div class="f"><span class="pill lo">L</span><span class="fn">icp_fit</span><span class="ft">Strong/Med/Weak</span></div>
@@ -180,16 +187,19 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
         <div class="f"><span class="pill bi">BI</span><span class="fn">stage</span></div>
         <div class="f"><span class="pill bi">BI</span><span class="fn">amount</span></div>
         <div class="f"><span class="pill bi">BI</span><span class="fn">expected_close</span></div>
-        <div class="f"><span class="pill bi">BI</span><span class="fn">action_item</span></div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">probability</span></div>
       </div>
-      <div class="fg"><div class="fgl">MEDDIC</div>
-        <div class="f"><span class="pill fk">FK</span><span class="fn" id="d-champ">champion_id</span><span class="ft">→ persons</span></div>
-        <div class="f"><span class="pill fk">FK</span><span class="fn" id="d-eb">economic_buyer_id</span><span class="ft">→ persons</span></div>
-        <div class="f"><span class="fn">pain_point</span></div>
-        <div class="f"><span class="fn">blockers, competitors</span></div>
-        <div class="f"><span class="fn">action_due</span></div>
+      <div class="fg"><div class="fgl">Deal Team <span style="color:#4ade80">(replaces fixed MEDDIC)</span></div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80" id="d-people">→ deal_people</span><span class="ft">flexible role tags</span></div>
+        <div class="f" style="opacity:.45;text-decoration:line-through"><span class="fn">champion_id</span><span class="ft">removed</span></div>
+        <div class="f" style="opacity:.45;text-decoration:line-through"><span class="fn">economic_buyer_id</span><span class="ft">removed</span></div>
+        <div class="f" style="opacity:.45;text-decoration:line-through"><span class="fn">pain_point, blockers, competitors</span></div>
+        <div class="f" style="opacity:.45;text-decoration:line-through"><span class="fn">action_item, action_due</span></div>
       </div>
-      <div class="fg"><div class="fgl">Local Intel</div>
+      <div class="fg"><div class="fgl">Local Intel &amp; Annotations</div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80">tags</span><span class="ft">TEXT comma-separated</span></div>
+        <div class="f"><span class="pill kk">NEW</span><span class="fn" style="color:#4ade80" id="d-notes">→ deal_notes</span><span class="ft">timestamped + author</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_owner</span><span class="ft">Vatsal / Rajiv</span></div>
         <div class="f"><span class="pill lo">L</span><span class="fn">technical_win</span><span class="ft">BOOL</span></div>
         <div class="f"><span class="pill lo">L</span><span class="fn">budget_confirmed</span><span class="ft">BOOL</span></div>
         <div class="f"><span class="fn">application_type, segment</span></div>
@@ -286,18 +296,34 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </div>
 
 <!-- ROW 2 — Support tables -->
-<div class="row3">
+<div class="row4">
 
   <div class="card dj" id="card-dc">
-    <div class="ch"><div class="ci">🔗</div><div><div class="ct">DEAL ↔ PERSON</div><div class="csub">deal_contacts · stakeholder map</div></div></div>
+    <div class="ch"><div class="ci">👥</div><div><div class="ct">DEAL PEOPLE</div><div class="csub">deal_people · flexible role tags · NEW</div></div><span class="badge" style="background:#031a10;color:#34d399;border:1px solid #065f46">NEW</span></div>
     <div class="cb">
       <div class="fg">
-        <div class="f"><span class="pill pk">PK</span><span class="fn">deal_id, person_id</span><span class="ft">composite</span></div>
-        <div class="f"><span class="pill fk">FK</span><span class="fn" id="dc-deal">deal_id</span><span class="ft">→ deals</span></div>
-        <div class="f"><span class="pill fk">FK</span><span class="fn" id="dc-person">person_id</span><span class="ft">→ persons</span></div>
-        <div class="f"><span class="fn">role</span><span class="ft">Champion/EcoBuyer/Tech/Blocker</span></div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="dc-deal">deal_id</span><span class="ft">→ hubspot_deals</span></div>
+        <div class="f"><span class="fn">person_name</span><span class="ft">TEXT NOT NULL</span></div>
+        <div class="f"><span class="fn">person_hubspot_id</span><span class="ft">TEXT (optional)</span></div>
+        <div class="f"><span class="fn" style="color:#4ade80">role_tags</span><span class="ft">Champion, Economic Buyer…</span></div>
+        <div class="f"><span class="fn">added_at</span><span class="ft">datetime</span></div>
       </div>
-      <div class="note">Many-to-many. Separate from champion_id / economic_buyer_id FKs on deals (those are fast-access shortcuts).</div>
+      <div class="note">Replaces fixed champion_id + economic_buyer_id. One person can hold multiple roles via comma-separated role_tags. Add/remove inline in the deal UI.</div>
+    </div>
+  </div>
+
+  <div class="card dm" id="card-deal-notes">
+    <div class="ch"><div class="ci">📝</div><div><div class="ct">DEAL NOTES</div><div class="csub">deal_notes · timestamped notes · NEW</div></div><span class="badge" style="background:#031a10;color:#34d399;border:1px solid #065f46">NEW</span></div>
+    <div class="cb">
+      <div class="fg">
+        <div class="f"><span class="pill pk">PK</span><span class="fn" id="dn-id">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn" id="dn-deal">deal_id</span><span class="ft">→ hubspot_deals</span></div>
+        <div class="f"><span class="fn">body</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">author</span><span class="ft">TEXT (default: Vatsal)</span></div>
+        <div class="f"><span class="fn">created_at</span><span class="ft">datetime</span></div>
+      </div>
+      <div class="note">Replaces single-field notes. Each note has an author + timestamp. Logged inline on the deal detail page.</div>
     </div>
   </div>
 
@@ -360,61 +386,304 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
   </div>
 </div>
 
-<!-- ROW 3 — HubSpot objects -->
+<!-- ROW 3 — HubSpot objects (full property mirror) -->
 <div class="row3b">
 
   <div class="card dh" id="card-hsc">
-    <div class="ch"><div style="font-size:11px;font-weight:700;color:#a78bfa">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Contacts</div><div class="csub">syncs via hs_contact_id</div></div></div>
+    <div class="ch"><div style="font-size:11px;font-weight:700;color:#a78bfa">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Contacts</div><div class="csub">syncs via hs_contact_id · mirrors PERSON</div></div></div>
     <div class="cb">
-      <div class="fg"><div class="fgl">Standard (HubSpot-owned)</div>
-        <div class="f"><span class="pill hs">HS</span><span class="fn">lifecycle_stage, lead_status</span></div>
+      <div class="fg"><div class="fgl">Standard Identity (HS-owned)</div>
         <div class="f"><span class="pill hs">HS</span><span class="fn">email, firstname, lastname</span></div>
-        <div class="f"><span class="pill hs">HS</span><span class="fn">jobtitle, company</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">phone, jobtitle, company</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">linkedin_url, city, country</span></div>
       </div>
-      <div class="fg"><div class="fgl">Custom: CynLr CRM group</div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_poc_status</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_outreach_status</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_relationship_strength</span></div>
-        <div class="f"><span class="fn">+ 10 more cynlr_* fields</span></div>
+      <div class="fg"><div class="fgl">Standard CRM (HS-owned)</div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">lifecyclestage, hs_lead_status</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">hubspot_owner_id, hs_email_optout</span></div>
       </div>
-      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">persons.hs_contact_id ⟷ HubSpot id</div></div>
+      <div class="fg"><div class="fgl">CynLr CRM group <span style="color:#fb923c;font-weight:normal">(local→HS push)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_poc_status</span><span class="ft">ICP/Warm/Cold/Dead</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_outreach_status</span><span class="ft">Pending/Sent/Replied/…</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_relationship_strength</span><span class="ft">1–10</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_next_followup_at</span><span class="ft">DATE</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_bucket</span><span class="ft">ICP/VC/Founder/…</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_priority</span><span class="ft">FLOAT</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_source</span><span class="ft">e.g. LinkedIn scrape</span></div>
+      </div>
+      <div class="fg"><div class="fgl">CynLr Acquisition group <span style="color:#10b981;font-weight:normal">(v2 new)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_entry_source</span><span class="ft">cold/organic/inbound/referral</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_batch_id</span><span class="ft">TEXT (discovery batch ref)</span></div>
+      </div>
+      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">persons.hs_contact_id ⟷ HubSpot contact id</div></div>
     </div>
   </div>
 
   <div class="card dhg" id="card-hscm">
-    <div class="ch"><div style="font-size:11px;font-weight:700;color:#34d399">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Companies</div><div class="csub">syncs via hs_company_id + domain</div></div></div>
+    <div class="ch"><div style="font-size:11px;font-weight:700;color:#34d399">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Companies</div><div class="csub">syncs via hs_company_id + domain · mirrors COMPANY</div></div></div>
     <div class="cb">
-      <div class="fg"><div class="fgl">Standard (HubSpot-owned)</div>
+      <div class="fg"><div class="fgl">Standard Identity (HS-owned)</div>
         <div class="f"><span class="pill hs">HS</span><span class="fn">name, domain, website</span></div>
         <div class="f"><span class="pill hs">HS</span><span class="fn">industry, city, country</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">numberofemployees, annualrevenue</span></div>
       </div>
-      <div class="fg"><div class="fgl">Custom: CynLr CRM group</div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_icp_fit</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_segment, cynlr_geography</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_relationship_score</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_company_size</span></div>
+      <div class="fg"><div class="fgl">CynLr CRM group <span style="color:#fb923c;font-weight:normal">(local→HS push)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_icp_fit</span><span class="ft">Strong/Med/Weak</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_segment</span><span class="ft">Ent/SMB/Start/Gov</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_geography</span><span class="ft">APAC/NA/EU/…</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_relationship_score</span><span class="ft">1–10</span></div>
       </div>
-      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">companies.hs_company_id ⟷ HubSpot id<br>companies.domain = HubSpot domain (dedup)</div></div>
+      <div class="fg"><div class="fgl">CynLr Email Intel group <span style="color:#10b981;font-weight:normal">(v2 new)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_email_domain</span><span class="ft">e.g. renault.com</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_email_pattern</span><span class="ft">first.last / f.last / …</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_nda_signed</span><span class="ft">BOOL</span></div>
+      </div>
+      <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">companies.hs_company_id ⟷ HubSpot id<br>companies.domain = HubSpot domain (dedup key)</div></div>
     </div>
   </div>
 
   <div class="card dhd" id="card-hsd">
-    <div class="ch"><div style="font-size:11px;font-weight:700;color:#fbbf24">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Deals</div><div class="csub">syncs via hs_deal_id</div></div></div>
+    <div class="ch"><div style="font-size:11px;font-weight:700;color:#fbbf24">HubSpot</div><div style="margin-left:8px"><div class="ct" style="color:#e2e8f0">Deals</div><div class="csub">syncs via hs_deal_id · mirrors DEAL</div></div></div>
     <div class="cb">
-      <div class="fg"><div class="fgl">Standard + existing custom</div>
+      <div class="fg"><div class="fgl">Standard Pipeline <span style="color:#38bdf8;font-weight:normal">(bidirectional)</span></div>
         <div class="f"><span class="pill bi">BI</span><span class="fn">dealstage, amount, closedate</span></div>
-        <div class="f"><span class="fn">champion, economic_buyer</span></div>
-        <div class="f"><span class="fn">pain_point, blockers_risks</span></div>
+        <div class="f"><span class="pill bi">BI</span><span class="fn">probability</span></div>
+        <div class="f"><span class="pill hs">HS</span><span class="fn">hubspot_owner_id, owner_name</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Standard Deal Context (existing custom)</div>
         <div class="f"><span class="fn">geography, segment, app_type</span></div>
       </div>
-      <div class="fg"><div class="fgl">Custom: CynLr Deal Intel group</div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_technical_win</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_budget_confirmed</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_action_due</span></div>
-        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_product_services</span></div>
+      <div class="fg"><div class="fgl">CynLr Deal Intel group <span style="color:#fb923c;font-weight:normal">(local→HS push)</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_technical_win</span><span class="ft">BOOL</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_budget_confirmed</span><span class="ft">BOOL</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_owner</span><span class="ft">Vatsal / Rajiv</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_tags</span><span class="ft">comma-separated</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_product_services</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_action_due</span><span class="ft">DATE</span></div>
+      </div>
+      <div class="fg"><div class="fgl">Deal People <span style="color:#4ade80;font-weight:normal">(v3 · via HS Associations)</span></div>
+        <div class="f"><span class="fn">Contact ↔ Deal associations</span><span class="ft">HS API</span></div>
+        <div class="f"><span class="pill lo">L</span><span class="fn">cynlr_role_tags</span><span class="ft">Champion/EconBuyer/Tech/…</span></div>
       </div>
       <div class="fg" style="margin-top:6px"><div style="font-size:10px;color:#475569;text-align:center">deals.hs_deal_id ⟷ HubSpot deal id</div></div>
     </div>
+  </div>
+
+</div>
+
+<!-- V3 HARDENING LAYER -->
+<div class="div"><div class="divl"></div><div class="divt" style="color:#34d399">✦ &nbsp; v3 Hardening Layer — 24 Fixes &nbsp; ✦</div><div class="divl"></div></div>
+
+<div class="row4" style="margin-bottom:16px">
+
+  <div class="card da" id="card-suppressions">
+    <div class="ch"><div class="ci">🚫</div><div><div class="ct">SUPPRESSIONS</div><div class="csub">suppressions · compliance suppression list</div></div><span class="badge" style="background:#1a0808;color:#ef4444;border:1px solid #450a0a">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Suppression Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill kk">KEY</span><span class="fn">email</span><span class="ft">TEXT UNIQUE</span></div>
+        <div class="f"><span class="fn">reason</span><span class="ft">unsubscribe/bounce/manual</span></div>
+        <div class="f"><span class="fn">suppressed_at</span><span class="ft">ISO timestamp</span></div>
+      </div>
+      <div class="note">Checked before every send. Blocks sends pre-queue. Never reaches the scheduler if suppressed.</div>
+    </div>
+  </div>
+
+  <div class="card dd" id="card-enrichment-jobs">
+    <div class="ch"><div class="ci">🔄</div><div><div class="ct">ENRICHMENT JOBS</div><div class="csub">enrichment_jobs · retry queue</div></div><span class="badge" style="background:#1f1200;color:#f59e0b;border:1px solid #451a03">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Job Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">source</span><span class="ft">apify/linkedin/manual</span></div>
+        <div class="f"><span class="fn">status</span><span class="ft">pending/running/done/failed</span></div>
+        <div class="f"><span class="fn">error</span><span class="ft">TEXT nullable</span></div>
+        <div class="f"><span class="fn">next_retry_at</span><span class="ft">ISO timestamp</span></div>
+      </div>
+      <div class="note">Exponential backoff. No silent enrichment failures — every job is auditable and retryable.</div>
+    </div>
+  </div>
+
+  <div class="card dp" id="card-contact-emails">
+    <div class="ch"><div class="ci">📧</div><div><div class="ct">CONTACT EMAILS</div><div class="csub">contact_emails · multiple emails per person</div></div><span class="badge" style="background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Email Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">email</span><span class="ft">TEXT NOT NULL</span></div>
+        <div class="f"><span class="fn">kind</span><span class="ft">work/personal/other</span></div>
+        <div class="f"><span class="fn">is_primary</span><span class="ft">BOOL</span></div>
+        <div class="f"><span class="fn">verified_at</span><span class="ft">ISO timestamp</span></div>
+      </div>
+      <div class="note">Replaces single email field on persons. Supports work + personal addresses with primary flag.</div>
+    </div>
+  </div>
+
+  <div class="card dc" id="card-contact-employments">
+    <div class="ch"><div class="ci">💼</div><div><div class="ct">CONTACT EMPLOYMENTS</div><div class="csub">contact_employments · job history</div></div><span class="badge" style="background:#041f14;color:#10b981;border:1px solid #064e3b">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Employment Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">company_id</span><span class="ft">→ companies</span></div>
+        <div class="f"><span class="fn">title</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">started_at, ended_at</span></div>
+        <div class="f"><span class="fn">is_current</span><span class="ft">BOOL</span></div>
+        <div class="f"><span class="fn">source</span><span class="ft">apify/manual</span></div>
+      </div>
+      <div class="note">UNIQUE constraint makes enrichment re-runs safe. Re-enrichment never duplicates job history rows.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row4" style="margin-bottom:16px">
+
+  <div class="card dp" id="card-contact-education">
+    <div class="ch"><div class="ci">🎓</div><div><div class="ct">CONTACT EDUCATION</div><div class="csub">contact_education · education history</div></div><span class="badge" style="background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Education Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">school</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">degree</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">field</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">started, ended</span><span class="ft">year INT</span></div>
+      </div>
+      <div class="note">Structured enrichment data from Apify. Replaces ad-hoc JSON metadata blobs.</div>
+    </div>
+  </div>
+
+  <div class="card dp" id="card-contact-skills">
+    <div class="ch"><div class="ci">🔧</div><div><div class="ct">CONTACT SKILLS</div><div class="csub">contact_skills · individual skills</div></div><span class="badge" style="background:#0a1929;color:#60a5fa;border:1px solid #1e3a5f">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Skill Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">skill</span><span class="ft">TEXT NOT NULL</span></div>
+      </div>
+      <div class="note">Individual skill entries from Apify enrichment. One row per skill per person.</div>
+    </div>
+  </div>
+
+  <div class="card dj" id="card-tags">
+    <div class="ch"><div class="ci">🏷</div><div><div class="ct">TAGS</div><div class="csub">tags · normalized tag registry</div></div><span class="badge" style="background:#12124a;color:#818cf8;border:1px solid #312e81">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Tag Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill kk">KEY</span><span class="fn">name</span><span class="ft">NOCASE UNIQUE</span></div>
+      </div>
+      <div class="note">Case-insensitive dedup at DB level. "Robotics" and "robotics" are the same tag. Replaces TEXT blob on persons.</div>
+    </div>
+  </div>
+
+  <div class="card dj" id="card-contact-tags">
+    <div class="ch"><div class="ci">🔗</div><div><div class="ct">CONTACT TAGS</div><div class="csub">contact_tags · person↔tag junction</div></div><span class="badge" style="background:#12124a;color:#818cf8;border:1px solid #312e81">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Junction Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">person_id, tag_id</span><span class="ft">composite</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">tag_id</span><span class="ft">→ tags</span></div>
+      </div>
+      <div class="note">Many-to-many junction. Full tag analytics: count contacts per tag, filter by tag, bulk re-tag.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row4" style="margin-bottom:16px">
+
+  <div class="card dc" id="card-company-aliases">
+    <div class="ch"><div class="ci">🏢</div><div><div class="ct">COMPANY ALIASES</div><div class="csub">company_aliases · alternate names</div></div><span class="badge" style="background:#041f14;color:#10b981;border:1px solid #064e3b">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Alias Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">company_id</span><span class="ft">→ companies</span></div>
+        <div class="f"><span class="fn">alias</span><span class="ft">TEXT NOT NULL</span></div>
+      </div>
+      <div class="note">Replaces JSON aliases blob on companies. "BMW" / "BMW Group" / "BMW AG" all point to one company row. Queryable and indexable.</div>
+    </div>
+  </div>
+
+  <div class="card dd" id="card-deal-stage-transitions">
+    <div class="ch"><div class="ci">📈</div><div><div class="ct">DEAL STAGE TRANSITIONS</div><div class="csub">deal_stage_transitions · auto-logged</div></div><span class="badge" style="background:#1f1200;color:#f59e0b;border:1px solid #451a03">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Transition Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">deal_id</span><span class="ft">→ deals</span></div>
+        <div class="f"><span class="fn">from_stage</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">to_stage</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">changed_at</span><span class="ft">ISO timestamp</span></div>
+      </div>
+      <div class="note">Auto-inserted by trg_deal_stage_change on deals.stage UPDATE. Never manually inserted. Enables pipeline velocity analytics.</div>
+    </div>
+  </div>
+
+  <div class="card da" id="card-outreach-history">
+    <div class="ch"><div class="ci">📦</div><div><div class="ct">OUTREACH HISTORY</div><div class="csub">outreach_history · archived outreach</div></div><span class="badge" style="background:#1a0808;color:#ef4444;border:1px solid #450a0a">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Archive Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="pill fk">FK</span><span class="fn">person_id</span><span class="ft">→ persons</span></div>
+        <div class="f"><span class="fn">archived_at</span><span class="ft">ISO timestamp</span></div>
+        <div class="f"><span class="fn">context</span><span class="ft">TEXT</span></div>
+      </div>
+      <div class="note">Archives outreach records when a contact re-enters the pipeline. Preserves historical outreach context without polluting active state.</div>
+    </div>
+  </div>
+
+  <div class="card dl" id="card-sync-conflicts">
+    <div class="ch"><div class="ci">⚡</div><div><div class="ct">SYNC CONFLICTS</div><div class="csub">sync_conflicts · HubSpot conflict log</div></div><span class="badge" style="background:#1a0f3c;color:#a78bfa;border:1px solid #4c1d95">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Conflict Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn">entity_type</span><span class="ft">contact/deal/company</span></div>
+        <div class="f"><span class="fn">local_id</span><span class="ft">INT</span></div>
+        <div class="f"><span class="fn">hs_id</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">field</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">local_value, remote_value</span><span class="ft">TEXT</span></div>
+      </div>
+      <div class="note">Field-level conflict log for every local vs remote mismatch during HubSpot sync. Populated by hs_sync_map hash comparison.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row3" style="margin-bottom:16px">
+
+  <div class="card dm" id="card-events">
+    <div class="ch"><div class="ci">📅</div><div><div class="ct">EVENTS</div><div class="csub">events · structured event registry</div></div><span class="badge" style="background:#200012;color:#f472b6;border:1px solid #500724">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Event Record</div>
+        <div class="f"><span class="pill pk">PK</span><span class="fn">id</span><span class="ft">INTEGER</span></div>
+        <div class="f"><span class="fn">name</span><span class="ft">e.g. "AWS Summit 2025"</span></div>
+        <div class="f"><span class="fn">kind</span><span class="ft">conference/meetup/online</span></div>
+        <div class="f"><span class="fn">occurred_at</span><span class="ft">DATE</span></div>
+        <div class="f"><span class="fn">location</span><span class="ft">TEXT</span></div>
+      </div>
+      <div class="note">persons.event_id FK links to the event where you met someone. Filter all contacts from one event instantly.</div>
+    </div>
+  </div>
+
+  <div class="card dhg" id="card-contacts-fts">
+    <div class="ch"><div class="ci">🔍</div><div><div class="ct">CONTACTS FTS</div><div class="csub">contacts_fts · FTS5 virtual table</div></div><span class="badge" style="background:#02180f;color:#34d399;border:1px solid #065f46">NEW</span></div>
+    <div class="cb">
+      <div class="fg"><div class="fgl">Indexed Fields</div>
+        <div class="f"><span class="fn">full_name</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">headline</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">about</span><span class="ft">TEXT</span></div>
+        <div class="f"><span class="fn">company_name</span><span class="ft">TEXT</span></div>
+      </div>
+      <div class="note">FTS5 virtual table. Kept in sync via trg_fts_insert and trg_fts_update triggers. Instant full-text search at any scale.</div>
+    </div>
+  </div>
+
+  <div style="background:#0f1117;border:1.5px solid #1e293b;border-radius:12px;padding:16px;font-size:11px;color:#475569;line-height:1.7">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:#334155;margin-bottom:10px">5 Auto-Triggers</div>
+    <div style="margin-bottom:6px"><span style="color:#34d399;font-weight:700">trg_deal_stage_change</span> — auto-inserts into deal_stage_transitions on deals.stage UPDATE</div>
+    <div style="margin-bottom:6px"><span style="color:#34d399;font-weight:700">trg_review_current</span> — flips old contact_reviews.is_current=0 on INSERT</div>
+    <div style="margin-bottom:6px"><span style="color:#34d399;font-weight:700">trg_touch_activity</span> — updates persons.last_touch_at on activity_log INSERT</div>
+    <div style="margin-bottom:6px"><span style="color:#34d399;font-weight:700">trg_fts_insert</span> — keeps contacts_fts in sync on persons INSERT</div>
+    <div><span style="color:#34d399;font-weight:700">trg_fts_update</span> — keeps contacts_fts in sync on persons UPDATE</div>
   </div>
 
 </div>
@@ -433,6 +702,10 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
       <div class="ownitem">budget_confirmed</div>
       <div class="ownitem">icp_fit, relationship_score</div>
       <div class="ownitem">all activity_log rows</div>
+      <div class="ownitem">all deal_notes rows</div>
+      <div class="ownitem">all deal_people rows</div>
+      <div class="ownitem">deal tags (comma-separated)</div>
+      <div class="ownitem">email_domain, email_pattern</div>
       <div class="ownitem">linkedin_url, photo_path</div>
       <div class="ownitem">enrichment data</div>
     </div>
@@ -451,10 +724,11 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
       <div class="ownitem">deal stage</div>
       <div class="ownitem">deal amount</div>
       <div class="ownitem">expected_close</div>
-      <div class="ownitem">action_item</div>
-      <div class="ownitem">pain_point</div>
-      <div class="ownitem">champion, economic_buyer</div>
-      <div class="ownitem">competitors</div>
+      <div class="ownitem">probability</div>
+      <div class="ownitem" style="text-decoration:line-through;opacity:.5">action_item — removed</div>
+      <div class="ownitem" style="text-decoration:line-through;opacity:.5">pain_point — removed</div>
+      <div class="ownitem" style="text-decoration:line-through;opacity:.5">champion, economic_buyer — removed</div>
+      <div class="ownitem" style="text-decoration:line-through;opacity:.5">competitors — removed</div>
     </div>
   </div>
 </div>
@@ -462,7 +736,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </div><!-- /wrap -->
 
 <div style="text-align:center;margin-top:28px;font-size:11px;color:#1e293b">
-  schema_v2.sql · database_v2.py · HubSpot portal 243444910
+  schema_v3.sql · database_v3.py · HubSpot portal 243444910 · 28 tables · 5 triggers
 </div>
 
 <script>
@@ -473,10 +747,10 @@ const LINES = [
   {from:'p-company', to:'c-id', color:'#4ade80', label:'N:1'},
   // deals.company_id → companies.id
   {from:'d-company', to:'c-id', color:'#4ade80', label:'N:1'},
-  // deals.champion_id → persons.id
-  {from:'d-champ', to:'p-id', color:'#4ade80', label:'N:1'},
-  // deals.economic_buyer_id → persons.id
-  {from:'d-eb', to:'p-id', color:'#4ade80', label:'N:1'},
+  // deals.deal_people → deal_people.deal_id
+  {from:'d-people', to:'dc-deal', color:'#4ade80', label:'1:N'},
+  // deals.deal_notes → deal_notes.deal_id
+  {from:'d-notes', to:'dn-deal', color:'#ec4899', label:'1:N'},
   // activity_log.person_id → persons.id
   {from:'a-person', to:'p-id', color:'#4ade80', label:'N:1'},
   // activity_log.company_id → companies.id
@@ -583,6 +857,265 @@ window.addEventListener('load', () => {
     svg.appendChild(path);
   });
 });
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     NARRATION LAYER — Schema Audio Guide
+     ═══════════════════════════════════════════════ -->
+<style>
+#narr-bar{position:fixed;bottom:0;left:0;right:0;z-index:99980;background:#12151f;border-top:1px solid #1e293b;padding:10px 20px;display:flex;align-items:center;gap:12px;font-family:'Segoe UI',system-ui,sans-serif;box-shadow:0 -4px 24px #00000066}
+#narr-section{font-size:12px;font-weight:700;color:#818cf8;min-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#narr-progress-wrap{display:flex;gap:5px;flex:1;justify-content:center;flex-wrap:wrap}
+.narr-dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:background .2s,transform .2s;flex-shrink:0}
+.narr-dot:hover{background:#475569;transform:scale(1.3)}
+.narr-dot.active{background:#6366f1;transform:scale(1.4)}
+.narr-dot.played{background:#312e81}
+#narr-btns{display:flex;align-items:center;gap:8px}
+#narr-btns button{border:none;border-radius:7px;font-size:11px;font-weight:700;padding:5px 11px;cursor:pointer;transition:opacity .15s}
+#narr-play-all{background:#6366f1;color:#fff}
+#narr-play-all.playing{background:#ef4444}
+#narr-replay{background:#1e293b;color:#94a3b8}
+#narr-mute{background:#1e293b;color:#94a3b8;padding:5px 8px}
+#narr-speed{background:#1e293b;color:#94a3b8;min-width:36px}
+#narr-wpm{font-size:10px;color:#334155;min-width:32px;text-align:right}
+body{padding-bottom:56px}
+.narr-highlight{outline:2px solid #6366f144;outline-offset:8px;border-radius:14px;transition:outline .3s}
+</style>
+
+<div id="narr-bar">
+  <div id="narr-section">CynLr CRM v3 — Schema Guide</div>
+  <div id="narr-progress-wrap"></div>
+  <div id="narr-btns">
+    <button id="narr-speed">0.9×</button>
+    <span id="narr-wpm"></span>
+    <button id="narr-mute">🔊</button>
+    <button id="narr-replay">↩ Replay</button>
+    <button id="narr-play-all">▶ Play All</button>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  {
+    id: 'wrap',
+    label: 'Schema Overview',
+    text: "This is the full CynLr CRM v3 schema. Twenty-eight tables total. The top section covers the four core domains that everything else connects to. Below that are the bridge tables, campaign infrastructure, and at the bottom, the thirteen new tables added in the v3 hardening layer. Color coding tells you the domain at a glance. Blue is people. Green is companies. Amber is deals. Red is activity. Indigo is campaigns. Purple is sync. And a teal border means it's a virtual table. Let's walk through each group."
+  },
+  {
+    id: 'card-person',
+    label: 'PERSON — persons',
+    text: "The person table is the centre of everything. Every contact, whether they came in from a cold discovery batch or you met them at a conference, lives here as a single row. The identity section holds the basics. The professional section links to a real company record via a foreign key, not a text field. The CRM intel section is entirely local — things HubSpot doesn't own, like your internal bucket score, relationship strength, and next follow-up date. And the acquisition section is new in v2. Entry source tells you exactly how this person entered the system. Cold means they came from a discovery batch. Organic means you added them manually. Inbound means they reached out first. This field is written once and never changes."
+  },
+  {
+    id: 'card-company',
+    label: 'COMPANY — companies',
+    text: "The company table fixes one of the oldest problems in the original CRM. Before this, company was just a text field on every contact. So BMW appeared forty-seven times in forty-seven slightly different spellings. Now there's one row per company, deduped on domain. All contacts from that company share the same row. You can ask: show me everyone at BMW, and get a clean answer. The ICP fit field lets you score the company once, and that score flows automatically to every contact from that company."
+  },
+  {
+    id: 'card-deal',
+    label: 'DEALS — deals',
+    text: "The deal table is local-first. It lives on your machine before anything touches HubSpot. This is important. You don't push a deal to HubSpot speculatively. You create it locally when there's a real signal — a meeting requested, a pricing question, a positive reply. Only then does it sync. Champion and economic buyer are proper foreign keys to the persons table, not free text. Deal stage transitions are auto-logged by a database trigger, so you never lose track of when a deal moved through the pipeline."
+  },
+  {
+    id: 'card-activity',
+    label: 'ACTIVITY LOG — activity_log',
+    text: "The activity log is one of the most important design decisions in this schema. Previously, notes, messages, and activities were three separate tables doing the same job. Now they're one. Every interaction — an email you sent, a LinkedIn message, a phone call, a meeting note, even an internal thought you typed — goes into activity_log with a channel and direction. Channel is email, LinkedIn, phone, or meeting. Direction is inbound, outbound, or internal. This means you get a clean chronological timeline for any contact across every channel, with a single query."
+  },
+  {
+    sel: '#card-discovery',
+    label: 'Discovery Batches',
+    text: "Discovery batches give cold outreach contacts their cohort identity. When Claude runs a search session and finds fifty profiles matching your criteria, those fifty people all get linked to the same batch row. Three months later you can ask: what was the approval rate on that April APAC batch? What percentage converted to meetings? The batch row holds the answer. Without this, every cold contact is orphaned with no memory of where they came from."
+  },
+  {
+    sel: '#card-reviews',
+    label: 'Contact Reviews',
+    text: "Contact reviews store Nikhil's swipe decisions completely separately from the person records. When he reviews a batch, his yes, no, maybe, or skip decisions go into this table, not onto the person. This is intentional. The person record stays clean and unchanging. The review decisions are queryable: show me all contacts Nikhil approved in the last batch. And if he changes his mind, you update the review, not the contact."
+  },
+  {
+    sel: '#card-hs-sync',
+    label: 'HubSpot Sync Bridge',
+    text: "The hs_sync_map table is a unified bridge between local IDs and HubSpot IDs. Every entity that gets pushed to HubSpot — contacts, deals, companies — gets a row here with its local ID paired to the HubSpot ID that comes back. In v3, it also carries local and remote hash fields for conflict detection. If the same field has different values locally and in HubSpot, a sync_conflicts row gets written automatically so you have a complete audit trail of every disagreement."
+  },
+  {
+    id: 'card-suppressions',
+    label: 'SUPPRESSIONS — compliance gate',
+    text: "The suppressions table is the compliance layer that runs before every single send. Before any message leaves the scheduler, the recipient's email is checked against this table. If there's a match — because they unsubscribed, bounced, or were manually suppressed — the send is blocked at the database level. This isn't a code-level check that someone might forget to add to a new send path. It's a gate that every campaign query has to pass through. Reason codes tell you exactly why they're suppressed: bounce, unsubscribe, complaint, or manual."
+  },
+  {
+    id: 'card-enrichment-jobs',
+    label: 'ENRICHMENT JOBS — retry queue',
+    text: "The enrichment jobs table turns enrichment from a fire-and-forget operation into a tracked queue. Before this, if Apify failed to enrich a contact, you had no idea. The contact just sat with incomplete data and there was no log of what happened. Now every enrichment attempt writes a job row. Status starts at queued, moves to running, and ends at done or failed. If it fails, the error message is stored, and the next retry time is set automatically with exponential backoff. You can query for all failed enrichment jobs and know exactly which contacts need attention."
+  },
+  {
+    id: 'card-contact-employments',
+    label: 'CONTACT EMPLOYMENTS — job history',
+    text: "Contact employments store a person's full job history as proper structured rows, not JSON blobs buried in a metadata field. Each row has a company foreign key, a title, start and end dates, and an is_current flag. The unique constraint on person, company, and title means you can re-run enrichment on the same contact as many times as you want and never get duplicate rows. The system is idempotent — re-enrichment is safe."
+  },
+  {
+    id: 'card-contact-emails',
+    label: 'CONTACT EMAILS — multiple addresses',
+    text: "Contact emails replaces the single email field on the persons table with a proper one-to-many table. A person can have a work address, a personal address, and a backup address, all stored cleanly. The is_primary flag marks which one is the default for outreach. The verified_at timestamp tells you when the address was last confirmed valid. For HubSpot sync compatibility, the primary email is still denormalized back onto the persons table, so nothing breaks downstream."
+  },
+  {
+    id: 'card-contact-education',
+    label: 'CONTACT EDUCATION & SKILLS',
+    text: "Contact education and contact skills take the structured data that Apify returns from LinkedIn profiles and give it a proper home. Education history — school, degree, field, start and end year — becomes queryable rows instead of JSON text. Skills become individual rows with one skill per record per person. Before this, all of that data was dumped into a metadata JSON blob and effectively invisible to any analytics query. Now you can ask: show me all contacts with a machine learning background, and get a real answer."
+  },
+  {
+    id: 'card-tags',
+    label: 'TAGS — normalized taxonomy',
+    text: "The tags table replaces the old comma-separated text blob on persons with a proper normalized registry. Each tag is one row with a case-insensitive unique constraint at the database level, so Robotics and robotics and ROBOTICS are all the same tag. The contact_tags junction table connects people to tags with a many-to-many relationship. This unlocks real analytics: how many contacts are tagged investor-facing, which contacts share multiple tags, and bulk re-tagging operations that run in a single query."
+  },
+  {
+    id: 'card-deal-stage-transitions',
+    label: 'DEAL STAGE TRANSITIONS — auto-logged',
+    text: "Deal stage transitions are the pipeline velocity table. Every time a deal's stage field is updated, a database trigger fires automatically and writes a row here with the old stage, the new stage, and the timestamp. You never manually insert into this table. It's entirely trigger-driven. The result is a complete, tamper-proof history of how every deal moved through the pipeline. You can calculate time-in-stage for any deal, average days from Prospecting to Closed Won, and where deals typically stall."
+  },
+  {
+    id: 'card-sync-conflicts',
+    label: 'SYNC CONFLICTS — HubSpot audit trail',
+    text: "Sync conflicts give you field-level visibility into every disagreement between your local CRM and HubSpot. When the sync runs and finds that a field has different values locally versus in HubSpot, it writes a row here with the field name, the local value, and the remote value. The resolution field records what was decided: local wins, remote wins, or manually resolved. This means no more silent overwrites and no more mystery data changes. Every conflict is documented."
+  },
+  {
+    sel: '.own',
+    label: 'Data Ownership',
+    text: "The ownership panel at the bottom summarizes which system owns which fields. Orange means local only — these are fields that HubSpot doesn't know about and shouldn't overwrite. Things like bucket, priority, relationship strength, entry source, and next follow-up. Purple means HubSpot owns it — name, email, job title, phone, and lifecycle stage. On a conflict, HubSpot's value wins for these fields. Blue means bidirectional — both systems can write, and the sync_conflicts table captures any disagreements. Understanding this ownership model is what makes the sync safe to run repeatedly without corrupting data."
+  }
+];
+
+function resolveEl(s) {
+  if (s.id) return document.getElementById(s.id);
+  if (s.sel) return document.querySelector(s.sel);
+  return null;
+}
+
+const wrap2 = document.getElementById('narr-progress-wrap');
+SECTIONS.forEach((s, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'narr-dot';
+  dot.title = s.label;
+  dot.addEventListener('click', () => jumpTo(i));
+  wrap2.appendChild(dot);
+  s._dot = dot;
+});
+
+let currentIdx = -1;
+let muted = false;
+let rate = 0.88;
+let playAllMode = false;
+let utterance = null;
+const synth = window.speechSynthesis;
+
+function getVoice() {
+  const voices = synth.getVoices();
+  const prefer = [
+    v => v.name.includes('Aria') || v.name.includes('Jenny') || v.name.includes('Guy'),
+    v => v.lang === 'en-US' && v.name.toLowerCase().includes('neural'),
+    v => v.lang === 'en-US' && v.name.toLowerCase().includes('natural'),
+    v => v.lang === 'en-GB' && !v.name.toLowerCase().includes('espeak'),
+    v => v.lang === 'en-US' && !v.name.toLowerCase().includes('espeak'),
+    v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('espeak'),
+    () => voices[0],
+  ];
+  for (const fn of prefer) { const v = voices.find(fn); if (v) return v; }
+  return voices[0];
+}
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
+
+function setCurrentIdx(i) {
+  SECTIONS.forEach((s, j) => {
+    s._dot.classList.toggle('active', j === i);
+    if (j < i) s._dot.classList.add('played');
+  });
+  currentIdx = i;
+  const s = SECTIONS[i];
+  document.getElementById('narr-section').textContent = s.label;
+  document.querySelectorAll('.narr-highlight').forEach(e => e.classList.remove('narr-highlight'));
+  const el = resolveEl(s);
+  if (el) el.classList.add('narr-highlight');
+}
+
+function speak(text, onEnd) {
+  synth.cancel();
+  if (muted) { onEnd && onEnd(); return; }
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = rate;
+  utterance.pitch = 0.95;
+  const v = getVoice();
+  if (v) utterance.voice = v;
+  utterance.onend = () => onEnd && onEnd();
+  utterance.onerror = () => onEnd && onEnd();
+  synth.speak(utterance);
+}
+
+function jumpTo(i) {
+  playAllMode = false;
+  synth.cancel();
+  document.getElementById('narr-play-all').textContent = '▶ Play All';
+  document.getElementById('narr-play-all').classList.remove('playing');
+  setCurrentIdx(i);
+  const el = resolveEl(SECTIONS[i]);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => speak(SECTIONS[i].text), 600);
+}
+
+function playAllFrom(i) {
+  if (!playAllMode || i >= SECTIONS.length) { stopPlayAll(); return; }
+  setCurrentIdx(i);
+  const el = resolveEl(SECTIONS[i]);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => {
+    speak(SECTIONS[i].text, () => {
+      if (playAllMode) setTimeout(() => playAllFrom(i + 1), 600);
+    });
+  }, 800);
+}
+
+function stopPlayAll() {
+  playAllMode = false;
+  synth.cancel();
+  document.getElementById('narr-play-all').textContent = '▶ Play All';
+  document.getElementById('narr-play-all').classList.remove('playing');
+}
+
+document.getElementById('narr-play-all').addEventListener('click', () => {
+  if (playAllMode) { stopPlayAll(); } else {
+    playAllMode = true;
+    document.getElementById('narr-play-all').textContent = '⏹ Stop';
+    document.getElementById('narr-play-all').classList.add('playing');
+    playAllFrom(currentIdx >= 0 ? currentIdx : 0);
+  }
+});
+
+document.getElementById('narr-replay').addEventListener('click', () => {
+  if (currentIdx >= 0) { synth.cancel(); speak(SECTIONS[currentIdx].text); }
+});
+
+document.getElementById('narr-mute').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('narr-mute').textContent = muted ? '🔇' : '🔊';
+  if (muted) synth.cancel();
+});
+
+const speeds = [0.75, 0.88, 1, 1.2, 1.5];
+let speedIdx = 1;
+document.getElementById('narr-speed').addEventListener('click', () => {
+  speedIdx = (speedIdx + 1) % speeds.length;
+  rate = speeds[speedIdx];
+  document.getElementById('narr-speed').textContent = rate + '×';
+});
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const i = SECTIONS.findIndex(s => resolveEl(s) === entry.target);
+    if (i === -1 || playAllMode || i === currentIdx) return;
+    setCurrentIdx(i);
+    speak(SECTIONS[i].text);
+  });
+}, { threshold: 0.4, rootMargin: '-80px 0px -80px 0px' });
+
+SECTIONS.forEach(s => { const el = resolveEl(s); if (el) io.observe(el); });
 </script>
 
 <!-- ═══════════════════════════════════════════════
