@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CynLr CRM v2 — Two-Track Data Flow</title>
+<title>CynLr CRM v3 — Two-Track Data Flow</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:36px 24px 80px}
@@ -155,9 +155,9 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 </head>
 <body>
 
-<h1>CynLr CRM v2 — Two-Track Outreach Architecture</h1>
+<h1>CynLr CRM v3 — Two-Track Outreach Architecture</h1>
 <p class="sub">Cold Outreach (batch, AI-driven) &nbsp;·&nbsp; Organic (manual, relationship-first) &nbsp;·&nbsp; Both converge at Deal stage</p>
-<div class="v2-badge">v2 Architecture — Under Development</div>
+<div class="v2-badge">v3 Architecture — 28 tables · 24 hardening fixes</div>
 
 <!-- ══════════ THESIS ══════════ -->
 <div id="thesis" style="max-width:1140px;margin:0 auto 28px;background:#0c111a;border:1.5px solid #1e3a5f;border-radius:14px;padding:24px 28px">
@@ -1078,7 +1078,7 @@ h1{text-align:center;font-size:20px;font-weight:700;color:#f8fafc;margin-bottom:
 
 </div><!-- /page -->
 
-<div style="text-align:center;margin-top:24px;font-size:11px;color:#1e293b">data_flow_v2 · CynLr CRM Architecture · v2 under development</div>
+<div style="text-align:center;margin-top:24px;font-size:11px;color:#1e293b">data_flow_v3 · CynLr CRM Architecture · 28 tables · 24 hardening fixes</div>
 
 <!-- ═══════════════════════════════════════════════
      NARRATION ENGINE
@@ -1103,7 +1103,7 @@ body{padding-bottom:56px}
 </style>
 
 <div id="narr-bar">
-  <div id="narr-section">CynLr CRM v2 — Data Flow &amp; Schema</div>
+  <div id="narr-section">CynLr CRM v3 — Data Flow &amp; Schema</div>
   <div id="narr-progress-wrap"></div>
   <div id="narr-btns">
     <button id="narr-speed">0.9×</button>
@@ -1119,7 +1119,7 @@ const SECTIONS = [
   {
     id: 'thesis',
     label: 'Design Thesis',
-    text: "Here's the problem every sales team eventually runs into. You have two completely different kinds of relationships sitting in the same system, being treated exactly the same way. The person you met at a conference last month, and the LinkedIn profile that was scraped last Tuesday — same table, same fields, same status. But they're not the same thing at all. One is a relationship you're building. The other is a name in a batch. This architecture makes that distinction permanent. Not as a tag you might remember to add later, but as a structural fact baked into how every contact enters the system from day one. Everything else is built on that foundation."
+    text: "Here's the problem every sales team eventually runs into. You have two completely different kinds of relationships sitting in the same system, being treated exactly the same way. The person you met at a conference last month, and the LinkedIn profile that was scraped last Tuesday — same table, same fields, same status. But they're not the same thing at all. One is a relationship you're building. The other is a name in a batch. This architecture makes that distinction permanent. Not as a tag you might remember to add later, but as a structural fact baked into how every contact enters the system from day one. Everything else is built on that foundation. And in this version, we've also added a full compliance and resilience layer. A suppression list that's checked before every send. An enrichment job queue so you know when enrichment fails and can retry it. Automatic deal stage history so you never lose track of when a deal moved. And a full-text search index so you can find anyone in seconds."
   },
   {
     sel: '.track-header-cold',
@@ -1214,12 +1214,12 @@ const SECTIONS = [
   {
     id: 'schema-ref',
     label: 'Schema',
-    text: "Behind everything you just saw are nine tables. Five are brand new. Companies, so a company is finally its own record and not a piece of text copied onto every person from that company. Deals, a local deal table that exists on your machine before anything ever touches HubSpot. The activity log, one place for every interaction across both tracks, replacing three separate tables that were doing the same job independently. Discovery batches, giving cold outreach contacts their cohort identity. And contact reviews, keeping Nikhil's decisions completely separate from the person records. The contacts table itself gains thirteen new fields, including the HubSpot-parity ones like phone number, city, and LinkedIn URL, so that any contact can be pushed to HubSpot cleanly, whenever you choose, without any data transformation."
+    text: "Behind everything you just saw are twenty-eight tables. Thirteen are brand new in this version. Contact employments, so every person's job history is stored as proper rows, not text blobs — and re-enrichment never duplicates them. Suppressions, a compliance gate that blocks sends before they even reach the scheduler. Enrichment jobs, a queue with retry tracking so you always know when enrichment failed and can fix it without hunting through logs. Deal stage transitions, auto-logged by a database trigger every time a deal stage changes — you never lose track of when a deal moved and you never have to manually record it. A full-text search index across name, headline, bio, and company so you can find anyone in the system in under a second. And normalized tags replacing the old comma-separated blob — queryable, deduped at the database level, with full analytics. The persons table gains six new fields including a soft-delete flag, a last-touch timestamp that updates automatically every time an activity is logged, and a direct link to the event where you met someone."
   },
   {
     id: 'migration-plan',
     label: 'Migration',
-    text: "Getting from where the system is today to this target happens in nine phases, and every single one is additive. Nothing gets deleted. Nothing gets overwritten. The existing sixteen hundred contacts, their notes, their history, all of it stays intact throughout. Phase zero is a backup, always. The middle phases add the new tables and columns, and backfill the company relationships automatically from the data that's already there. The sensitive phase is migrating existing notes and messages into the unified activity log, and that one runs with a dry-run check before anything commits. The final phases update the code paths and wire up the status sync. The whole migration runs locally on your machine. Nothing touches HubSpot until you explicitly decide to push something across."
+    text: "Getting from where the system is today to this target happens in nine phases, and every single one is additive. Nothing gets deleted. Nothing gets overwritten. The existing sixteen hundred contacts, their notes, their history, all of it stays intact throughout. Phase zero is a backup, always. The middle phases add the new tables and columns, and backfill the company relationships automatically from the data that's already there. The sensitive phase is migrating existing notes and messages into the unified activity log, and that one runs with a dry-run check before anything commits. Phases six and seven update the code paths and wire up the status sync. The whole migration runs locally on your machine. Nothing touches HubSpot until you explicitly decide to push something across. Phase eight adds the compliance and safety layer — the suppressions table, the enrichment job queue with exponential backoff, the dedup key on activity log for idempotent writes, and the provider message ID uniqueness constraint on campaign recipients so double-sends become structurally impossible. Phase nine adds the analytics and search layer — full-text search with automatic sync triggers, deal stage transition history, the normalized tags tables, and the sync conflict log for HubSpot field-level audit. Each phase is independently deployable and independently testable."
   }
 ]
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CynLr CRM v2 — Architecture Review</title>
+<title>CynLr CRM v3 — Architecture Review</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 24px}
@@ -49,12 +49,13 @@ h1{font-size:26px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:
 <body>
 <div class="wrap">
   <div class="logo">CynLr · Internal Review</div>
-  <h1>CRM v2 Architecture</h1>
-  <p class="sub">Two-track outreach. Normalized schema. CRM + HubSpot as centre of truth.<br>Review the proposal and diagrams, then add comments and send back.</p>
+  <h1>CRM v3 Architecture</h1>
+  <p class="sub">Two-track outreach. Normalized schema. CRM + HubSpot as centre of truth.<br>Compliance-ready suppression list, enrichment retry queue, full-text search, and resilient idempotent sends.<br>Review the proposal and diagrams, then add comments and send back.</p>
   <div class="badge-row">
-    <span class="badge b-new">+6 new tables</span>
+    <span class="badge b-new">+13 new tables</span>
     <span class="badge b-dep">−3 deprecated</span>
-    <span class="badge b-fix">4 enhanced</span>
+    <span class="badge b-fix">8 tables enhanced</span>
+    <span class="badge b-fix">24 hardening fixes</span>
     <span class="badge b-note">Cold + Organic tracks</span>
   </div>
 
@@ -76,7 +77,7 @@ h1{font-size:26px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:
       <div class="card-title">Schema v2 Diagram</div>
       <div class="card-desc">All tables with fields and FK relationships. New tables highlighted in green. Deprecated tables grayed out. HubSpot bridge shown.</div>
       <div class="card-cta">Open schema →</div>
-      <div class="card-meta">16 tables · 6 new · 3 deprecated</div>
+      <div class="card-meta">28 tables · 13 new · 5 triggers</div>
     </a>
     <a class="card" href="data_flow.html">
       <div class="card-icon">🔄</div>
@@ -85,34 +86,53 @@ h1{font-size:26px;font-weight:800;color:#f8fafc;text-align:center;margin-bottom:
       <div class="card-cta">Open data flow →</div>
       <div class="card-meta">Cold: C1–C10 · Organic: O1–O5 · Converge at Meeting Set</div>
     </a>
+    <a class="card card-full" href="hs_audit.html" style="border-color:#3b1f6e;background:#0d0a1a">
+      <div class="card-icon">🟣</div>
+      <div class="card-title" style="color:#c084fc">HubSpot Entity Audit — Live</div>
+      <div class="card-desc">Portal 243444910 actual state vs v3 schema target. 2,047 contacts · 1,175 companies · 24 deals. 0 cynlr_* properties exist — 21 need to be created. Deprecated fields still live. Side-by-side gap tracker.</div>
+      <div class="card-cta" style="color:#a78bfa">Open audit →</div>
+      <div class="card-meta">10 entities mapped · 21 props to create · 17 deprecated to retire</div>
+    </a>
   </div>
 
   <div class="changes">
     <div class="changes-title">Key Changes at a Glance</div>
     <div class="changes-grid">
       <div class="change-item c-new">
-        <h4>discovery_batches</h4>
-        <p>Groups every contact from one Claude Code scrape. Cohort tracking, batch approval rates.</p>
+        <h4>contact_employments</h4>
+        <p>Job history per person. Enrichment-safe via UNIQUE constraint. Re-enrichment never duplicates.</p>
       </div>
       <div class="change-item c-new">
-        <h4>contact_reviews</h4>
-        <p>Stores Nikhil's swipe decisions. Separate from contacts — list build filters on yes decisions.</p>
+        <h4>suppressions</h4>
+        <p>Compliance suppression list. Checked before every send. Blocks sends pre-queue for any suppressed email.</p>
       </div>
       <div class="change-item c-new">
-        <h4>message_templates</h4>
-        <p>Reusable copy with placeholders. Campaigns reference templates, not inline text.</p>
+        <h4>enrichment_jobs</h4>
+        <p>Queued enrichment with retry tracking. No more silent failures — every job has a status and next_retry_at.</p>
       </div>
       <div class="change-item c-new">
-        <h4>hs_sync_map bridge</h4>
-        <p>Unified local ↔ HubSpot FK table with sync status. Replaces scattered hs_*_id fields.</p>
+        <h4>deal_stage_transitions</h4>
+        <p>Auto-logged via trigger on deals.stage UPDATE. Pipeline analytics with full history, never manually inserted.</p>
       </div>
       <div class="change-item c-fix">
-        <h4>entry_source on persons</h4>
-        <p>cold / organic / inbound / referral. Separates the two tracks at the data level.</p>
+        <h4>tags → contact_tags</h4>
+        <p>Normalized tag registry replaces comma-separated TEXT blobs. Queryable, no duplicates, no parsing.</p>
       </div>
-      <div class="change-item c-merge">
-        <h4>notes + activities + messages merged</h4>
-        <p>All absorbed into activity_log. One unified interaction table, richer queries.</p>
+      <div class="change-item c-new">
+        <h4>contact_emails</h4>
+        <p>Multiple emails per person with primary flag and verified_at. Replaces single email field on persons.</p>
+      </div>
+      <div class="change-item c-fix">
+        <h4>dedup_key on activity_log</h4>
+        <p>UNIQUE constraint prevents duplicate log entries. Idempotent writes — safe to retry without double-logging.</p>
+      </div>
+      <div class="change-item c-new">
+        <h4>FTS5 full-text search</h4>
+        <p>contacts_fts virtual table. Instant search across name, headline, about, and company. Auto-synced via trigger.</p>
+      </div>
+      <div class="change-item c-new">
+        <h4>sync_conflicts</h4>
+        <p>HubSpot conflict audit trail. Field-level resolution log for every local vs remote value mismatch.</p>
       </div>
     </div>
   </div>

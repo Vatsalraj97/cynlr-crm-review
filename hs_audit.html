@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CynLr · HubSpot Entity Audit</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:36px 24px 80px;min-height:100vh}
+h1{text-align:center;font-size:22px;font-weight:800;color:#f8fafc;margin-bottom:4px}
+.sub{text-align:center;font-size:12px;color:#475569;margin-bottom:32px}
+
+/* stat bar */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:1100px;margin:0 auto 36px}
+.stat{background:#1e2535;border:1.5px solid #334155;border-radius:12px;padding:14px 12px;text-align:center}
+.stat-n{font-size:24px;font-weight:800;color:#f8fafc;line-height:1}
+.stat-l{font-size:10px;color:#64748b;margin-top:4px;text-transform:uppercase;letter-spacing:.6px}
+.stat-s{font-size:9px;margin-top:3px;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block}
+.s-hs{background:#16103a;color:#a78bfa}
+.s-lo{background:#0a1929;color:#60a5fa}
+
+/* main grid */
+.wrap{max-width:1100px;margin:0 auto}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+
+/* section header */
+.sec-hd{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-hd::after{content:'';flex:1;height:1px;background:#1e293b}
+
+/* entity row */
+.ent{border:1.5px solid;border-radius:11px;margin-bottom:10px;overflow:hidden}
+.ent-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none}
+.ent-icon{font-size:16px;flex-shrink:0}
+.ent-name{font-size:13px;font-weight:700;flex:1}
+.ent-sub{font-size:10px;color:#64748b}
+.ent-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+.ent-count{font-size:11px;font-weight:700;color:#94a3b8;margin-left:6px}
+.ent-body{padding:0 14px 12px;display:none}
+.ent-body.open{display:block}
+.prop-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;border-bottom:1px solid #0f1117}
+.prop-row:last-child{border-bottom:none}
+.pn{font-family:'Cascadia Code','Courier New',monospace;font-size:10px;color:#cbd5e1;flex:1}
+.pt{font-size:9.5px;color:#475569;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* status colours */
+.e-ok{border-color:#10b981}
+.e-ok .ent-h{background:#031510}
+.e-ok .ent-name{color:#34d399}
+.e-ok .ent-badge{background:#031a10;color:#34d399;border:1px solid #065f46}
+.e-ok .dot{background:#10b981}
+
+.e-partial{border-color:#f59e0b}
+.e-partial .ent-h{background:#1a1000}
+.e-partial .ent-name{color:#fbbf24}
+.e-partial .ent-badge{background:#1f1200;color:#f59e0b;border:1px solid #451a03}
+.e-partial .dot{background:#f59e0b}
+
+.e-miss{border-color:#ef4444}
+.e-miss .ent-h{background:#1a0808}
+.e-miss .ent-name{color:#f87171}
+.e-miss .ent-badge{background:#1a0808;color:#f87171;border:1px solid #450a0a}
+.e-miss .dot{background:#ef4444}
+
+.e-local{border-color:#334155}
+.e-local .ent-h{background:#0d1117}
+.e-local .ent-name{color:#94a3b8}
+.e-local .ent-badge{background:#0d1117;color:#64748b;border:1px solid #1e293b}
+.e-local .dot{background:#475569}
+
+.e-hs{border-color:#7c3aed}
+.e-hs .ent-h{background:#16103a}
+.e-hs .ent-name{color:#c084fc}
+.e-hs .ent-badge{background:#16103a;color:#a78bfa;border:1px solid #4c1d95}
+.e-hs .dot{background:#7c3aed}
+
+/* prop status pills */
+.pp{font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:7px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.pp-ok{background:#031a10;color:#34d399}
+.pp-miss{background:#1a0808;color:#f87171}
+.pp-dep{background:#1f1200;color:#fb923c}
+.pp-extra{background:#16103a;color:#a78bfa}
+.pp-hs{background:#16103a;color:#a78bfa}
+
+/* gap table */
+.gap-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.gap-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#334155;padding:5px 8px;border-bottom:1px solid #1e293b;text-align:left}
+.gap-table td{padding:5px 8px;border-bottom:1px solid #0f1117;vertical-align:top}
+.gap-table tr:last-child td{border-bottom:none}
+.gap-table .field{font-family:'Cascadia Code',monospace;font-size:10px;color:#cbd5e1}
+.gap-table .obj{font-size:9px;color:#64748b}
+
+/* legend */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;font-size:11px;color:#64748b}
+.li{display:flex;align-items:center;gap:5px}
+.li .dot{width:8px;height:8px}
+
+@media(max-width:700px){.cols{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<h1>CynLr CRM · HubSpot Entity Audit</h1>
+<p class="sub">Portal 243444910 &nbsp;·&nbsp; Live pull as of May 2026 &nbsp;·&nbsp; v3 schema target vs actual HubSpot state</p>
+
+<!-- STAT BAR -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-n" style="color:#a78bfa">2,047</div>
+    <div class="stat-l">HS Contacts</div>
+    <div class="stat-s s-hs">HubSpot</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:#34d399">1,175</div>
+    <div class="stat-l">HS Companies</div>
+    <div class="stat-s s-hs">HubSpot</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:#fbbf24">24</div>
+    <div class="stat-l">HS Deals</div>
+    <div class="stat-s s-hs">HubSpot</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:#60a5fa">10</div>
+    <div class="stat-l">Local Entities</div>
+    <div class="stat-s s-lo">SQLite v3</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:#f87171">0</div>
+    <div class="stat-l">cynlr_* Props</div>
+    <div class="stat-s s-hs">Missing in HS</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n" style="color:#fb923c">17</div>
+    <div class="stat-l">Deprecated Props</div>
+    <div class="stat-s s-hs">Still live in HS</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div class="legend">
+  <div class="li"><div class="dot" style="background:#10b981;border-radius:50%"></div> Exists + aligned</div>
+  <div class="li"><div class="dot" style="background:#f59e0b;border-radius:50%"></div> Exists but incomplete / misaligned</div>
+  <div class="li"><div class="dot" style="background:#ef4444;border-radius:50%"></div> Missing in HubSpot</div>
+  <div class="li"><div class="dot" style="background:#475569;border-radius:50%"></div> Local-only (intentional)</div>
+  <div class="li"><div class="dot" style="background:#7c3aed;border-radius:50%"></div> HubSpot extra (not in v3 schema)</div>
+</div>
+
+<div class="cols">
+
+<!-- LEFT — LOCAL SCHEMA -->
+<div>
+  <div class="sec-hd" style="color:#60a5fa">📦 &nbsp; Local Schema — 10 Entities (SQLite v3)</div>
+
+  <!-- 1. Person -->
+  <div class="ent e-partial">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">👤</span>
+      <div><div class="ent-name">Person <span class="ent-count">→ HS Contacts</span></div><div class="ent-sub">persons · Domain 1</div></div>
+      <span class="ent-badge">⚠ partial sync</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">id, full_name, email, phone</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">linkedin_url, jobtitle, company</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">lifecyclestage, hs_lead_status</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">poc_status</span><span class="pp pp-miss">missing → cynlr_poc_status</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">outreach_status</span><span class="pp pp-miss">missing → cynlr_outreach_status</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">relationship_strength</span><span class="pp pp-miss">missing → cynlr_relationship_strength</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">next_followup_at</span><span class="pp pp-miss">missing → cynlr_next_followup_at</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">bucket, priority, source</span><span class="pp pp-miss">missing → cynlr_bucket / cynlr_priority</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">entry_source</span><span class="pp pp-miss">missing → cynlr_entry_source</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">batch_id</span><span class="pp pp-miss">missing → cynlr_batch_id</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">stake_holder, category, responded</span><span class="pp pp-dep">legacy — misaligned name</span></div>
+    </div>
+  </div>
+
+  <!-- 2. Company -->
+  <div class="ent e-partial">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">🏢</span>
+      <div><div class="ent-name">Company <span class="ent-count">→ HS Companies</span></div><div class="ent-sub">companies · Domain 2</div></div>
+      <span class="ent-badge">⚠ thin in HS</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">name, domain, website</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">industry, city, country</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">icp_fit</span><span class="pp pp-miss">missing → cynlr_icp_fit</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">segment</span><span class="pp pp-miss">missing → cynlr_segment</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">geography</span><span class="pp pp-miss">missing → cynlr_geography</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">relationship_score</span><span class="pp pp-miss">missing → cynlr_relationship_score</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">email_domain, email_pattern</span><span class="pp pp-miss">missing → cynlr_email_*</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">nda_signed</span><span class="pp pp-miss">missing → cynlr_nda_signed</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">competition, plant_location</span><span class="pp pp-dep">legacy — not in v3 schema</span></div>
+    </div>
+  </div>
+
+  <!-- 3. Deal -->
+  <div class="ent e-partial">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">💼</span>
+      <div><div class="ent-name">Deal <span class="ent-count">→ HS Deals (24)</span></div><div class="ent-sub">deals · Domain 3 · most complete</div></div>
+      <span class="ent-badge">⚠ deprecated fields live</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">stage, amount, closedate, probability</span><span class="pp pp-ok">bidirectional ✓</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">geography, segment, application_type</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">product_services, primary_contact</span><span class="pp pp-ok">in HS</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">technical_win</span><span class="pp pp-miss">missing → cynlr_technical_win</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">budget_confirmed</span><span class="pp pp-miss">missing → cynlr_budget_confirmed</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_owner</span><span class="pp pp-miss">missing → cynlr_owner</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">tags</span><span class="pp pp-miss">missing → cynlr_tags</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">champion, economic_buyer</span><span class="pp pp-dep">deprecated in v3 — still live</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">pain_point_business_need, blockers_risks</span><span class="pp pp-dep">deprecated in v3 — still live</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">action_item, action_item_due_date</span><span class="pp pp-dep">deprecated in v3 — still live</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">decision_criteria, competitors</span><span class="pp pp-dep">deprecated in v3 — still live</span></div>
+    </div>
+  </div>
+
+  <!-- 4. Activity Log -->
+  <div class="ent e-miss">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📋</span>
+      <div><div class="ent-name">Activity Log</div><div class="ent-sub">activity_log · Domain 4 · unified interactions</div></div>
+      <span class="ent-badge">✗ no mirror in HS</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">activity_type, direction, channel</span><span class="pt">local only</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">subject, body, status</span><span class="pt">local only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">HS Engagements API is closest equivalent but not structured the same. Local activity_log is the authoritative interaction store.</div>
+    </div>
+  </div>
+
+  <!-- 5. Discovery Batch -->
+  <div class="ent e-local">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">🗂</span>
+      <div><div class="ent-name">Discovery Batch</div><div class="ent-sub">discovery_batches · cold import cohorts</div></div>
+      <span class="ent-badge">local only</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">name, source_query, created_at</span><span class="pt">SQLite only</span></div>
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">total_found, total_approved</span><span class="pt">SQLite only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">Intentionally local. Batch-level metadata has no HS equivalent. cynlr_batch_id on persons/contacts bridges to this table.</div>
+    </div>
+  </div>
+
+  <!-- 6. Contact Review -->
+  <div class="ent e-local">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">✅</span>
+      <div><div class="ent-name">Contact Review</div><div class="ent-sub">contact_reviews · Nikhil swipe decisions</div></div>
+      <span class="ent-badge">local only</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">contact_id, reviewer, decision</span><span class="pt">SQLite only</span></div>
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">notes, reviewed_at</span><span class="pt">SQLite only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">Pre-pipeline qualifier. Only approved contacts enter a campaign/list. Never needs to sync to HS.</div>
+    </div>
+  </div>
+
+  <!-- 7. Message Template -->
+  <div class="ent e-local">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📝</span>
+      <div><div class="ent-name">Message Template</div><div class="ent-sub">message_templates · reusable copy</div></div>
+      <span class="ent-badge">local only</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">name, channel, subject_tmpl, body_tmpl</span><span class="pt">SQLite only</span></div>
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">tone, version</span><span class="pt">SQLite only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">HS Sequences/Templates exist but are separate workflows. Local templates feed campaign_recipients — not synced to HS.</div>
+    </div>
+  </div>
+
+  <!-- 8. List -->
+  <div class="ent e-local">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📁</span>
+      <div><div class="ent-name">Person List</div><div class="ent-sub">person_lists · campaign targeting groups</div></div>
+      <span class="ent-badge">local only</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">name, description, color</span><span class="pt">SQLite only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">HS Lists exist but are rebuilt dynamically from filters. Local lists are curated post-review (Nikhil-approved only). Not synced.</div>
+    </div>
+  </div>
+
+  <!-- 9. Campaign -->
+  <div class="ent e-local">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📨</span>
+      <div><div class="ent-name">Campaign</div><div class="ent-sub">campaigns · outreach runs</div></div>
+      <span class="ent-badge">local only</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">list_id, channel, status, current_stage</span><span class="pt">SQLite only</span></div>
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">campaign_recipients (draft, sent_at)</span><span class="pt">SQLite only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">HS Sequences are the closest equivalent but operate differently (HS-managed send). Local campaigns drive the CRM send pipeline. Outcomes (replied, meeting) eventually push to HS contact lifecycle.</div>
+    </div>
+  </div>
+
+  <!-- 10. HS Sync Map -->
+  <div class="ent e-local">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">🔗</span>
+      <div><div class="ent-name">HS Sync Map</div><div class="ent-sub">hs_sync_map · local ↔ HubSpot bridge</div></div>
+      <span class="ent-badge">local only</span>
+    </div>
+    <div class="ent-body">
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">entity_type, local_id, hs_id</span><span class="pt">SQLite only</span></div>
+      <div class="prop-row"><div class="dot" style="background:#475569"></div><span class="pn">last_synced, sync_status</span><span class="pt">SQLite only</span></div>
+      <div style="font-size:10px;color:#475569;margin-top:8px;line-height:1.6">Meta-table. Exists only to manage the sync — it IS the bridge. Has no HS equivalent by design.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RIGHT — HUBSPOT ACTUAL -->
+<div>
+  <div class="sec-hd" style="color:#a78bfa">🟣 &nbsp; HubSpot Portal 243444910 — Actual State</div>
+
+  <!-- Contacts -->
+  <div class="ent e-partial">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">👥</span>
+      <div><div class="ent-name">Contacts <span class="ent-count">2,047 records</span></div><div class="ent-sub">13 custom props · 0 cynlr_* props</div></div>
+      <span class="ent-badge">⚠ 9 props needed</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#334155;margin-bottom:6px">Existing custom (contactinformation group)</div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">application_interest</span><span class="pp pp-ok">keep</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">designation, functional_area</span><span class="pp pp-ok">keep</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">lead_source</span><span class="pp pp-ok">keep</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">category, stake_holder</span><span class="pp pp-dep">legacy — rename or retire</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">responded, possible_ways_to_lose</span><span class="pp pp-dep">legacy — no v3 equivalent</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">name_of_company, organization</span><span class="pp pp-dep">redundant — HS company association</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">plant_location, competition</span><span class="pp pp-dep">legacy — not in v3 schema</span></div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#ef4444;margin:8px 0 5px">Need to create (CynLr CRM group)</div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_poc_status</span><span class="pt">select · ICP/Warm/Cold/Dead</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_outreach_status</span><span class="pt">select · Pending/Sent/Replied/…</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_relationship_strength</span><span class="pt">number · 1–10</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_next_followup_at</span><span class="pt">date</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_bucket</span><span class="pt">select · ICP/VC/Founder/…</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_priority</span><span class="pt">number</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_entry_source</span><span class="pt">select · cold/organic/inbound/referral</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_batch_id</span><span class="pt">text</span></div>
+    </div>
+  </div>
+
+  <!-- Companies -->
+  <div class="ent e-partial">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">🏗</span>
+      <div><div class="ent-name">Companies <span class="ent-count">1,175 records</span></div><div class="ent-sub">4 custom props · very thin</div></div>
+      <span class="ent-badge">⚠ 7 props needed</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#334155;margin-bottom:6px">Existing custom (companyinformation group)</div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">company</span><span class="pp pp-dep">redundant — HS has name natively</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">competition, plant_location</span><span class="pp pp-dep">legacy — not in v3 schema</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">specific_use_case_files</span><span class="pp pp-ok">keep — useful file attachment</span></div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#ef4444;margin:8px 0 5px">Need to create (CynLr CRM group)</div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_icp_fit</span><span class="pt">select · Strong/Med/Weak</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_segment</span><span class="pt">select · Ent/SMB/Start/Gov</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_geography</span><span class="pt">select · APAC/NA/EU/…</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_relationship_score</span><span class="pt">number · 1–10</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_email_domain</span><span class="pt">text</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_email_pattern</span><span class="pt">text · first.last / f.last</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_nda_signed</span><span class="pt">booleancheckbox</span></div>
+    </div>
+  </div>
+
+  <!-- Deals -->
+  <div class="ent e-partial">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📊</span>
+      <div><div class="ent-name">Deals <span class="ent-count">24 records · 2 pipelines</span></div><div class="ent-sub">22 custom props · richest object</div></div>
+      <span class="ent-badge">⚠ deprecated fields live</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#10b981;margin-bottom:6px">Keep (used in v3)</div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">geography, segment, application_type</span><span class="pp pp-ok">keep</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">product_services, primary_contact</span><span class="pp pp-ok">keep</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">expected_closed_date, total_value</span><span class="pp pp-ok">keep</span></div>
+      <div class="prop-row"><div class="dot" style="background:#10b981"></div><span class="pn">lead_source, account_name</span><span class="pp pp-ok">keep</span></div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#fb923c;margin:8px 0 5px">Deprecated in v3 — still live in HS</div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">champion, economic_buyer</span><span class="pp pp-dep">→ replaced by deal_people roles</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">pain_point_business_need, blockers_risks</span><span class="pp pp-dep">→ moved to deal_notes</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">action_item, action_item_due_date</span><span class="pp pp-dep">→ removed in v3</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">decision_criteria, competitors</span><span class="pp pp-dep">→ removed in v3</span></div>
+      <div class="prop-row"><div class="dot" style="background:#fb923c"></div><span class="pn">potential_replication, discount</span><span class="pp pp-dep">→ not in v3 schema</span></div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#ef4444;margin:8px 0 5px">Need to create (CynLr Deal Intel group)</div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_technical_win</span><span class="pt">booleancheckbox</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_budget_confirmed</span><span class="pt">booleancheckbox</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_owner</span><span class="pt">select · Vatsal / Rajiv</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_tags</span><span class="pt">text</span></div>
+      <div class="prop-row"><div class="dot" style="background:#ef4444"></div><span class="pn">cynlr_action_due</span><span class="pt">date</span></div>
+    </div>
+  </div>
+
+  <!-- Products (HS extra) -->
+  <div class="ent e-hs">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📦</span>
+      <div><div class="ent-name">Products</div><div class="ent-sub">63 props · 0 custom · HubSpot extra</div></div>
+      <span class="ent-badge">HS only</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:10px;color:#475569;line-height:1.6">Standard HubSpot Products object. Not in v3 local schema. Could be used for CynLr product line (CyNoid, CyRo) if needed. Currently unused.</div>
+    </div>
+  </div>
+
+  <!-- Line Items (HS extra) -->
+  <div class="ent e-hs">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">🧾</span>
+      <div><div class="ent-name">Line Items</div><div class="ent-sub">129 props · HubSpot extra</div></div>
+      <span class="ent-badge">HS only</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:10px;color:#475569;line-height:1.6">Deal line items. Not in v3 schema. Relevant when Schneider/Hyundai SOWs have multi-line pricing. Not yet used.</div>
+    </div>
+  </div>
+
+  <!-- Quotes (HS extra) -->
+  <div class="ent e-hs">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📃</span>
+      <div><div class="ent-name">Quotes</div><div class="ent-sub">191 props · HubSpot extra</div></div>
+      <span class="ent-badge">HS only</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:10px;color:#475569;line-height:1.6">HubSpot Quotes (proposal/pricing docs). Not in v3 schema. Alternative to the DocuSign-based send flow.</div>
+    </div>
+  </div>
+
+  <!-- Investments pipeline -->
+  <div class="ent e-hs">
+    <div class="ent-h" onclick="this.nextSibling.classList.toggle('open')">
+      <span class="ent-icon">📈</span>
+      <div><div class="ent-name">Investments Pipeline</div><div class="ent-sub">7 stages · VC/investor track</div></div>
+      <span class="ent-badge">HS only</span>
+    </div>
+    <div class="ent-body">
+      <div style="font-size:10px;color:#475569;line-height:1.6;margin-bottom:8px">Separate pipeline for investor relations. Not in v3 schema (which only models the Deal Pipeline).</div>
+      <div class="prop-row"><span class="pn">Appointment Scheduled</span></div>
+      <div class="prop-row"><span class="pn">Qualified To Buy</span></div>
+      <div class="prop-row"><span class="pn">Presentation Scheduled</span></div>
+      <div class="prop-row"><span class="pn">Decision Maker Bought-In</span></div>
+      <div class="prop-row"><span class="pn">Contract Sent</span></div>
+      <div class="prop-row"><span class="pn">Closed Won / Closed Lost</span></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- SUMMARY GAP TABLE -->
+<div style="border:1.5px solid #334155;border-radius:12px;overflow:hidden;margin-bottom:28px">
+  <div style="background:#0d1117;padding:12px 18px;font-size:11px;font-weight:700;color:#94a3b8;border-bottom:1px solid #1e293b">
+    Property Gap Summary — What needs to be created in HubSpot
+  </div>
+  <table class="gap-table">
+    <tr><th>HS Object</th><th>Group to Create</th><th>Properties to Add</th><th>Count</th></tr>
+    <tr>
+      <td class="obj">Contacts</td>
+      <td class="field">CynLr CRM</td>
+      <td style="font-size:10px;color:#94a3b8">cynlr_poc_status, cynlr_outreach_status, cynlr_relationship_strength, cynlr_next_followup_at, cynlr_bucket, cynlr_priority, cynlr_source</td>
+      <td><span class="pp pp-miss">7</span></td>
+    </tr>
+    <tr>
+      <td class="obj">Contacts</td>
+      <td class="field">CynLr Acquisition</td>
+      <td style="font-size:10px;color:#94a3b8">cynlr_entry_source, cynlr_batch_id</td>
+      <td><span class="pp pp-miss">2</span></td>
+    </tr>
+    <tr>
+      <td class="obj">Companies</td>
+      <td class="field">CynLr CRM</td>
+      <td style="font-size:10px;color:#94a3b8">cynlr_icp_fit, cynlr_segment, cynlr_geography, cynlr_relationship_score</td>
+      <td><span class="pp pp-miss">4</span></td>
+    </tr>
+    <tr>
+      <td class="obj">Companies</td>
+      <td class="field">CynLr Email Intel</td>
+      <td style="font-size:10px;color:#94a3b8">cynlr_email_domain, cynlr_email_pattern, cynlr_nda_signed</td>
+      <td><span class="pp pp-miss">3</span></td>
+    </tr>
+    <tr>
+      <td class="obj">Deals</td>
+      <td class="field">CynLr Deal Intel</td>
+      <td style="font-size:10px;color:#94a3b8">cynlr_technical_win, cynlr_budget_confirmed, cynlr_owner, cynlr_tags, cynlr_action_due</td>
+      <td><span class="pp pp-miss">5</span></td>
+    </tr>
+    <tr style="background:#0d1117">
+      <td colspan="3" style="font-weight:700;color:#94a3b8;font-size:11px">Total new properties needed</td>
+      <td><span class="pp pp-miss">21</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- DEPRECATED CLEANUP TABLE -->
+<div style="border:1.5px solid #451a03;border-radius:12px;overflow:hidden">
+  <div style="background:#1f1200;padding:12px 18px;font-size:11px;font-weight:700;color:#fb923c;border-bottom:1px solid #451a03">
+    ⚠ Deprecated / Legacy Properties — Still live in HubSpot
+  </div>
+  <table class="gap-table">
+    <tr><th>HS Object</th><th>Property</th><th>Reason</th><th>Action</th></tr>
+    <tr><td class="obj">Contacts</td><td class="field">category, stake_holder</td><td style="font-size:10px;color:#64748b">Generic labels, not in v3 schema</td><td><span class="pp pp-dep">retire</span></td></tr>
+    <tr><td class="obj">Contacts</td><td class="field">responded, possible_ways_to_lose</td><td style="font-size:10px;color:#64748b">No v3 equivalent</td><td><span class="pp pp-dep">retire</span></td></tr>
+    <tr><td class="obj">Contacts</td><td class="field">name_of_company, organization</td><td style="font-size:10px;color:#64748b">Redundant with HS company association</td><td><span class="pp pp-dep">retire</span></td></tr>
+    <tr><td class="obj">Contacts</td><td class="field">plant_location, competition</td><td style="font-size:10px;color:#64748b">Not in v3 schema</td><td><span class="pp pp-dep">retire</span></td></tr>
+    <tr><td class="obj">Companies</td><td class="field">company, competition, plant_location</td><td style="font-size:10px;color:#64748b">Redundant or not in v3</td><td><span class="pp pp-dep">retire</span></td></tr>
+    <tr><td class="obj">Deals</td><td class="field">champion, economic_buyer</td><td style="font-size:10px;color:#64748b">Replaced by deal_people flexible roles</td><td><span class="pp pp-dep">hide (keep data)</span></td></tr>
+    <tr><td class="obj">Deals</td><td class="field">pain_point_business_need, blockers_risks</td><td style="font-size:10px;color:#64748b">Moved to deal_notes</td><td><span class="pp pp-dep">hide (keep data)</span></td></tr>
+    <tr><td class="obj">Deals</td><td class="field">action_item, action_item_due_date</td><td style="font-size:10px;color:#64748b">Removed in v3</td><td><span class="pp pp-dep">hide (keep data)</span></td></tr>
+    <tr><td class="obj">Deals</td><td class="field">decision_criteria, competitors</td><td style="font-size:10px;color:#64748b">Removed in v3</td><td><span class="pp pp-dep">hide (keep data)</span></td></tr>
+    <tr><td class="obj">Deals</td><td class="field">potential_replication, discount</td><td style="font-size:10px;color:#64748b">Not in v3 schema</td><td><span class="pp pp-dep">review</span></td></tr>
+  </table>
+</div>
+
+</div><!-- /wrap -->
+
+<div style="text-align:center;margin-top:36px;font-size:11px;color:#1e293b">
+  Live pull · Portal 243444910 · May 2026 · v3 schema target
+</div>
+
+<script>
+// All cards start collapsed — clicking header toggles body
+// (already wired via onclick in each .ent-h)
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CynLr CRM v2 — Architecture Proposal</title>
+<title>CynLr CRM v3 — Architecture Proposal</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0d13;color:#e2e8f0;padding:40px 24px 80px}
@@ -104,12 +104,13 @@ h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.
 <!-- ── HEADER ── -->
 <div class="header">
   <div class="logo">CynLr · Internal</div>
-  <h1>CRM v2 Architecture Proposal</h1>
-  <p class="tagline">Restructuring our data model to serve two outreach tracks without recreating data.<br>CRM + HubSpot as centre of truth. Maximum reuse. Zero clones.</p>
+  <h1>CRM v3 Architecture Proposal</h1>
+  <p class="tagline">Restructuring our data model to serve two outreach tracks without recreating data.<br>CRM + HubSpot as centre of truth. Maximum reuse. Zero clones. Compliance-ready with full resilience layer.</p>
   <div class="badge-row">
-    <span class="badge b-new">+6 new tables</span>
+    <span class="badge b-new">+13 new tables</span>
     <span class="badge b-merge" style="background:#1a0808;color:#f87171;border:1px solid #450a0a">−3 deprecated</span>
-    <span class="badge b-fix">4 tables enhanced</span>
+    <span class="badge b-fix">8 tables enhanced</span>
+    <span class="badge b-fix">24 hardening fixes</span>
     <span class="badge b-note">SQLite local → Postgres-ready</span>
   </div>
 </div>
@@ -149,6 +150,38 @@ h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.
     <div class="why-card solution">
       <div class="why-card-title">✅ Fix — contact_reviews table</div>
       <div class="why-card-body">One row per review decision. <span class="mono">reviewer, decision, notes, reviewed_at</span>. Stored separately from persons — contact stays clean. Multiple reviewers supported.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 5 — No Enrichment Failure Tracking</div>
+      <div class="why-card-body">Enrichment runs silently. If an Apify job fails or returns no data, there's no record of the failure, no retry, and no way to know which contacts were never enriched. Silent failures are invisible until a campaign goes out with empty fields.</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — enrichment_jobs queue with retry</div>
+      <div class="why-card-body">Every enrichment attempt creates a row in <span class="mono">enrichment_jobs</span> with <span class="mono">status, error, next_retry_at</span>. Exponential backoff. Failed jobs are visible and retryable. No more silent enrichment gaps.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 6 — Email Sends Not Idempotent</div>
+      <div class="why-card-body">If the scheduler crashes mid-send and retries, the same email can go out twice. <span class="mono">campaign_recipients</span> has no uniqueness constraint on the provider message ID, so there's no way to detect a double-send after the fact.</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — provider_message_id UNIQUE + status on campaign_recipients</div>
+      <div class="why-card-body">Adds <span class="mono">provider_message_id UNIQUE, status, sent_at, last_error, attempt_count</span>. The UNIQUE constraint prevents inserting a duplicate send record. Retries are safe — the constraint catches duplicates before the email goes out again.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 7 — No Compliance Suppression</div>
+      <div class="why-card-body">There is no mechanism to prevent sending email to someone who has unsubscribed, bounced permanently, or requested removal. Every send just goes through. This is a compliance risk and a deliverability risk.</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — suppressions table checked before every send</div>
+      <div class="why-card-body">New <span class="mono">suppressions(email, reason, suppressed_at)</span> table. The campaign engine checks this before queuing any recipient. Suppressed addresses never reach the scheduler — blocked at the pre-queue stage.</div>
+    </div>
+    <div class="why-card problem">
+      <div class="why-card-title">🔴 Problem 8 — Tags Are CSV Blobs</div>
+      <div class="why-card-body">The <span class="mono">tags</span> TEXT column on persons stores comma-separated strings. Can't query by tag without LIKE hacks. No normalization — "robotics" and "Robotics" are different. No way to list all tags or count contacts per tag.</div>
+    </div>
+    <div class="why-card solution">
+      <div class="why-card-title">✅ Fix — tags + contact_tags normalized tables</div>
+      <div class="why-card-body">New <span class="mono">tags(name NOCASE UNIQUE)</span> registry and <span class="mono">contact_tags(person_id, tag_id)</span> junction. Case-insensitive dedup enforced at DB level. Full tag analytics: count contacts per tag, filter by tag, bulk re-tag. Old TEXT column removed — no dual-write.</div>
     </div>
   </div>
 </div>
@@ -266,13 +299,31 @@ h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.
       <tr><td class="mono">activities</td><td><span class="tag tag-merge">MERGED</span></td><td>Absorbed into activity_log. Was a separate summary table — now unified interaction record.</td></tr>
       <tr><td class="mono">messages</td><td><span class="tag tag-merge">MERGED</span></td><td>Absorbed into activity_log. Generated copy still stored in campaign_recipients. No duplicate content.</td></tr>
       <tr><td class="mono">companies, persons, deals, activity_log, contact_lists, list_members, campaign_stages, hubspot_*</td><td><span class="tag tag-keep">KEEP</span></td><td>Existing tables retained. Schema-compatible migration via ALTER TABLE — no data loss.</td></tr>
+      <tr><td class="mono">contact_employments</td><td><span class="tag tag-new">NEW</span></td><td>Job history per person (company_id, title, started_at, ended_at, is_current, source). UNIQUE constraint makes enrichment re-runs safe — no duplicate job rows.</td></tr>
+      <tr><td class="mono">contact_emails</td><td><span class="tag tag-new">NEW</span></td><td>Multiple emails per person with email, kind, is_primary, verified_at. Replaces the single email field on persons for contacts who have work + personal addresses.</td></tr>
+      <tr><td class="mono">tags + contact_tags</td><td><span class="tag tag-new">NEW</span></td><td>Normalized tag registry (name NOCASE UNIQUE) and person↔tag junction. Replaces the TEXT blob on persons. No dual-write — old column removed entirely.</td></tr>
+      <tr><td class="mono">contact_education + contact_skills</td><td><span class="tag tag-new">NEW</span></td><td>Structured enrichment data from Apify. contact_education(school, degree, field, started, ended); contact_skills(person_id, skill). Replaces ad-hoc JSON metadata blobs.</td></tr>
+      <tr><td class="mono">suppressions</td><td><span class="tag tag-new">NEW</span></td><td>Email compliance suppression list (email, reason, suppressed_at). Campaign engine checks this before queuing any recipient. Blocks sends pre-queue — never reaches the scheduler.</td></tr>
+      <tr><td class="mono">events</td><td><span class="tag tag-new">NEW</span></td><td>Structured event registry (name, kind, occurred_at, location). AWS Summit etc. Persons gain an event_id FK so you can filter all contacts met at a specific event.</td></tr>
+      <tr><td class="mono">deal_stage_transitions</td><td><span class="tag tag-new">NEW</span></td><td>Auto-logged by trigger on deals.stage UPDATE. Never manually inserted. Records from_stage, to_stage, changed_at. Enables full pipeline velocity analytics.</td></tr>
+      <tr><td class="mono">outreach_history</td><td><span class="tag tag-new">NEW</span></td><td>Archives outreach records when a contact re-enters the pipeline after a previous cycle. Preserves historical outreach context without polluting the active state.</td></tr>
+      <tr><td class="mono">sync_conflicts</td><td><span class="tag tag-new">NEW</span></td><td>HubSpot conflict audit log (entity_type, local_id, hs_id, field, local_value, remote_value). Field-level record of every local vs remote mismatch during sync.</td></tr>
+      <tr><td class="mono">enrichment_jobs</td><td><span class="tag tag-new">NEW</span></td><td>Enrichment job queue with retry tracking (person_id, source, status, error, next_retry_at). Exponential backoff. No more silent enrichment failures — every job is auditable.</td></tr>
+      <tr><td class="mono">contacts_fts</td><td><span class="tag tag-new">NEW</span></td><td>FTS5 virtual table for full-text search across name, headline, about, and company. Kept in sync via trg_fts_insert and trg_fts_update triggers. Instant search at any scale.</td></tr>
+      <tr><td class="mono">company_aliases</td><td><span class="tag tag-new">NEW</span></td><td>Alternate company name variants for dedup (e.g. "BMW" / "BMW Group" / "BMW AG"). Replaces the JSON aliases blob on companies — now queryable and indexable.</td></tr>
+      <tr><td class="mono">persons</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds last_touch_at (auto-updated by trigger on activity_log INSERT), archived_at (soft delete), event_id FK → events, last_enriched_at, last_enrichment_source, photo_hash.</td></tr>
+      <tr><td class="mono">activity_log</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds dedup_key UNIQUE — prevents duplicate log entries. All writes are now idempotent. Safe to retry without double-logging.</td></tr>
+      <tr><td class="mono">campaign_recipients</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds status, sent_at, provider_message_id UNIQUE, last_error, attempt_count. provider_message_id UNIQUE prevents double-sends on retry. Full idempotency.</td></tr>
+      <tr><td class="mono">hs_sync_map</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds local_hash and remote_hash for conflict detection. Any field-level divergence is caught at sync time and written to sync_conflicts for resolution.</td></tr>
+      <tr><td class="mono">contact_reviews</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds is_current flag. trg_review_current trigger automatically flips old reviews to is_current=0 on INSERT of a new review for the same contact.</td></tr>
+      <tr><td class="mono">message_templates</td><td><span class="tag tag-fix">ENHANCED</span></td><td>Adds version INT and superseded_by FK for immutable versioning. Old template versions are never deleted — referenced by historical campaign_recipients rows.</td></tr>
     </tbody>
   </table>
 </div>
 
 <!-- ── BUILD ORDER ── -->
 <div class="section">
-  <div class="section-title">Build Order — 7 Steps</div>
+  <div class="section-title">Build Order — 9 Steps</div>
   <div class="priority-list">
     <div class="priority-item p1">
       <div class="priority-num">1</div>
@@ -330,6 +381,22 @@ h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.
       </div>
       <span class="tag tag-fix priority-tag">Logic change</span>
     </div>
+    <div class="priority-item" style="background:#0f1117;border:1.5px solid #1e293b;border-radius:10px;padding:14px;display:flex;gap:14px;align-items:flex-start">
+      <div class="priority-num" style="background:#1a0808;color:#f87171;border-color:#450a0a">8</div>
+      <div class="priority-content">
+        <h4>Compliance &amp; safety layer</h4>
+        <p>Add suppressions table. Add enrichment_jobs queue with exponential backoff. Add dedup_key UNIQUE to activity_log. Add provider_message_id UNIQUE + status + attempt_count to campaign_recipients. Every outbound operation is now idempotent and compliance-checked.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New tables</span>
+    </div>
+    <div class="priority-item" style="background:#0f1117;border:1.5px solid #1e293b;border-radius:10px;padding:14px;display:flex;gap:14px;align-items:flex-start">
+      <div class="priority-num" style="background:#12124a;color:#818cf8;border-color:#312e81">9</div>
+      <div class="priority-content">
+        <h4>Analytics &amp; search layer</h4>
+        <p>Add contact_employments, contact_emails, contact_education, contact_skills, company_aliases for structured enrichment data. Migrate tags TEXT column to normalized tags + contact_tags tables. Add FTS5 virtual table (contacts_fts) with sync triggers. Add deal_stage_transitions trigger. Add sync_conflicts for HubSpot audit trail.</p>
+      </div>
+      <span class="tag tag-new priority-tag">New tables</span>
+    </div>
   </div>
 </div>
 
@@ -339,7 +406,7 @@ h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.
   <div class="hosting-grid">
     <div class="hosting-card">
       <h4>📁 Now — SQLite Local</h4>
-      <p>Single file database with WAL mode already enabled. Fast, zero infra, good for single user. Keep this for development and solo use.</p>
+      <p>Single file database with WAL mode already enabled. Fast, zero infra, good for single user. Keep this for development and solo use. Backups auto-run to OneDrive on app close via backup_db() in closeEvent.</p>
     </div>
     <div class="hosting-card recommended">
       <h4>☁ Next — Postgres on Supabase (free)</h4>
@@ -371,7 +438,7 @@ h1{font-size:28px;font-weight:800;color:#f8fafc;margin-bottom:8px;line-height:1.
   </div>
 </div>
 
-<div class="footer">CynLr CRM v2 Architecture Proposal · Prepared by Vatsal Raj · For review by Nikhil</div>
+<div class="footer">CynLr CRM v3 Architecture Proposal · Prepared by Vatsal Raj · For review by Nikhil</div>
 
 </div><!-- /page -->
 </body>
